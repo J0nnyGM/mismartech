@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#00AEC7">
+    <link rel="apple-touch-icon" href="/img/icons/icon-192x192.webp">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Garantías | PixelTech Admin</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+    <style>
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #00AEC7;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 font-sans text-brand-black flex h-screen overflow-hidden" style="display: none;">
+    <div id="admin-sidebar"></div>
+    <main class="flex-grow overflow-y-auto relative custom-scroll">
+        <header
+            class="bg-white/90 backdrop-blur-xl border-b border-gray-100 px-8 py-5 flex justify-between items-center sticky top-0 z-20 shadow-sm">
+            <h2 class="font-black text-gray-400 text-[10px] uppercase tracking-[0.3em]">Soporte Técnico</h2>
+            <div class="flex items-center gap-3"><span class="text-xs font-black uppercase">Admin</span>
+                <div class="w-10 h-10 bg-brand-black text-white rounded-xl flex items-center justify-center"><i
+                        class="fa-solid fa-user-shield"></i></div>
+            </div>
+        </header>
+
+        <div class="p-8 max-w-7xl mx-auto">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
+                <div>
+                    <h1 class="text-4xl font-black text-brand-black tracking-tighter uppercase mb-2">Solicitudes de <span class="text-brand-cyan">Garantía</span></h1>
+                    <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">Gestión de reclamos y soporte</p>
+                </div>
+                
+                <div class="bg-white p-3 rounded-2xl border border-gray-200 flex items-center gap-3 w-full md:w-80 shadow-sm">
+                    <i class="fa-solid fa-magnifying-glass text-gray-400 ml-2"></i>
+                    <input type="text" id="search-input" placeholder="Buscar ID, Orden o Serial..." 
+                        class="w-full bg-transparent text-xs font-bold outline-none placeholder:text-gray-300 text-brand-black">
+                </div>
+            </div>
+
+            <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
+                <button onclick="window.filterTab('PENDING')" id="tab-pending" class="tab-btn active px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest bg-brand-cyan text-white shadow-lg shadow-cyan-500/30 transition-all border border-transparent whitespace-nowrap">
+                    <i class="fa-regular fa-clock mr-2"></i> Pendientes
+                </button>
+                <button onclick="window.filterTab('APPROVED')" id="tab-approved" class="tab-btn px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white text-gray-400 border border-gray-200 hover:text-green-600 hover:border-green-200 transition-all whitespace-nowrap">
+                    <i class="fa-solid fa-check mr-2"></i> Aprobadas
+                </button>
+                <button onclick="window.filterTab('REJECTED')" id="tab-rejected" class="tab-btn px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white text-gray-400 border border-gray-200 hover:text-red-500 hover:border-red-200 transition-all whitespace-nowrap">
+                    <i class="fa-solid fa-xmark mr-2"></i> Rechazadas
+                </button>
+                <button onclick="window.filterTab('ALL')" id="tab-all" class="tab-btn px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white text-gray-400 border border-gray-200 hover:text-brand-black hover:border-gray-300 transition-all whitespace-nowrap">
+                    <i class="fa-solid fa-list mr-2"></i> Historial
+                </button>
+            </div>
+
+            <div class="bg-white rounded-[2.5rem] shadow-xl border border-gray-100 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm min-w-[900px] md:min-w-0">
+                        <thead class="bg-slate-50 text-[9px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-100">
+                            <tr>
+                                <th class="px-8 py-6 whitespace-nowrap">Fecha / Orden</th>
+                                <th class="px-8 py-6 whitespace-nowrap">Cliente</th>
+                                <th class="px-8 py-6 whitespace-nowrap">Equipo / Serial</th>
+                                <th class="px-8 py-6 whitespace-nowrap">Motivo</th>
+                                <th class="px-8 py-6 text-center whitespace-nowrap">Estado</th>
+                                <th class="px-8 py-6 text-center whitespace-nowrap">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="warranties-table" class="divide-y divide-gray-50"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="load-more-container" class="py-8 text-center hidden">
+                <button onclick="window.loadMoreWarranties()" class="text-xs font-bold text-gray-400 hover:text-brand-cyan transition uppercase tracking-widest flex items-center justify-center gap-2 mx-auto">
+                    <i class="fa-solid fa-circle-plus"></i> Cargar siguientes 50
+                </button>
+            </div>
+        </div>
+    </main>
+    <div id="manage-modal"
+        class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/90 backdrop-blur-sm">
+        <div
+            class="bg-white w-full max-w-4xl rounded-[2.5rem] shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95">
+
+            <div class="p-8 border-b border-gray-100 flex justify-between items-center bg-slate-50">
+                <div>
+                    <h3 class="text-2xl font-black uppercase tracking-tighter text-brand-black">Gestionar <span
+                            class="text-brand-cyan">Garantía</span></h3>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">ID Solicitud: <span
+                            id="m-id">...</span></p>
+                </div>
+                <button onclick="closeManageModal()"
+                    class="w-10 h-10 rounded-full bg-white text-gray-400 hover:text-brand-black hover:bg-gray-200 transition flex items-center justify-center shadow-sm">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="flex-grow overflow-y-auto p-8 custom-scroll">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+
+                    <div class="space-y-6">
+                        <div class="flex gap-4 items-start bg-slate-50 p-4 rounded-2xl border border-gray-100">
+                            <img id="m-prod-img" src=""
+                                class="w-16 h-16 object-contain bg-white rounded-xl border border-gray-200">
+                            <div>
+                                <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Producto
+                                    Afectado</p>
+                                <h4 id="m-prod-name" class="font-bold text-sm text-brand-black leading-tight mb-1">...
+                                </h4>
+                                <p
+                                    class="text-xs font-mono font-bold text-brand-cyan bg-brand-cyan/10 px-2 py-0.5 rounded inline-block">
+                                    SN: <span id="m-sn">...</span></p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white border border-gray-100 p-4 rounded-2xl">
+                            <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">Datos del
+                                Cliente</p>
+
+                            <p id="m-user-name" class="font-bold text-sm">...</p>
+                            <p id="m-user-email" class="text-xs text-gray-500 mb-2">...</p>
+
+                            <div class="flex items-center gap-2 mb-2">
+                                <div
+                                    class="w-6 h-6 rounded-full bg-green-50 text-green-600 flex items-center justify-center">
+                                    <i class="fa-solid fa-phone text-[10px]"></i>
+                                </div>
+                                <p id="m-user-phone" class="text-xs font-bold text-gray-700">Cargando...</p>
+
+                                <a id="m-whatsapp-link" href="#" target="_blank"
+                                    class="hidden ml-auto bg-green-500 text-white px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-green-600 transition shadow-sm flex items-center gap-2">
+                                    <i class="fa-brands fa-whatsapp text-sm"></i> Chat
+                                </a>
+                            </div>
+
+                            <p id="m-order-id"
+                                class="text-[10px] text-brand-cyan font-bold mt-1 uppercase border-t border-gray-50 pt-2">
+                                Orden: ...</p>
+                        </div>
+                        <div>
+                            <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">Motivo del
+                                Reporte</p>
+                            <div class="bg-red-50 p-4 rounded-2xl border border-red-100">
+                                <p id="m-reason" class="text-sm font-medium text-red-800 italic">...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+
+                        <div>
+                            <p
+                                class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                <i class="fa-solid fa-images text-brand-cyan"></i> Evidencia del Usuario
+                            </p>
+                            <div id="m-evidence-container"
+                                class="grid grid-cols-3 gap-2 bg-slate-50 p-4 rounded-2xl border border-gray-100 min-h-[100px]">
+                                <p class="text-xs text-gray-400 col-span-3 text-center py-4">Sin imágenes adjuntas.</p>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-gray-100 pt-6">
+                            <p class="text-[9px] font-black text-brand-black uppercase tracking-widest mb-4">Resolución
+                                Administrativa</p>
+
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-400 uppercase mb-1">Componentes
+                                        Recibidos (Solo para Aprobar)</label>
+                                    <input type="text" id="m-received" placeholder="Ej: Equipo, Caja, Cargador..."
+                                        class="w-full bg-white border border-gray-200 rounded-xl p-3 text-xs font-bold outline-none focus:border-brand-cyan">
+                                </div>
+
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-400 uppercase mb-1">Notas /
+                                        Respuesta al Cliente</label>
+                                    <textarea id="m-admin-notes" rows="3"
+                                        placeholder="Razón del rechazo o instrucciones..."
+                                        class="w-full bg-white border border-gray-200 rounded-xl p-3 text-xs font-medium outline-none focus:border-brand-cyan"></textarea>
+                                </div>
+
+                                <div>
+                                    <label class="block text-[9px] font-bold text-brand-cyan uppercase mb-1">
+                                        <i class="fa-solid fa-file-pdf mr-1"></i> Informe Técnico (PDF)
+                                    </label>
+                                    <input type="file" id="m-tech-report" accept="application/pdf"
+                                        class="block w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:uppercase file:bg-brand-cyan/10 file:text-brand-cyan hover:file:bg-brand-cyan/20 cursor-pointer">
+                                    <p class="text-[8px] text-gray-400 mt-1 italic">Adjunte el dictamen técnico que
+                                        justifica la aprobación o rechazo.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 bg-slate-50 border-t border-gray-100 flex gap-4">
+                <button onclick="rejectWarranty()"
+                    class="flex-1 bg-red-100 text-red-600 py-4 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-red-500 hover:text-white transition shadow-sm">
+                    <i class="fa-solid fa-xmark mr-2"></i> Rechazar
+                </button>
+                <button onclick="approveWarranty()"
+                    class="flex-1 bg-green-500 text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-green-600 transition shadow-lg shadow-green-500/20">
+                    <i class="fa-solid fa-check mr-2"></i> Aprobar e Ingresar
+                </button>
+            </div>
+        </div>
+    </div>
+    <div id="resolution-modal"
+        class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4 bg-slate-900/95 backdrop-blur-md">
+        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl animate-in zoom-in-95">
+
+            <h3 class="text-xl font-black uppercase text-brand-black mb-6 flex items-center gap-2">
+                <i class="fa-solid fa-handshake-simple text-brand-cyan"></i> Resolución del Caso
+            </h3>
+
+            <p class="text-xs text-gray-500 mb-6 leading-relaxed font-medium">
+                Selecciona cómo se compensará al cliente. Si eliges "Reemplazo", se descontará una unidad del inventario
+                general.
+            </p>
+
+            <div class="space-y-3">
+                <label
+                    class="flex items-center gap-4 p-4 border border-gray-200 rounded-2xl cursor-pointer hover:border-brand-cyan hover:bg-cyan-50/30 transition group">
+                    <input type="radio" name="res-type" value="REPLACEMENT"
+                        class="w-5 h-5 text-brand-cyan focus:ring-brand-cyan" checked>
+                    <div>
+                        <span
+                            class="block text-xs font-black uppercase text-brand-black group-hover:text-brand-cyan">Reemplazo
+                            de Producto</span>
+                        <span class="text-[9px] font-bold text-gray-400">Descuenta 1 unidad del stock</span>
+                    </div>
+                </label>
+
+                <label
+                    class="flex items-center gap-4 p-4 border border-gray-200 rounded-2xl cursor-pointer hover:border-brand-cyan hover:bg-cyan-50/30 transition group">
+                    <input type="radio" name="res-type" value="REFUND"
+                        class="w-5 h-5 text-brand-cyan focus:ring-brand-cyan">
+                    <div>
+                        <span
+                            class="block text-xs font-black uppercase text-brand-black group-hover:text-brand-cyan">Devolución
+                            de Dinero</span>
+                        <span class="text-[9px] font-bold text-gray-400">No afecta inventario físico</span>
+                    </div>
+                </label>
+
+                <label
+                    class="flex items-center gap-4 p-4 border border-gray-200 rounded-2xl cursor-pointer hover:border-brand-cyan hover:bg-cyan-50/30 transition group">
+                    <input type="radio" name="res-type" value="CUSTOM"
+                        class="w-5 h-5 text-brand-cyan focus:ring-brand-cyan">
+                    <div>
+                        <span
+                            class="block text-xs font-black uppercase text-brand-black group-hover:text-brand-cyan">Otra
+                            Solución</span>
+                        <span class="text-[9px] font-bold text-gray-400">Nota de crédito, reparación, etc.</span>
+                    </div>
+                </label>
+            </div>
+
+            <div class="flex gap-4 mt-8">
+                <button onclick="document.getElementById('resolution-modal').classList.add('hidden')"
+                    class="flex-1 bg-slate-100 text-gray-500 py-3 rounded-xl font-black text-[10px] uppercase">Cancelar</button>
+                <button onclick="confirmResolution()"
+                    class="flex-1 bg-brand-black text-white py-3 rounded-xl font-black text-[10px] uppercase hover:bg-brand-cyan hover:text-brand-black transition shadow-lg">Confirmar</button>
+            </div>
+        </div>
+    </div>
+    <script type="module" src="../js/admin-warranties.js"></script>
+    <script type="module" src="../js/admin-guard.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#00AEC7">
+    <link rel="apple-touch-icon" href="/img/icons/icon-192x192.webp">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Envíos y Devoluciones | PixelTech</title>
+    <link rel="canonical" href="https://pixeltechcol.com/shiping.html" />
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+    <style>.no-scrollbar::-webkit-scrollbar { display: none; }</style>
+</head>
+<body class="bg-white font-sans text-brand-black antialiased flex flex-col min-h-screen">
+
+    <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php'; ?>
+
+    <main class="flex-grow w-full max-w-4xl mx-auto px-6 py-12 md:py-20">
+        
+        <div class="text-center mb-12">
+            <h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-brand-black mb-4">
+                Envíos y <span class="text-brand-cyan">Devoluciones</span>
+            </h1>
+            <div class="h-1 w-20 bg-brand-cyan mx-auto rounded-full"></div>
+        </div>
+
+        <div class="space-y-10 text-sm md:text-base text-gray-600 leading-relaxed text-justify">
+            
+            <div class="flex items-start gap-4">
+                <div class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center shrink-0 text-brand-cyan">
+                    <i class="fa-solid fa-coins"></i>
+                </div>
+                <div>
+                    <h3 class="font-black text-brand-black uppercase tracking-widest mb-1 text-xs md:text-sm">Costos de Envío</h3>
+                    <p>El costo de envío para cualquier ciudad de Colombia es asumido por el cliente.</p>
+                    
+                    <div id="free-shipping-policy" class="mt-3 p-3 bg-brand-cyan/10 border border-brand-cyan/20 rounded-xl hidden">
+                        <p class="font-bold text-brand-cyan flex items-center gap-2">
+                            <i class="fa-solid fa-gift"></i> 
+                            <span>¡Disfruta de envío GRATIS por compras superiores a <strong id="free-shipping-amount" class="text-brand-black">$--</strong>!</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-start gap-4">
+                <div class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center shrink-0 text-brand-cyan">
+                    <i class="fa-solid fa-truck-fast"></i>
+                </div>
+                <div>
+                    <h3 class="font-black text-brand-black uppercase tracking-widest mb-1 text-xs md:text-sm">Transportadoras</h3>
+                    <p>Las transportadoras con las cuales trabajamos son <strong>Interrapidísimo, Coordinadora y Envía</strong> (Es aleatoria la transportadora). Si desea que el envío se realice por una transportadora diferente, debe avisarnos con anticipación.</p>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 p-6 rounded-3xl border border-gray-100 flex flex-col md:flex-row gap-6">
+                <div class="flex-1">
+                    <h3 class="font-black text-brand-black uppercase tracking-widest mb-3 text-xs md:text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-location-dot text-brand-red"></i> Envíos Bogotá (Contraentrega)
+                    </h3>
+                    <p class="text-sm">
+                        Si el pedido es confirmado de lunes a viernes antes de las <strong id="dispatch-time-bogota">3:00pm</strong> o el sábado antes de las <strong>1:30pm</strong>; el producto llegará el mismo día, de lo contrario llegará el día siguiente (Esta condición NO aplica para el día domingo).
+                    </p>
+                </div>
+                <div class="flex-1 border-t md:border-t-0 md:border-l border-gray-200 pt-6 md:pt-0 md:pl-6">
+                    <h3 class="font-black text-brand-black uppercase tracking-widest mb-3 text-xs md:text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-earth-americas text-brand-cyan"></i> Envíos Nacionales
+                    </h3>
+                    <p class="text-sm">
+                        El envío se realizará el mismo día si la compra es confirmada antes de las <strong id="dispatch-time-national">3:00pm</strong>. El tiempo de llegada es de 2 a 5 días hábiles dependiendo de la ciudad (Ciudades principales usualmente es 2 días). Se realiza envío de la guía para seguimiento.
+                    </p>
+                </div>
+            </div>
+
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-5 rounded-r-xl">
+                <h3 class="font-black text-brand-black uppercase tracking-widest mb-2 text-xs md:text-sm">Importante: Devoluciones por Entrega Fallida</h3>
+                <p class="text-sm text-gray-700">
+                    Se hará confirmación de la dirección antes de realizar el envío. En caso de que se realice el envío y la transportadora realice varios intentos de entrega que no sean exitosos causando que el producto sea devuelto a nuestras oficinas, se dará cancelación a la orden y se devolverá el dinero (descontando los costos logísticos incurridos).
+                </p>
+            </div>
+
+            <section class="bg-slate-900 text-gray-300 p-6 rounded-3xl mt-8">
+                <h3 class="font-black text-white uppercase tracking-widest mb-2 text-sm">Derecho de Retracto y Devoluciones</h3>
+                <p class="text-xs md:text-sm mb-3">
+                    De acuerdo con la ley colombiana, el cliente tiene derecho a ejercer el retracto de su compra dentro de los <strong>cinco (5) días hábiles</strong> siguientes a la entrega del producto. 
+                </p>
+                <ul class="list-disc pl-5 space-y-2 text-xs md:text-sm mb-3">
+                    <li>El producto debe ser devuelto en las mismas condiciones en que se recibió (nuevo, sin uso, con sellos, empaques originales y accesorios completos).</li>
+                    <li>Los costos de transporte para la devolución del producto por retracto deben ser asumidos por el cliente.</li>
+                </ul>
+                <h3 class="font-black text-white uppercase tracking-widest mt-4 mb-2 text-sm">Política de Reembolsos</h3>
+                <p class="text-xs md:text-sm">
+                    Una vez recibido el producto en nuestras instalaciones y verificado su perfecto estado, se procederá con el reembolso del dinero. El tiempo estimado para que el dinero se vea reflejado en la cuenta del cliente es de <strong>5 a 15 días hábiles</strong>, dependiendo del método de pago utilizado (PSE, Tarjeta de Crédito, etc.).
+                </p>
+            </section>
+
+        </div>
+    </main>
+
+    <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php'; ?>
+
+    <script type="module">
+        import { loadGlobalHeader, loadGlobalFooter } from '../js/global-components.js?v=2.0';        import { db, doc, onSnapshot } from '../js/firebase-init.js'; // Importamos onSnapshot
+
+        // 1. Cargar componentes visuales estáticos
+        loadGlobalHeader();
+        loadGlobalFooter();
+
+        // 2. Lógica de Smart Real-time Cache para Políticas
+        document.addEventListener('DOMContentLoaded', () => {
+            const freeShippingPolicy = document.getElementById('free-shipping-policy');
+            const freeShippingAmount = document.getElementById('free-shipping-amount');
+            const timeBogota = document.getElementById('dispatch-time-bogota');
+            const timeNational = document.getElementById('dispatch-time-national');
+
+            // Función para renderizar los datos
+            const renderPolicies = (data) => {
+                if (!data) return;
+
+                // Envío Gratis
+                if (data.freeThreshold && data.freeThreshold > 0) {
+                    freeShippingAmount.textContent = `$${parseInt(data.freeThreshold).toLocaleString('es-CO')}`;
+                    freeShippingPolicy.classList.remove('hidden');
+                } else {
+                    freeShippingPolicy.classList.add('hidden');
+                }
+
+                // Hora de corte (Formateando ej. "14:00" a "2:00 PM")
+                if (data.cutoffTime) {
+                    try {
+                        const [hours, minutes] = data.cutoffTime.split(':');
+                        let h = parseInt(hours);
+                        const ampm = h >= 12 ? 'pm' : 'am';
+                        h = h % 12;
+                        h = h ? h : 12; // el '0' debe ser '12'
+                        const formattedTime = `${h}:${minutes}${ampm}`;
+                        
+                        timeBogota.textContent = formattedTime;
+                        timeNational.textContent = formattedTime;
+                    } catch(e) {}
+                }
+            };
+
+            // Paso A: Leer de Caché Local (Instantáneo)
+            const cachedConfigStr = sessionStorage.getItem('pixeltech_shipping_config');
+            if (cachedConfigStr) {
+                try {
+                    renderPolicies(JSON.parse(cachedConfigStr));
+                } catch(e){}
+            }
+
+            // Paso B: Conexión onSnapshot (Escucha cambios en vivo)
+            onSnapshot(doc(db, "config", "shipping"), (snap) => {
+                if (snap.exists()) {
+                    const data = snap.data();
+                    
+                    // Solo actualizamos si cambió para ahorrar recursos
+                    const currentCache = sessionStorage.getItem('pixeltech_shipping_config');
+                    if (currentCache !== JSON.stringify(data)) {
+                        console.log("🚚 [Políticas] Reglas de envío actualizadas en tiempo real.");
+                        sessionStorage.setItem('pixeltech_shipping_config', JSON.stringify(data));
+                        renderPolicies(data);
+                    }
+                }
+            }, (error) => {
+                console.error("Error al cargar políticas de envío:", error);
+            });
+        });
+    </script>
+</body>
+</html>

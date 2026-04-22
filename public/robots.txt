@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+# No indexar áreas privadas o irrelevantes para SEO
+Disallow: /admin/
+Disallow: /profile.html
+Disallow: /shop/cart.html
+Disallow: /shop/checkout.html
+Disallow: /shop/success.html
+Disallow: /auth/
+Disallow: /antiguo/
+
+# Indicar donde está el sitemap
+Sitemap: https://pixeltechcol.com/sitemap.xml

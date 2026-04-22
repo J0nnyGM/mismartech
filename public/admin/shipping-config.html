@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#00AEC7">
+    <link rel="apple-touch-icon" href="/img/icons/icon-192x192.webp">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración de Envíos | PixelTech Admin</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        .admin-input-group {
+            background-color: #ffffff;
+            border: 2px solid #f3f4f6; 
+            border-radius: 1.25rem;
+            padding: 1rem 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .admin-input-group:focus-within {
+            border-color: #00AEC7; 
+            box-shadow: 0 10px 20px -10px rgba(0, 174, 199, 0.1);
+        }
+
+        .admin-input-group label {
+            display: block;
+            font-size: 9px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: #9ca3af;
+            margin-bottom: 0.25rem;
+        }
+
+        .admin-input-group input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-weight: 700;
+            font-size: 1rem;
+            color: #111827;
+        }
+
+        .city-badge {
+            background: #f3f4f6;
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans text-brand-black flex h-screen overflow-hidden" style="display: none;">
+
+    <div id="admin-sidebar"></div>
+
+    <main class="flex-grow overflow-y-auto no-scrollbar">
+        <header class="bg-white border-b border-gray-200 px-10 py-6 flex justify-between items-center sticky top-0 z-50 shadow-sm">
+            <div>
+                <h1 class="text-3xl font-black uppercase tracking-tighter">Logística y <span class="text-gray-300">Envíos</span></h1>
+                <p class="text-[9px] font-bold text-gray-400 uppercase tracking-[0.2em]">Configuración de tarifas nacionales</p>
+            </div>
+            <button id="btn-save-config" class="bg-brand-black text-white px-10 py-4 rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] shadow-2xl hover:bg-brand-cyan hover:text-brand-black transition-all">
+                Guardar Cambios
+            </button>
+        </header>
+
+        <div class="p-10 max-w-6xl mx-auto space-y-10">
+            
+            <div class="bg-white rounded-[2.5rem] p-10 border border-gray-100 shadow-sm">
+                <h2 class="text-xs font-black uppercase tracking-[0.3em] text-brand-cyan mb-8">Parámetros Generales</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="admin-input-group">
+                        <label>Umbral Envío Gratis (COP) *</label>
+                        <input type="text" id="free-threshold" class="currency-input" placeholder="$ 0">
+                        <p class="text-[8px] text-gray-400 mt-2 font-bold uppercase">Compras superiores a este valor tendrán envío $0</p>
+                    </div>
+                    <div class="admin-input-group">
+                        <label>Hora de Corte (Mismo Día) *</label>
+                        <input type="time" id="cutoff-time" class="font-black text-lg">
+                        <p class="text-[8px] text-gray-400 mt-2 font-bold uppercase">Pedidos después de esta hora pasan a "Despacho Mañana"</p>
+                    </div>
+                    <div class="admin-input-group">
+                        <label>Tarifa Estándar (Resto del país) *</label>
+                        <input type="text" id="default-price" class="currency-input" placeholder="$ 0">
+                        <p class="text-[8px] text-gray-400 mt-2 font-bold uppercase">Se aplicará a ciudades no definidas en grupos</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-[2.5rem] p-10 border border-gray-100 shadow-sm">
+                <div class="flex justify-between items-center mb-8">
+                    <div>
+                        <h2 class="text-xs font-black uppercase tracking-[0.3em] text-brand-cyan">Zonas de Tarifa Especial</h2>
+                        <p class="text-[9px] text-gray-400 font-bold uppercase mt-1">Define precios específicos por grupos de municipios</p>
+                    </div>
+                    <button id="btn-add-group" class="bg-slate-100 text-brand-black px-6 py-3 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-brand-cyan transition">
+                        <i class="fa-solid fa-plus mr-2"></i> Nuevo Grupo
+                    </button>
+                </div>
+
+                <div id="groups-container" class="space-y-6">
+                    <div class="p-12 text-center border-2 border-dashed border-gray-100 rounded-[2rem]">
+                        <i class="fa-solid fa-truck-dot text-3xl text-gray-100 mb-4"></i>
+                        <p class="text-gray-300 font-black uppercase text-[10px] tracking-widest">Cargando reglas de envío...</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="city-modal" class="hidden fixed inset-0 bg-brand-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-6">
+        <div class="bg-white w-full max-w-xl rounded-[2.5rem] p-10 shadow-2xl">
+            <div class="flex justify-between items-center mb-8">
+                <h3 class="text-xl font-black uppercase tracking-tighter">Añadir <span class="text-gray-300">Ciudades</span></h3>
+                <button id="btn-close-modal" class="text-gray-400 hover:text-brand-red transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+
+            <div class="space-y-6">
+                <div class="admin-input-group">
+                    <label>Departamento</label>
+                    <select id="modal-dept-select" class="w-full bg-transparent border-none outline-none font-bold text-sm">
+                        <option value="">Seleccione Departamento...</option>
+                    </select>
+                </div>
+                <div class="admin-input-group">
+                    <label>Ciudad / Municipio</label>
+                    <select id="modal-city-select" class="w-full bg-transparent border-none outline-none font-bold text-sm" disabled>
+                        <option value="">Seleccione Ciudad...</option>
+                    </select>
+                </div>
+                <button id="btn-confirm-city" class="w-full bg-brand-cyan text-brand-black py-5 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-brand-black hover:text-white transition shadow-lg">
+                    Vincular al Grupo
+                </button>
+            </div>
+        </div>
+    </div>
+    <script type="module" src="../js/admin-guard.js"></script>
+    <script type="module" src="../js/admin-shipping.js"></script>
+</body>
+</html>

@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#00AEC7">
+    <link rel="apple-touch-icon" href="/img/icons/icon-192x192.webp">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finalizar Compra | PixelTech Col</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+    <style>
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .checkout-input-group {
+            background-color: #ffffff;
+            border: 2px solid #f3f4f6;
+            border-radius: 1.25rem;
+            padding: 1rem 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .checkout-input-group:focus-within {
+            border-color: #00AEC7;
+            box-shadow: 0 10px 20px -10px rgba(0, 174, 199, 0.2);
+        }
+
+        .checkout-input-group label {
+            display: block;
+            font-size: 9px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: #9ca3af;
+            margin-bottom: 0.25rem;
+        }
+
+        .checkout-input-group input,
+        .checkout-input-group select {
+            width: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-weight: 700;
+            font-size: 0.875rem;
+            color: #111827;
+        }
+
+        /* Checkbox personalizado */
+        .checkbox-wrapper input:checked+div {
+            background-color: #00AEC7;
+            border-color: #00AEC7;
+        }
+
+        .payment-disabled {
+            opacity: 0.5;
+            pointer-events: none;
+            filter: grayscale(100%);
+        }
+
+        /* Animación pulso para mensaje de despacho */
+        .pulse-text {
+            animation: pulse-green 2s infinite;
+        }
+
+        @keyframes pulse-green {
+            0% {
+                text-shadow: 0 0 0 rgba(16, 185, 129, 0.4);
+            }
+
+            70% {
+                text-shadow: 0 0 10px rgba(16, 185, 129, 0);
+            }
+
+            100% {
+                text-shadow: 0 0 0 rgba(16, 185, 129, 0);
+            }
+        }
+
+        .radio-circle {
+            transition: all 0.3s ease;
+        }
+    </style>
+    <link rel="modulepreload" href="js/firebase-init.js">
+    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js">
+    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js">
+    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js">
+    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js">
+    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js">
+</head>
+
+<body class="bg-slate-50 font-sans text-brand-black antialiased">
+
+    <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php'; ?>
+
+    <main class="container mx-auto px-6 py-12">
+        <div class="flex items-center justify-between mb-12">
+            <a href="cart.html"
+                class="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-cyan transition">
+                <i class="fa-solid fa-arrow-left-long"></i> Volver al Carrito
+            </a>
+            <div class="hidden md:flex items-center gap-4">
+                <span class="text-[10px] font-black text-gray-300 uppercase tracking-widest">01 Carrito</span>
+                <div class="w-8 h-px bg-gray-200"></div>
+                <span
+                    class="text-[10px] font-black text-brand-black uppercase tracking-widest underline decoration-brand-cyan decoration-2 underline-offset-8">02
+                    Datos de Envío</span>
+                <div class="w-8 h-px bg-gray-200"></div>
+                <span class="text-[10px] font-black text-gray-300 uppercase tracking-widest">03 Confirmación</span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-16 max-w-7xl mx-auto">
+
+            <div class="lg:col-span-7 space-y-10">
+                <div>
+                    <h1 class="text-4xl font-black tracking-tighter uppercase mb-2">Finalizar <span
+                            class="text-gray-300">Pedido</span></h1>
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Completa la información técnica
+                        para el despacho.</p>
+                </div>
+
+                <form id="checkout-form" class="space-y-6">
+
+                    <div
+                        class="space-y-6 bg-slate-50 p-6 rounded-[2rem] border border-gray-100 relative overflow-hidden">
+                        <div
+                            class="absolute top-0 right-0 w-32 h-32 bg-brand-cyan/5 rounded-bl-[100%] -z-0 pointer-events-none">
+                        </div>
+
+                        <div
+                            class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4 relative z-10">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-map-location-dot text-brand-cyan"></i>
+                                <span class="text-[10px] font-black uppercase tracking-widest text-gray-400">Datos de
+                                    Envío</span>
+                            </div>
+                            <select id="saved-addresses-select"
+                                class="w-full md:w-auto text-[9px] font-black uppercase bg-white border border-gray-200 px-3 py-2 rounded-xl text-brand-cyan outline-none cursor-pointer hover:border-brand-cyan transition shadow-sm">
+                                <option value="">-- Mis Direcciones Guardadas --</option>
+                            </select>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+                            <div class="checkout-input-group bg-white md:col-span-1">
+                                <label>No. Identificación *</label>
+                                <input type="text" id="cust-id-number" required placeholder="C.C. o NIT">
+                            </div>
+                            <div class="checkout-input-group bg-white md:col-span-2">
+                                <label>Nombre Completo *</label>
+                                <input type="text" id="cust-name" required placeholder="Nombre del destinatario">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+                            <div class="checkout-input-group bg-white">
+                                <label>Teléfono / Móvil *</label>
+                                <input type="tel" id="cust-phone" required placeholder="300 123 4567">
+                            </div>
+                            <div class="checkout-input-group bg-white">
+                                <label>Código Postal</label>
+                                <input type="text" id="cust-postal" placeholder="Ej: 110111">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-1 gap-6 relative z-10">
+                            <div class="checkout-input-group bg-white">
+                                <label>Dirección Exacta *</label>
+                                <input type="text" id="cust-address" required placeholder="Calle 123 # 45-67, Apto 101">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+                            <div class="checkout-input-group bg-white">
+                                <label>Departamento *</label>
+                                <select id="shipping-dept" class="cursor-pointer">
+                                    <option value="">Cargando...</option>
+                                </select>
+                            </div>
+                            <div class="checkout-input-group bg-white">
+                                <label>Ciudad / Municipio *</label>
+                                <select id="shipping-city" class="cursor-pointer" disabled>
+                                    <option value="">Seleccione Depto primero</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="checkout-input-group bg-white relative z-10">
+                            <label>Notas / Referencias de llegada</label>
+                            <input type="text" id="cust-notes"
+                                placeholder="Ej: Casa blanca de rejas negras, dejar en portería.">
+                        </div>
+
+                        <label
+                            class="checkbox-wrapper flex items-center gap-3 cursor-pointer group relative z-10 w-fit">
+                            <input type="checkbox" id="save-address-check" class="peer hidden">
+                            <div
+                                class="w-5 h-5 border-2 border-gray-300 rounded-md flex items-center justify-center transition-colors bg-white">
+                                <i class="fa-solid fa-check text-white text-xs opacity-0 peer-checked:opacity-100"></i>
+                            </div>
+                            <span
+                                class="text-[10px] font-black uppercase tracking-widest text-gray-400 peer-checked:text-brand-cyan transition">Guardar
+                                esta dirección para futuros pedidos</span>
+                        </label>
+                    </div>
+
+                    <div class="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm mt-8">
+                        <label class="checkbox-wrapper flex items-center gap-4 cursor-pointer group">
+                            <input type="checkbox" id="check-need-invoice" class="peer hidden">
+                            <div
+                                class="w-5 h-5 border-2 border-gray-300 rounded-md flex items-center justify-center transition-colors bg-white">
+                                <i class="fa-solid fa-check text-white text-xs opacity-0 peer-checked:opacity-100"></i>
+                            </div>
+                            <span
+                                class="text-[10px] font-black uppercase tracking-widest text-gray-500 group-hover:text-brand-cyan transition">¿Necesitas
+                                Factura Electrónica a Empresa?</span>
+                        </label>
+
+                        <div id="billing-form-checkout"
+                            class="hidden space-y-6 pt-8 border-t border-gray-50 mt-6 animate-in fade-in slide-in-from-top-2">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="checkout-input-group">
+                                    <label>Razón Social / Nombre</label>
+                                    <input type="text" id="bill-name">
+                                </div>
+                                <div class="checkout-input-group">
+                                    <label>NIT / Cédula</label>
+                                    <input type="text" id="bill-taxid">
+                                </div>
+                                <div class="checkout-input-group">
+                                    <label>Dirección Fiscal</label>
+                                    <input type="text" id="bill-address">
+                                </div>
+                                <div class="checkout-input-group">
+                                    <label>Ciudad Fiscal</label>
+                                    <input type="text" id="bill-city">
+                                </div>
+                                <div class="checkout-input-group">
+                                    <label>Correo Facturación</label>
+                                    <input type="email" id="bill-email">
+                                </div>
+                                <div class="checkout-input-group">
+                                    <label>Teléfono Contacto</label>
+                                    <input type="text" id="bill-phone">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4 mt-8">
+                        <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest block ml-2 mb-3">
+                            <i class="fa-regular fa-credit-card mr-1"></i> Selecciona Método de Pago
+                        </label>
+
+                        <label id="manual-container" class="cursor-pointer relative block group">
+                            <input type="radio" name="payment_method" value="MANUAL" id="payment-manual"
+                                class="peer sr-only" checked>
+
+                            <div
+                                class="bg-white p-5 rounded-[1.5rem] border-2 border-gray-100 shadow-sm flex items-start gap-5 transition-all duration-300 hover:border-gray-300 
+                                peer-checked:border-gray-600 peer-checked:bg-white peer-checked:shadow-xl peer-checked:scale-[1.01]
+                                peer-checked:[&_.radio-circle]:bg-gray-600 peer-checked:[&_.radio-circle]:border-gray-600 peer-checked:[&_.radio-icon]:opacity-100 peer-checked:[&_.radio-icon]:scale-100">
+
+                                <div
+                                    class="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center text-gray-600 text-xl transition-colors mt-1 shrink-0">
+                                    <i class="fa-solid fa-building-columns"></i>
+                                </div>
+
+                                <div class="flex-grow">
+                                    <h4 class="font-black text-sm uppercase tracking-wide text-brand-black mb-3">
+                                        Transferencia Manual</h4>
+
+                                    <div class="text-xs text-gray-600 space-y-4 leading-relaxed">
+                                        <p>
+                                            Realiza el pago y envía el comprobante a nuestro WhatsApp:
+                                            <a href="https://wa.me/573009046450" target="_blank"
+                                                class="inline-flex items-center gap-1 font-black text-brand-black hover:text-green-600 transition underline decoration-green-500 underline-offset-2 text-sm">
+                                                <i class="fa-brands fa-whatsapp text-green-500 text-lg"></i> 3009046450
+                                            </a>
+                                        </p>
+
+                                        <div class="grid grid-cols-1 gap-3">
+                                            <div class="bg-slate-50 p-4 rounded-2xl border border-gray-200">
+                                                <div class="flex items-center gap-2 mb-2">
+                                                    <span class="w-2 h-2 rounded-full bg-brand-black"></span>
+                                                    <p class="font-black text-sm text-brand-black uppercase">Bancolombia
+                                                        / Ahorros</p>
+                                                </div>
+                                                <div class="pl-4 space-y-1">
+                                                    <p class="text-sm font-bold text-gray-800">Pixel Tech Col SAS</p>
+                                                    <p class="text-sm font-bold text-gray-800">NIT. 901.561.037</p>
+
+                                                    <div class="flex items-center gap-2 mt-2">
+                                                        <p
+                                                            class="font-mono font-black text-base text-brand-black bg-white px-3 py-1.5 rounded-lg border border-gray-200 tracking-wide">
+                                                            237-000046-12</p>
+                                                        <button type="button"
+                                                            onclick="copyToClipboard('23700004612', this)"
+                                                            class="bg-brand-black text-white px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase hover:bg-brand-cyan transition shadow-sm flex items-center gap-1">
+                                                            <i class="fa-regular fa-copy"></i> Copiar
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="bg-slate-50 p-4 rounded-2xl border border-gray-200">
+                                                <div class="flex items-center gap-2 mb-2">
+                                                    <span class="w-2 h-2 rounded-full bg-purple-600"></span>
+                                                    <p class="font-black text-sm text-brand-black uppercase">Nequi /
+                                                        Daviplata</p>
+                                                </div>
+                                                <div class="pl-4 space-y-1">
+                                                    <p class="text-sm font-bold text-gray-800">Lina Gil</p>
+                                                    <div class="flex items-center gap-2 mt-2">
+                                                        <p
+                                                            class="font-mono font-black text-base text-brand-black bg-white px-3 py-1.5 rounded-lg border border-gray-200 tracking-wide">
+                                                            3003729020</p>
+                                                        <button type="button"
+                                                            onclick="copyToClipboard('3003729020', this)"
+                                                            class="bg-brand-black text-white px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase hover:bg-brand-cyan transition shadow-sm flex items-center gap-1">
+                                                            <i class="fa-regular fa-copy"></i> Copiar
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <p
+                                            class="text-[11px] text-red-500 font-bold bg-red-50 p-3 rounded-xl border border-red-100 flex gap-2 items-start">
+                                            <i class="fa-solid fa-circle-info mt-0.5"></i>
+                                            Tu pedido no se procesará hasta que se haya recibido el importe en nuestra
+                                            cuenta.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div
+                                    class="radio-circle w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center transition-all duration-300 shrink-0 mt-1 bg-white">
+                                    <i
+                                        class="radio-icon fa-solid fa-check text-white text-[10px] opacity-0 transform scale-50 transition-all duration-300"></i>
+                                </div>
+                            </div>
+                        </label>
+
+                        <label id="cod-container" class="cursor-pointer relative block group">
+                            <input type="radio" name="payment_method" value="COD" id="payment-cod" class="peer sr-only">
+
+                            <div
+                                class="bg-white p-5 rounded-[1.5rem] border-2 border-gray-100 shadow-sm flex items-center gap-5 transition-all duration-300 hover:border-brand-black/30 
+                                    peer-checked:border-brand-black peer-checked:bg-gray-50 peer-checked:shadow-xl peer-checked:scale-[1.01]
+                                    peer-checked:[&_.radio-circle]:bg-brand-black peer-checked:[&_.radio-circle]:border-brand-black peer-checked:[&_.radio-icon]:opacity-100 peer-checked:[&_.radio-icon]:scale-100">
+
+                                <div
+                                    class="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center text-brand-black text-xl transition-colors group-hover:bg-gray-200 shrink-0">
+                                    <i class="fa-solid fa-hand-holding-dollar"></i>
+                                </div>
+
+                                <div class="flex-grow">
+                                    <h4 class="font-black text-sm uppercase tracking-wide text-brand-black mb-1">Pago
+                                        Contra Entrega</h4>
+                                    <p class="text-[10px] text-gray-500 font-bold leading-tight">Paga en efectivo
+                                        únicamente al recibir tu pedido. (SOLO APLICA BOGOTÁ)</p>
+                                    <p id="cod-warning"
+                                        class="text-[9px] text-red-500 font-black mt-2 flex items-center gap-1 hidden">
+                                        <i class="fa-solid fa-triangle-exclamation"></i> Solo disponible en Bogotá
+                                    </p>
+                                </div>
+
+                                <div
+                                    class="radio-circle w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center transition-all duration-300 shrink-0 bg-white">
+                                    <i
+                                        class="radio-icon fa-solid fa-check text-white text-[10px] opacity-0 transform scale-50 transition-all duration-300"></i>
+                                </div>
+                            </div>
+                        </label>
+
+                        <!-- NUEVO BOTÓN PSE (ESTILO UNIFICADO) -->
+                        <label class="cursor-pointer relative block group">
+                            <input type="radio" name="payment_method" value="PSE" id="payment-pse" class="peer sr-only">
+
+                            <div class="bg-white p-5 rounded-[1.5rem] border-2 border-gray-100 shadow-sm flex items-center gap-5 transition-all duration-300 hover:border-blue-500/50 
+                                peer-checked:border-blue-600 peer-checked:bg-blue-50/10 peer-checked:shadow-xl peer-checked:shadow-blue-500/10 peer-checked:scale-[1.01]
+                                peer-checked:[&_.radio-circle]:bg-blue-600 peer-checked:[&_.radio-circle]:border-blue-600 peer-checked:[&_.radio-icon]:opacity-100 peer-checked:[&_.radio-icon]:scale-100">
+
+                                <!-- CONTENEDOR DEL ÍCONO UNIFICADO -->
+                                <div class="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center shrink-0 border border-blue-100/50 p-2">
+                                    <img src="/img/icons/pse.webp" alt="Pago seguro con PSE" title="PSE" class="w-full h-full object-contain" loading="lazy">
+                                </div>
+
+                                <div class="flex-grow">
+                                    <h4 class="font-black text-sm uppercase tracking-wide text-brand-black mb-1">Pago con PSE</h4>
+                                    <p class="text-[10px] text-gray-500 font-bold leading-tight">Débito bancario seguro (Ahorros o Corriente).</p>
+                                </div>
+
+                                <div class="radio-circle w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center transition-all duration-300 shrink-0 bg-white">
+                                    <i class="radio-icon fa-solid fa-check text-white text-[10px] opacity-0 transform scale-50 transition-all duration-300"></i>
+                                </div>
+                            </div>
+                        </label>
+
+                        <!-- BOTÓN MERCADOPAGO (ÉNFASIS EN TARJETAS) -->
+                        <label class="cursor-pointer relative block group">
+                            <input type="radio" name="payment_method" value="ONLINE" id="payment-online" class="peer sr-only">
+
+                            <div class="bg-white p-5 rounded-[1.5rem] border-2 border-gray-100 shadow-sm flex items-center gap-5 transition-all duration-300 hover:border-[#009EE3]/50 
+                                peer-checked:border-[#009EE3] peer-checked:bg-[#009EE3]/5 peer-checked:shadow-xl peer-checked:shadow-[#009EE3]/10 peer-checked:scale-[1.01]
+                                peer-checked:[&_.radio-circle]:bg-[#009EE3] peer-checked:[&_.radio-circle]:border-[#009EE3] peer-checked:[&_.radio-icon]:opacity-100 peer-checked:[&_.radio-icon]:scale-100">
+
+                                <!-- CONTENEDOR DEL ÍCONO -->
+                                <div class="w-14 h-14 rounded-2xl bg-[#009EE3]/10 flex items-center justify-center shrink-0 border border-[#009EE3]/20 p-2">
+                                    <img src="/img/icons/mercadopago.webp" alt="Pagar con MercadoPago" title="MercadoPago" class="w-full h-full object-contain" loading="lazy">
+                                </div>
+
+                                <!-- TEXTOS E ÍCONOS DE TARJETAS -->
+                                <div class="flex-grow">
+                                    <h4 class="font-black text-sm uppercase tracking-wide text-brand-black mb-1">Tarjeta de Crédito / Débito</h4>
+                                    <p class="text-[10px] text-gray-500 font-bold leading-tight">Procesado de forma segura a través de MercadoPago.</p>
+                                    
+                                    <!-- Íconos de las tarjetas para refuerzo visual -->
+                                    <div class="flex items-center gap-2 mt-2 opacity-80">
+                                        <i class="fa-brands fa-cc-visa text-2xl text-[#1A1F71]" title="Visa"></i>
+                                        <i class="fa-brands fa-cc-mastercard text-2xl text-[#EB001B]" title="Mastercard"></i>
+                                        <i class="fa-brands fa-cc-amex text-2xl text-[#006FCF]" title="Amex"></i>
+                                    </div>
+                                </div>
+
+                                <!-- CÍRCULO DE SELECCIÓN -->
+                                <div class="radio-circle w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center transition-all duration-300 shrink-0 bg-white">
+                                    <i class="radio-icon fa-solid fa-check text-white text-[10px] opacity-0 transform scale-50 transition-all duration-300"></i>
+                                </div>
+                            </div>
+                        </label>
+
+                        <label class="cursor-pointer relative block group">
+                            <input type="radio" name="payment_method" value="ADDI" class="peer sr-only">
+
+                            <div class="bg-white p-5 rounded-[1.5rem] border-2 border-gray-100 shadow-sm flex items-center gap-5 transition-all duration-300 hover:border-[#00D6D6]/50 
+                                peer-checked:border-[#00D6D6] peer-checked:bg-cyan-50/10 peer-checked:shadow-xl peer-checked:shadow-[#00D6D6]/10 peer-checked:scale-[1.01]
+                                peer-checked:[&_.radio-circle]:bg-[#00D6D6] peer-checked:[&_.radio-circle]:border-[#00D6D6] peer-checked:[&_.radio-icon]:opacity-100 peer-checked:[&_.radio-icon]:scale-100">
+
+                                <div class="w-14 h-14 rounded-2xl bg-cyan-50/20 flex items-center justify-center shrink-0 border border-cyan-100 p-2">
+                                    <img src="/img/icons/addi.webp" alt="Pagar a Cuotas con ADDI" title="ADDI" class="w-full h-full object-contain" loading="lazy">
+                                </div>
+
+                                <div class="flex-grow">
+                                    <h4 class="font-black text-sm uppercase tracking-wide text-brand-black mb-1">Paga a Cuotas</h4>
+                                    <p class="text-[10px] text-gray-500 font-bold leading-tight">Compra ahora y paga después. 0% Interés en aliados seleccionados.</p>
+                                </div>
+
+                                <div class="radio-circle w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center transition-all duration-300 shrink-0 bg-white">
+                                    <i class="radio-icon fa-solid fa-check text-white text-[10px] opacity-0 transform scale-50 transition-all duration-300"></i>
+                                </div>
+                            </div>
+                        </label>
+
+                        <label class="cursor-pointer relative block group">
+                            <input type="radio" name="payment_method" value="SISTECREDITO" id="payment-sistecredito" class="peer sr-only">
+
+                            <div class="bg-white p-5 rounded-[1.5rem] border-2 border-gray-100 shadow-sm flex items-center gap-5 transition-all duration-300 hover:border-[#00B34A]/50 
+                                peer-checked:border-[#00B34A] peer-checked:bg-green-50/10 peer-checked:shadow-xl peer-checked:shadow-[#00B34A]/10 peer-checked:scale-[1.01]
+                                peer-checked:[&_.radio-circle]:bg-[#00B34A] peer-checked:[&_.radio-circle]:border-[#00B34A] peer-checked:[&_.radio-icon]:opacity-100 peer-checked:[&_.radio-icon]:scale-100">
+
+                                <div class="w-14 h-14 rounded-2xl bg-green-50/20 flex items-center justify-center shrink-0 border border-green-100 p-2">
+                                    <img src="/img/icons/sistecredito.webp" alt="Pagar a Cuotas con Sistecrédito" title="Sistecrédito" class="w-full h-full object-contain" loading="lazy">
+                                </div>
+
+                                <div class="flex-grow">
+                                    <h4 class="font-black text-sm uppercase tracking-wide text-brand-black mb-1">Sistecrédito</h4>
+                                    <p class="text-[10px] text-gray-500 font-bold leading-tight">Lo hacemos posible. Paga a cuotas sin tarjeta de crédito.</p>
+                                </div>
+
+                                <div class="radio-circle w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center transition-all duration-300 shrink-0 bg-white">
+                                    <i class="radio-icon fa-solid fa-check text-white text-[10px] opacity-0 transform scale-50 transition-all duration-300"></i>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+
+
+                </form>
+            </div>
+
+            <div class="lg:col-span-5 relative">
+                <div class="bg-white p-10 rounded-[2.5rem] shadow-2xl border border-gray-100 sticky top-24">
+
+                    <h3
+                        class="font-black text-xs uppercase tracking-[0.2em] text-gray-400 mb-8 border-b border-gray-50 pb-6 flex justify-between items-center">
+                        Resumen del Pedido
+                        <span id="order-qty-display"
+                            class="bg-brand-black text-white px-3 py-1 rounded-lg text-[9px] font-bold tracking-normal shadow-lg shadow-black/20">
+                            0 Ítems
+                        </span>
+                    </h3>
+
+                    <div id="checkout-items" class="max-h-60 overflow-y-auto pr-2 custom-scroll mb-8 space-y-5">
+                    </div>
+
+                    <div class="space-y-4 border-t-2 border-dashed border-gray-100 pt-8">
+
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold text-gray-500 uppercase tracking-wide">Subtotal</span>
+                            <span id="check-subtotal"
+                                class="text-lg font-black text-brand-black tracking-tight">$0</span>
+                        </div>
+
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold text-gray-500 uppercase tracking-wide">Costo de Envío</span>
+                            <span id="check-shipping"
+                                class="text-lg font-black text-brand-cyan uppercase tracking-tight">--</span>
+                        </div>
+
+                        <div id="dispatch-time-msg"
+                            class="text-right mt-1 hidden animate-in fade-in slide-in-from-top-1"></div>
+
+                        <div id="free-shipping-msg"
+                            class="hidden text-center bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase py-2.5 rounded-xl border border-emerald-100 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-gift"></i> ¡Envío Gratis Aplicado!
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-end mt-8 pt-6 border-t border-gray-50">
+                        <div class="flex flex-col">
+                            <span class="font-black text-xs uppercase tracking-[0.2em] text-gray-400">Total a
+                                Pagar</span>
+                            <span class="text-[8px] font-bold text-gray-300 mt-1">Incluye impuestos</span>
+                        </div>
+                        <span id="check-total"
+                            class="text-5xl font-black text-brand-black tracking-tighter leading-none">$0</span>
+                    </div>
+
+                    <button id="btn-complete-order" disabled
+                        class="w-full mt-10 bg-gray-100 text-gray-400 font-black py-5 rounded-2xl transition-all duration-300 uppercase text-xs tracking-[0.25em] flex items-center justify-center gap-3 cursor-not-allowed group hover:shadow-lg">
+                        Confirmar Pedido
+                        <div
+                            class="w-6 h-6 rounded-full bg-white/50 flex items-center justify-center group-hover:bg-white group-hover:text-brand-black transition">
+                            <i class="fa-solid fa-check"></i>
+                        </div>
+                    </button>
+
+                    <div class="mt-8 pt-6 border-t border-gray-100 flex flex-col items-center text-center">
+                        <p class="text-[9px] text-gray-400 font-black uppercase tracking-widest flex justify-center items-center gap-2 mb-3">
+                            <i class="fa-solid fa-lock text-emerald-500 text-sm"></i> Pago 100% Seguro y Encriptado
+                        </p>
+                        <div class="flex gap-4 opacity-40 grayscale">
+                            <i class="fa-brands fa-cc-visa text-2xl text-brand-black" title="Visa"></i>
+                            <i class="fa-brands fa-cc-mastercard text-2xl text-brand-black" title="Mastercard"></i>
+                            <i class="fa-brands fa-cc-amex text-2xl text-brand-black" title="Amex"></i>
+                            <i class="fa-solid fa-money-bill-wave text-2xl text-brand-black" title="Efectivo"></i>
+                        </div>
+                        <p class="text-[8px] text-gray-400 mt-4 leading-relaxed max-w-xs mx-auto">
+                            Tu información personal y de pago está protegida con estándares de seguridad internacionales (SSL de 256-bit).
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+        <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php'; ?>
+
+
+    <script>
+        function copyToClipboard(text, btnElement) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalContent = btnElement.innerHTML;
+
+                // Cambiar estilo y texto temporalmente
+                btnElement.innerHTML = '<i class="fa-solid fa-check"></i> Copiado!';
+                btnElement.classList.remove('bg-brand-black', 'text-white');
+                btnElement.classList.add('bg-green-500', 'text-white');
+
+                setTimeout(() => {
+                    btnElement.innerHTML = originalContent;
+                    btnElement.classList.add('bg-brand-black', 'text-white');
+                    btnElement.classList.remove('bg-green-500', 'text-white');
+                }, 2000);
+            }).catch(err => {
+                console.error('Error al copiar: ', err);
+            });
+        }
+    </script>
+
+    <script type="module">
+        import { loadGlobalHeader, loadGlobalFooter } from '../js/global-components.js?v=2.0';        loadGlobalHeader();
+        loadGlobalFooter();
+    </script>
+    <script type="module" src="../js/checkout.js"></script>
+</body>
+
+</html>

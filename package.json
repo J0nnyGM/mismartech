@@ -1,0 +1,20 @@
+{
+  "name": "pixeltechcol",
+  "version": "1.0.0",
+  "description": "",
+  "main": "tailwind.config.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "tailwindcss -i ./src/input.css -o ./public/css/styles.css --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.1.18",
+    "tailwindcss": "^4.1.18"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3"
+  }
+}

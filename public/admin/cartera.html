@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#00AEC7">
+    <link rel="apple-touch-icon" href="/img/icons/icon-192x192.webp">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Cartera | PixelTech Admin</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+    <style> 
+        .hidden { display: none !important; } 
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .tab-btn.active { background-color: #1e293b; color: white; }
+        /* Animación suave para el modal */
+        .modal-enter { animation: modalSlideIn 0.3s ease-out forwards; }
+        @keyframes modalSlideIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    </style>
+</head>
+
+<body class="bg-gray-100 font-sans text-brand-black flex h-screen overflow-hidden" style="display: none;">
+
+    <div id="admin-sidebar"></div>
+
+    <main class="flex-grow overflow-y-auto p-8 bg-slate-50 w-full custom-scroll">
+        
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-6">
+            <div>
+                <h1 class="text-3xl font-black mb-1 text-brand-black">Cartera Consolidada</h1>
+                <p class="text-gray-500 text-sm">Control de saldos por Cliente y Proveedor.</p>
+            </div>
+            <button onclick="window.openCreatePayable()" class="bg-white border border-gray-200 text-gray-500 px-5 py-2.5 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:border-brand-black hover:text-brand-black transition shadow-sm flex items-center gap-2">
+                <i class="fa-solid fa-plus"></i> Deuda Manual
+            </button>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm flex items-center gap-4">
+                <div class="w-14 h-14 rounded-2xl bg-green-50 text-green-500 flex items-center justify-center text-2xl"><i class="fa-solid fa-users-viewfinder"></i></div>
+                <div>
+                    <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Total Clientes Deben</p>
+                    <h3 class="text-2xl font-black text-brand-black" id="total-receivable">...</h3>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm flex items-center gap-4">
+                <div class="w-14 h-14 rounded-2xl bg-red-50 text-red-500 flex items-center justify-center text-2xl"><i class="fa-solid fa-truck-field"></i></div>
+                <div>
+                    <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Total a Proveedores</p>
+                    <h3 class="text-2xl font-black text-brand-black" id="total-payable">...</h3>
+                </div>
+            </div>
+            <div class="bg-slate-900 p-6 rounded-[2rem] border border-slate-800 shadow-lg flex items-center gap-4 text-white">
+                <div class="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center text-2xl"><i class="fa-solid fa-wallet"></i></div>
+                <div>
+                    <p class="text-[9px] font-black text-white/50 uppercase tracking-widest">Flujo Neto</p>
+                    <h3 class="text-2xl font-black" id="total-balance">...</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-[2.5rem] border border-gray-200 shadow-sm overflow-hidden flex flex-col h-[600px]">
+            <div class="p-4 border-b border-gray-100 flex gap-2 bg-slate-50 justify-between items-center">
+                <div class="flex gap-2">
+                    <button onclick="switchTab('receivable')" class="tab-btn active px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">
+                        Clientes (Por Cobrar)
+                    </button>
+                    <button onclick="switchTab('payable')" class="tab-btn px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all bg-white text-gray-400 hover:text-brand-black">
+                        Proveedores (Por Pagar)
+                    </button>
+                </div>
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                    <input type="text" id="wallet-search" placeholder="Buscar entidad..." class="pl-8 pr-4 py-2 rounded-lg border border-gray-200 text-xs font-bold w-48 outline-none focus:border-brand-black transition">
+                </div>
+            </div>
+
+            <div id="tab-receivable" class="flex-grow overflow-auto custom-scroll">
+                <table class="w-full text-left">
+                    <thead class="bg-white text-[9px] uppercase font-black text-gray-400 tracking-widest sticky top-0 z-10 border-b border-gray-100">
+                        <tr>
+                            <th class="px-8 py-4">Cliente</th>
+                            <th class="px-8 py-4 text-center">Facturas Pendientes</th>
+                            <th class="px-8 py-4 text-right">Deuda Total</th>
+                            <th class="px-8 py-4 text-center">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="list-receivable" class="divide-y divide-gray-50 text-sm font-medium text-gray-600"></tbody>
+                </table>
+            </div>
+
+            <div id="tab-payable" class="flex-grow overflow-auto custom-scroll hidden">
+                <table class="w-full text-left">
+                    <thead class="bg-white text-[9px] uppercase font-black text-gray-400 tracking-widest sticky top-0 z-10 border-b border-gray-100">
+                        <tr>
+                            <th class="px-8 py-4">Proveedor</th>
+                            <th class="px-8 py-4 text-center">Cuentas Pendientes</th>
+                            <th class="px-8 py-4 text-right">Deuda Total</th>
+                            <th class="px-8 py-4 text-center">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="list-payable" class="divide-y divide-gray-50 text-sm font-medium text-gray-600"></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div id="details-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-brand-black/80 backdrop-blur-sm p-4">
+        <div class="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden relative modal-enter flex flex-col max-h-[90vh]">
+            <div class="p-8 border-b border-gray-100 flex justify-between items-center bg-slate-50">
+                <div>
+                    <h3 class="text-xl font-black uppercase tracking-tighter" id="dt-title">Detalle de Cartera</h3>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest" id="dt-subtitle">...</p>
+                </div>
+                <button onclick="closeModal('details-modal')" class="w-8 h-8 rounded-full bg-white text-gray-400 hover:text-brand-black flex items-center justify-center transition"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="flex-grow overflow-y-auto custom-scroll p-8">
+                <table class="w-full text-left">
+                    <thead class="text-[9px] uppercase font-black text-gray-400 tracking-widest border-b border-gray-100">
+                        <tr>
+                            <th class="pb-3">Ref / Fecha</th>
+                            <th class="pb-3 text-right">Total</th>
+                            <th class="pb-3 text-right">Pagado</th>
+                            <th class="pb-3 text-right">Pendiente</th>
+                            <th class="pb-3 text-center">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dt-list" class="divide-y divide-gray-50 text-sm font-medium text-gray-600">
+                    </tbody>
+                </table>
+                <div id="dt-load-more" class="text-center py-4 hidden">
+                    <button onclick="window.loadMoreDetails()" class="text-xs font-bold text-gray-400 hover:text-brand-cyan uppercase">Cargar más...</button>
+                </div>
+            </div>
+
+            <div class="p-6 bg-slate-900 text-white flex justify-between items-center">
+                <div>
+                    <p class="text-[9px] font-black text-white/50 uppercase tracking-widest">Deuda Total</p>
+                    <p class="text-2xl font-black" id="dt-total-debt">$0</p>
+                </div>
+                <button onclick="window.openPaymentModalGlobal()" class="bg-green-500 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-green-600 transition shadow-lg shadow-green-500/20">
+                    Abonar a la Cuenta (FIFO)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="payment-modal" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-brand-black/90 backdrop-blur-md p-4">
+        <div class="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl relative modal-enter">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                <h3 class="text-lg font-black uppercase text-brand-black" id="pay-modal-title">Registrar Pago</h3>
+                <button onclick="closeModal('payment-modal')" class="w-8 h-8 rounded-full bg-slate-50 text-gray-400 hover:text-red-500 transition"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="payment-form" class="p-6 space-y-4">
+                <input type="hidden" id="pay-target-id"> <input type="hidden" id="pay-target-mode"> <div class="bg-blue-50 p-4 rounded-xl text-center">
+                    <p class="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-1">Monto a Pagar</p>
+                    <input type="text" id="pay-amount" required placeholder="$0" class="w-full bg-transparent text-2xl font-black text-blue-900 text-center outline-none currency-input placeholder-blue-200">
+                </div>
+
+                <div>
+                    <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Cuenta Tesorería</label>
+                    <select id="pay-account" required class="w-full bg-slate-50 border border-gray-200 p-3 rounded-xl font-bold text-xs outline-none">
+                        <option value="">Seleccione...</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="w-full bg-brand-black text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-brand-cyan hover:text-brand-black transition">
+                    Confirmar Transacción
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div id="create-payable-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-brand-black/80 backdrop-blur-sm p-4">
+        <div class="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95">
+            <div class="p-8 border-b border-gray-100 flex justify-between items-center">
+                <h3 class="text-xl font-black uppercase tracking-tighter text-brand-red">Nueva Deuda Manual</h3>
+                <button onclick="closeModal('create-payable-modal')" class="w-8 h-8 rounded-full bg-slate-100 text-gray-400 hover:text-brand-red flex items-center justify-center transition"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="create-payable-form" class="p-8 space-y-4">
+                <div>
+                    <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Proveedor / Beneficiario *</label>
+                    <input type="text" id="new-pay-provider" required placeholder="Ej: Arrendador" class="w-full bg-slate-50 border border-gray-200 p-3 rounded-xl font-bold text-sm outline-none">
+                </div>
+                <div>
+                    <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Concepto *</label>
+                    <input type="text" id="new-pay-desc" required placeholder="Ej: Canon Marzo" class="w-full bg-slate-50 border border-gray-200 p-3 rounded-xl font-bold text-sm outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Valor Total *</label>
+                        <input type="text" id="new-pay-total" required placeholder="$0" class="w-full bg-slate-50 border border-gray-200 p-3 rounded-xl font-bold text-sm outline-none currency-input">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Fecha Vencimiento</label>
+                        <input type="date" id="new-pay-date" required class="w-full bg-slate-50 border border-gray-200 p-3 rounded-xl font-bold text-sm outline-none">
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-red-500 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-red-600 transition shadow-lg mt-2">
+                    Registrar Deuda
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module" src="../js/admin-cartera.js"></script>
+    <script type="module" src="../js/admin-guard.js"></script>
+</body>
+</html>

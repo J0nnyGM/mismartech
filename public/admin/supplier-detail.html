@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#00AEC7">
+    <link rel="apple-touch-icon" href="/img/icons/icon-192x192.webp">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expediente de Aliado | PixelTech Col</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+    <style>
+        .hidden { display: none !important; }
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 10px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #00AEC7; }
+        
+        .fade-in { animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+
+<body class="bg-slate-50 font-sans text-brand-black flex h-screen overflow-hidden text-left selection:bg-brand-cyan selection:text-white" style="display: none;">
+
+    <div id="admin-sidebar"></div>
+
+    <main class="flex-grow overflow-y-auto relative custom-scroll">
+        <header class="bg-white/90 backdrop-blur-xl border-b border-gray-100 px-8 py-4 flex justify-between items-center sticky top-0 z-30 shadow-sm">
+            <div class="flex items-center gap-4">
+                <a href="suppliers.html" class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-gray-400 hover:bg-brand-black hover:text-white transition-all duration-300 shadow-sm group">
+                    <i class="fa-solid fa-arrow-left group-hover:-translate-x-1 transition-transform"></i>
+                </a>
+                <div>
+                    <h2 class="font-black text-gray-400 text-[9px] uppercase tracking-[0.4em]">Gestión de Proveedores</h2>
+                    <p class="text-xs font-bold text-brand-black uppercase">Detalle de Cuenta</p>
+                </div>
+            </div>
+            <button id="btn-edit-supplier" class="bg-brand-black text-white px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-cyan hover:shadow-lg hover:shadow-cyan-500/20 transition-all duration-300 flex items-center gap-2 transform active:scale-95">
+                <i class="fa-solid fa-pen-to-square"></i> <span>Editar Perfil</span>
+            </button>
+        </header>
+
+        <div class="p-8 max-w-7xl mx-auto pb-20">
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-12 gap-8 fade-in">
+                <div>
+                    <div class="flex items-center gap-3 mb-2">
+                        <span id="sup-nit-title" class="bg-slate-200 text-slate-600 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest">NIT: ---</span>
+                        <span class="bg-green-100 text-green-600 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest">Activo</span>
+                    </div>
+                    <h1 id="sup-name-title" class="text-4xl md:text-5xl lg:text-6xl font-black text-brand-black tracking-tighter uppercase leading-none">
+                        <span class="animate-pulse bg-gray-200 rounded-lg text-transparent">Cargando...</span>
+                    </h1>
+                </div>
+                
+                <div class="flex flex-wrap gap-4 w-full lg:w-auto">
+                    <div class="bg-white border border-gray-100 p-6 rounded-[2rem] shadow-sm flex-1 min-w-[160px] hover:shadow-xl transition-shadow duration-300">
+                        <div class="w-10 h-10 bg-cyan-50 rounded-full flex items-center justify-center mb-3 text-brand-cyan">
+                            <i class="fa-solid fa-chart-line"></i>
+                        </div>
+                        <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Inversión Total</p>
+                        <h3 id="sup-total-invested" class="text-2xl font-black text-brand-cyan tracking-tighter">$0</h3>
+                    </div>
+                    <div class="bg-white border border-gray-100 p-6 rounded-[2rem] shadow-sm flex-1 min-w-[140px] hover:shadow-xl transition-shadow duration-300">
+                        <div class="w-10 h-10 bg-red-50 rounded-full flex items-center justify-center mb-3 text-red-500">
+                            <i class="fa-solid fa-file-invoice-dollar"></i>
+                        </div>
+                        <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Saldo Pendiente</p>
+                        <h3 id="sup-pending-balance" class="text-2xl font-black text-brand-black tracking-tighter">$0</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col md:flex-row bg-white p-2 rounded-[2rem] shadow-sm border border-gray-100 mb-10 gap-2">
+                <button class="crm-tab-btn group flex-1 py-4 px-6 rounded-[1.5rem] flex items-center justify-center gap-3 transition-all duration-300 hover:bg-slate-50 border-2 border-transparent active" data-tab="generales">
+                    <i class="fa-solid fa-id-card text-xl text-gray-300 group-[.active]:text-brand-cyan transition-colors"></i>
+                    <span class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 group-[.active]:text-brand-black">Datos Generales</span>
+                </button>
+                <button class="crm-tab-btn group flex-1 py-4 px-6 rounded-[1.5rem] flex items-center justify-center gap-3 transition-all duration-300 hover:bg-slate-50 border-2 border-transparent" data-tab="historial">
+                    <i class="fa-solid fa-list-check text-xl text-gray-300 group-[.active]:text-blue-500 transition-colors"></i>
+                    <span class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 group-[.active]:text-brand-black">Historial Compras</span>
+                </button>
+                <button class="crm-tab-btn group flex-1 py-4 px-6 rounded-[1.5rem] flex items-center justify-center gap-3 transition-all duration-300 hover:bg-slate-50 border-2 border-transparent" data-tab="pagos">
+                    <i class="fa-solid fa-wallet text-xl text-gray-300 group-[.active]:text-emerald-500 transition-colors"></i>
+                    <span class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 group-[.active]:text-brand-black">Gestión Pagos</span>
+                </button>
+            </div>
+
+            <div id="tab-generales" class="tab-content fade-in space-y-8">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2 space-y-6">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="w-2 h-2 rounded-full bg-brand-cyan"></span>
+                            <h4 class="font-black text-brand-black text-[10px] uppercase tracking-[0.3em]">Información de Contacto</h4>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
+                                <label class="block text-[9px] font-black text-gray-300 uppercase tracking-widest mb-1">Nombre Asesor</label>
+                                <p id="sup-contact-person" class="font-bold text-brand-black text-sm uppercase">---</p>
+                            </div>
+                            <div class="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm cursor-pointer hover:shadow-lg transition" onclick="window.open(`https://wa.me/${document.getElementById('sup-phone').innerText.replace(/\s/g,'')}`, '_blank')">
+                                <label class="block text-[9px] font-black text-gray-300 uppercase tracking-widest mb-1">WhatsApp Oficial</label>
+                                <p id="sup-phone" class="font-black text-brand-black text-lg tracking-tight">---</p>
+                            </div>
+                            <div class="md:col-span-2 bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
+                                <label class="block text-[9px] font-black text-gray-300 uppercase tracking-widest mb-1">Email</label>
+                                <p id="sup-email" class="font-bold text-brand-black text-sm lowercase">---</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-6">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="w-2 h-2 rounded-full bg-brand-black"></span>
+                            <h4 class="font-black text-brand-black text-[10px] uppercase tracking-[0.3em]">Datos Bancarios</h4>
+                        </div>
+                        <div class="bg-slate-900 p-8 rounded-[2.5rem] shadow-2xl relative overflow-hidden group h-full flex flex-col justify-between min-h-[250px]">
+                            <div class="absolute -top-10 -right-10 w-40 h-40 bg-brand-cyan/20 rounded-full blur-3xl group-hover:bg-brand-cyan/30 transition-colors"></div>
+                            <div class="relative z-10 mt-8">
+                                <p id="sup-bank" class="text-2xl font-black text-white uppercase tracking-tighter mb-1">---</p>
+                                <span id="sup-account-type" class="text-brand-cyan text-[9px] font-black uppercase tracking-widest">---</span>
+                            </div>
+                            <div class="relative z-10 mt-8 pt-6 border-t border-white/10">
+                                <p class="text-[8px] text-white/40 uppercase font-black tracking-[0.2em] mb-1">Número de Cuenta</p>
+                                <p id="sup-account-num" class="text-xl font-mono font-bold text-white tracking-widest">---</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-historial" class="tab-content hidden fade-in">
+                <div class="bg-white rounded-[3rem] shadow-xl border border-gray-100 overflow-hidden">
+                    <div class="p-8 border-b border-gray-50 bg-slate-50/50 flex justify-between items-center">
+                        <h3 class="font-black text-sm uppercase tracking-widest text-brand-black">Movimientos Recientes</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-50 text-[9px] uppercase font-black text-gray-400 tracking-widest">
+                                <tr>
+                                    <th class="px-8 py-6">Fecha / ID</th>
+                                    <th class="px-8 py-6">Items</th>
+                                    <th class="px-8 py-6 text-right">Total</th>
+                                    <th class="px-8 py-6 text-right">Pagado</th>
+                                    <th class="px-8 py-6 text-right">Saldo</th>
+                                    <th class="px-8 py-6 text-center">Estado</th>
+                                    <th class="px-8 py-6 text-center">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sup-purchases-table" class="divide-y divide-gray-50 text-xs"></tbody>
+                        </table>
+                    </div>
+                    <div id="load-more-purchases-container" class="py-4 text-center hidden border-t border-gray-50">
+                        <button onclick="window.loadMorePurchases()" class="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-cyan transition flex items-center justify-center gap-2 mx-auto">
+                            <i class="fa-solid fa-circle-plus"></i> Ver compras antiguas
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-pagos" class="tab-content hidden fade-in">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                    <div class="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">Total Deuda Actual</p>
+                            <h2 id="debt-amount" class="text-4xl font-black text-brand-red tracking-tighter">$0</h2>
+                        </div>
+                        <button onclick="openPaymentModal()" class="mt-6 w-full bg-brand-black text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-green-500 transition-colors shadow-lg flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-money-bill-wave"></i> Registrar Pago
+                        </button>
+                    </div>
+
+                    <div class="lg:col-span-2 bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
+                        <div class="p-6 border-b border-gray-50 bg-slate-50/50">
+                            <h3 class="font-black text-xs uppercase tracking-widest text-brand-black">Últimos Pagos Realizados</h3>
+                        </div>
+                        <div class="overflow-x-auto max-h-[300px] custom-scroll">
+                            <table class="w-full text-left">
+                                <thead class="bg-white text-[9px] uppercase font-black text-gray-400 tracking-widest sticky top-0 z-10">
+                                    <tr>
+                                        <th class="px-6 py-4">Fecha</th>
+                                        <th class="px-6 py-4">Cuenta Origen / Concepto</th>
+                                        <th class="px-6 py-4 text-right">Monto</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="payments-history-table" class="divide-y divide-gray-50 text-xs">
+                                    <tr><td colspan="3" class="p-6 text-center text-gray-400">Cargando...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="payment-modal" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-md" onclick="closeModal('payment-modal')"></div>
+        <div class="relative bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-fadeIn">
+            <div class="p-8 border-b border-gray-50 flex justify-between items-center bg-slate-50/50">
+                <h3 class="text-xl font-black uppercase tracking-tighter">Registrar <span class="text-green-500">Pago</span></h3>
+                <button onclick="closeModal('payment-modal')" class="w-10 h-10 rounded-full bg-white border border-gray-200 text-gray-400 hover:text-brand-red transition flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <form id="payment-form" class="p-8 space-y-6">
+                <div class="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                    <p class="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-1">Deuda Total</p>
+                    <p id="modal-debt-amount" class="text-2xl font-black text-brand-black tracking-tight">$0</p>
+                    <p class="text-[8px] text-gray-500 mt-2 leading-relaxed">El pago se distribuirá automáticamente en las facturas más antiguas.</p>
+                </div>
+
+                <div>
+                    <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">Cuenta de Origen</label>
+                    <select id="pay-account" required class="w-full bg-slate-50 border border-gray-200 p-4 rounded-xl text-sm font-bold outline-none focus:border-green-500 transition-all cursor-pointer">
+                        <option value="">Cargando cuentas...</option>
+                    </select>
+                    <p id="tax-info" class="text-[9px] font-bold text-red-400 mt-2 hidden bg-red-50 p-2 rounded-lg border border-red-100 flex items-center gap-2">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Se descontará 4x1000: <span id="tax-amount">$0</span>
+                    </p>
+                </div>
+
+                <div>
+                    <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">Monto a Pagar</label>
+                    <input type="number" id="pay-amount" required min="1" class="w-full bg-slate-50 border border-gray-200 p-4 rounded-xl text-lg font-bold outline-none focus:border-green-500 transition-all" placeholder="0">
+                </div>
+
+                <div>
+                    <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">Nota / Referencia</label>
+                    <input type="text" id="pay-note" class="w-full bg-slate-50 border border-gray-200 p-4 rounded-xl text-sm font-bold outline-none focus:border-green-500 transition-all" placeholder="Ej: Abono Factura 001">
+                </div>
+
+                <button type="submit" class="w-full bg-brand-black text-white py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-green-500 transition-all duration-300">
+                    Confirmar Transacción
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div id="purchase-detail-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onclick="closeModal('purchase-detail-modal')"></div>
+        <div class="relative bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden transform transition-all scale-100 max-h-[90vh] flex flex-col">
+            <div class="p-8 border-b border-gray-50 flex justify-between items-center bg-slate-50/50">
+                <h3 class="text-lg font-black uppercase tracking-tight">Detalle de <span class="text-brand-cyan">Compra</span></h3>
+                <button onclick="closeModal('purchase-detail-modal')" class="w-10 h-10 rounded-full bg-white border border-gray-200 text-gray-400 hover:bg-brand-red hover:text-white hover:border-transparent transition flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div id="purchase-modal-content" class="p-10 overflow-y-auto custom-scroll space-y-6"></div>
+        </div>
+    </div>
+
+    <div id="edit-supplier-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onclick="closeModal('edit-supplier-modal')"></div>
+        <div class="relative bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+            <div class="p-8 border-b border-gray-50 flex justify-between items-center">
+                <h3 class="text-xl font-black uppercase tracking-tighter">Actualizar <span class="text-brand-cyan">Perfil</span></h3>
+                <button onclick="closeModal('edit-supplier-modal')" class="w-10 h-10 rounded-full bg-gray-50 text-gray-400 hover:bg-red-500 hover:text-white transition flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="p-10 overflow-y-auto custom-scroll">
+                <form id="edit-supplier-form" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div class="md:col-span-2"><label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Empresa / Razón Social</label><input type="text" id="e-name" required class="w-full bg-slate-50 border border-gray-200 rounded-xl p-4 text-sm font-bold outline-none focus:border-brand-cyan transition-all"></div>
+                    <div><label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block">NIT</label><input type="text" id="e-nit" required class="w-full bg-slate-50 border border-gray-200 rounded-xl p-4 text-sm font-bold outline-none focus:border-brand-cyan transition-all"></div>
+                    <div><label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Teléfono / WhatsApp</label><input type="text" id="e-phone" required class="w-full bg-slate-50 border border-gray-200 rounded-xl p-4 text-sm font-bold outline-none focus:border-brand-cyan transition-all"></div>
+                    <div><label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Contacto Directo</label><input type="text" id="e-contact" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-4 text-sm font-bold outline-none focus:border-brand-cyan transition-all"></div>
+                    <div><label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Email</label><input type="email" id="e-email" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-4 text-sm font-bold outline-none focus:border-brand-cyan transition-all"></div>
+                    <div class="md:col-span-2 pt-4 border-t border-gray-100 mt-2"><span class="text-[10px] font-black uppercase tracking-widest text-brand-cyan bg-cyan-50 px-2 py-1 rounded">Información Financiera</span></div>
+                    <div><label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Banco</label><input type="text" id="e-bank" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-4 text-sm font-bold outline-none focus:border-brand-cyan transition-all"></div>
+                    <div><label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Cuenta</label><input type="text" id="e-account" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-4 text-sm font-bold outline-none focus:border-brand-cyan transition-all"></div>
+                    <button type="submit" class="md:col-span-2 mt-4 bg-brand-black text-white py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-brand-cyan hover:shadow-cyan-500/30 hover:-translate-y-1 transition-all duration-300">Guardar Cambios</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+<script type="module">
+        import { db, doc, getDoc, getDocs, collection, query, where, orderBy, limit, updateDoc, addDoc, Timestamp, runTransaction, startAfter, getAggregateFromServer, sum } from '../js/firebase-init.js';
+        import { loadAdminSidebar } from '../js/admin-ui.js?v=2.0.0';
+
+        loadAdminSidebar();
+
+        const params = new URLSearchParams(window.location.search);
+        const supplierId = params.get('id');
+        if (!supplierId) window.location.href = 'suppliers.html';
+
+        // --- ESTADO GLOBAL ---
+        let supplierData = null;
+        let totalDebt = 0;
+        let lastPurchaseDoc = null;
+        let accountsList = []; 
+        const PAGE_SIZE = 20;
+
+        // --- HELPERS ---
+        const cleanNumber = (val) => {
+            if (typeof val === 'number') return val;
+            if (!val) return 0;
+            return parseFloat(val.toString().replace(/[^\d-]/g, '')) || 0;
+        };
+
+        // --- CARGA INICIAL ---
+        async function loadData() {
+            try {
+                const snap = await getDoc(doc(db, "suppliers", supplierId));
+                if (!snap.exists()) return;
+                supplierData = { id: snap.id, ...snap.data() };
+                
+                renderHeader(supplierData);
+                
+                // Ejecución Paralela Optimizada
+                await Promise.all([
+                    calculateTotalDebtServerSide(), // Costo: 1 Lectura (Agregación)
+                    loadPurchasesHistory(),         // Costo: 20 Lecturas
+                    loadPaymentsHistory(),          // Costo: 20 Lecturas
+                    loadAccounts()                  // Costo: 0 Lecturas (Caché)
+                ]);
+
+            } catch (e) { console.error(e); }
+        }
+
+        // --- 1. CALCULAR DEUDA (OPTIMIZACIÓN MÁXIMA: AGREGACIÓN) ---
+        async function calculateTotalDebtServerSide() {
+            try {
+                const q = query(collection(db, "purchases"), where("supplierId", "==", supplierId));
+                
+                // Pedimos a Firebase que sume todo allá, sin bajar documentos
+                const snapshot = await getAggregateFromServer(q, {
+                    totalBought: sum('totalCost'),
+                    totalPaid: sum('amountPaid')
+                });
+
+                const stats = snapshot.data();
+                const bought = stats.totalBought || 0;
+                const paid = stats.totalPaid || 0;
+                
+                // La deuda es simplemente lo comprado menos lo pagado globalmente
+                totalDebt = bought - paid;
+
+                // Renderizamos
+                document.getElementById('sup-pending-balance').textContent = `$${totalDebt.toLocaleString('es-CO')}`;
+                document.getElementById('debt-amount').textContent = `$${totalDebt.toLocaleString('es-CO')}`;
+                document.getElementById('modal-debt-amount').textContent = `$${totalDebt.toLocaleString('es-CO')}`;
+
+            } catch (e) { console.error("Error calculating debt:", e); }
+        }
+
+        // --- 2. HISTORIAL DE COMPRAS (Paginado) ---
+        async function loadPurchasesHistory(isNextPage = false) {
+            const table = document.getElementById('sup-purchases-table');
+            const btnContainer = document.getElementById('load-more-purchases-container');
+            
+            if(!isNextPage) {
+                table.innerHTML = `<tr><td colspan="7" class="p-8 text-center"><i class="fa-solid fa-circle-notch fa-spin text-brand-cyan"></i></td></tr>`;
+                btnContainer.classList.add('hidden');
+            } else {
+                btnContainer.querySelector('button').innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Cargando...`;
+            }
+
+            try {
+                let q = query(
+                    collection(db, "purchases"), 
+                    where("supplierId", "==", supplierId), 
+                    orderBy("createdAt", "desc"), 
+                    limit(PAGE_SIZE)
+                );
+
+                if (isNextPage && lastPurchaseDoc) {
+                    q = query(
+                        collection(db, "purchases"), 
+                        where("supplierId", "==", supplierId), 
+                        orderBy("createdAt", "desc"), 
+                        startAfter(lastPurchaseDoc),
+                        limit(PAGE_SIZE)
+                    );
+                }
+
+                const snap = await getDocs(q);
+                
+                if(!isNextPage) table.innerHTML = "";
+
+                if (snap.empty) {
+                    if(!isNextPage) table.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-xs text-gray-400 font-bold uppercase">Sin historial de compras</td></tr>`;
+                    btnContainer.classList.add('hidden');
+                    return;
+                }
+
+                lastPurchaseDoc = snap.docs[snap.docs.length - 1];
+
+                if (snap.docs.length < PAGE_SIZE) {
+                    btnContainer.classList.add('hidden');
+                } else {
+                    btnContainer.classList.remove('hidden');
+                    btnContainer.querySelector('button').innerHTML = `<i class="fa-solid fa-circle-plus"></i> Ver compras antiguas`;
+                }
+
+                let html = "";
+                snap.forEach(d => {
+                    const p = d.data();
+                    const total = p.totalCost || 0;
+                    const paid = p.amountPaid || 0; 
+                    const balance = total - paid;
+                    
+                    let statusBadge = "";
+                    if (paid === 0) statusBadge = `<span class="bg-red-100 text-red-600 px-2 py-1 rounded text-[9px] font-black uppercase">Pendiente</span>`;
+                    else if (balance <= 0) statusBadge = `<span class="bg-green-100 text-green-600 px-2 py-1 rounded text-[9px] font-black uppercase">Pagado</span>`;
+                    else statusBadge = `<span class="bg-orange-100 text-orange-600 px-2 py-1 rounded text-[9px] font-black uppercase">Parcial</span>`;
+
+                    const itemCount = p.items ? p.items.reduce((acc, i) => acc + i.quantity, 0) : 0;
+
+                    html += `
+                        <tr class="hover:bg-slate-50 transition border-b border-gray-50 last:border-0 fade-in">
+                            <td class="px-8 py-6">
+                                <p class="font-bold text-brand-black text-xs">${p.createdAt?.toDate().toLocaleDateString('es-CO')}</p>
+                                <p class="font-mono text-[9px] text-gray-400 uppercase">#${d.id.slice(0,6)}</p>
+                            </td>
+                            <td class="px-8 py-6">
+                                <span class="inline-block bg-slate-100 text-slate-600 px-2 py-1 rounded text-[10px] font-black uppercase">${itemCount} Items</span>
+                            </td>
+                            <td class="px-8 py-6 text-right font-black text-brand-black text-sm">$${total.toLocaleString('es-CO')}</td>
+                            <td class="px-8 py-6 text-right font-bold text-green-600 text-xs">$${paid.toLocaleString('es-CO')}</td>
+                            <td class="px-8 py-6 text-right font-bold text-red-500 text-xs">$${balance.toLocaleString('es-CO')}</td>
+                            <td class="px-8 py-6 text-center">${statusBadge}</td>
+                            <td class="px-8 py-6 text-center">
+                                <button onclick="window.openPurchaseDetail('${d.id}')" class="w-8 h-8 rounded-lg bg-white border border-gray-200 text-gray-400 hover:text-brand-cyan hover:border-brand-cyan transition shadow-sm"><i class="fa-solid fa-eye text-xs"></i></button>
+                            </td>
+                        </tr>`;
+                });
+
+                table.insertAdjacentHTML('beforeend', html);
+
+            } catch(e) { console.error(e); }
+        }
+
+        window.loadMorePurchases = () => loadPurchasesHistory(true);
+
+        // --- 3. HISTORIAL PAGOS (Limitado) ---
+        async function loadPaymentsHistory() {
+            const paymentsTable = document.getElementById('payments-history-table');
+            try {
+                const qPayments = query(collection(db, "expenses"), where("supplierId", "==", supplierId), orderBy("date", "desc"), limit(20));
+                const snapPayments = await getDocs(qPayments);
+                
+                let htmlPay = "";
+                if (snapPayments.empty) {
+                    htmlPay = `<tr><td colspan="3" class="p-6 text-center text-xs text-gray-400">No hay pagos recientes</td></tr>`;
+                } else {
+                    snapPayments.forEach(d => {
+                        const pay = d.data();
+                        const dateObj = pay.date?.toDate ? pay.date.toDate() : new Date(pay.date);
+                        htmlPay += `
+                            <tr class="hover:bg-slate-50 transition border-b border-gray-50">
+                                <td class="px-6 py-4 text-xs font-mono text-gray-500">${dateObj.toLocaleDateString('es-CO')}</td>
+                                <td class="px-6 py-4 text-xs font-bold text-brand-black uppercase">
+                                    ${pay.paymentMethod || 'Pago'} <span class="text-gray-400 text-[10px]">(${pay.description})</span>
+                                </td>
+                                <td class="px-6 py-4 text-right text-xs font-black text-green-600">$${Number(pay.amount).toLocaleString('es-CO')}</td>
+                            </tr>`;
+                    });
+                }
+                paymentsTable.innerHTML = htmlPay;
+            } catch(e) { console.error(e); }
+        }
+
+        // --- 4. CUENTAS (Caché) ---
+        async function loadAccounts() {
+            const CACHE_KEY = 'admin_accounts_cache';
+            const TTL = 10 * 60 * 1000; 
+
+            const cached = sessionStorage.getItem(CACHE_KEY);
+            const cachedTime = sessionStorage.getItem(CACHE_KEY + '_time');
+            const now = Date.now();
+
+            if (cached && cachedTime && (now - parseInt(cachedTime) < TTL)) {
+                renderAccountsSelect(JSON.parse(cached));
+                return;
+            }
+
+            try {
+                const q = query(collection(db, "accounts"), orderBy("name", "asc"));
+                const snap = await getDocs(q);
+                
+                let list = [];
+                snap.forEach(d => list.push({ id: d.id, ...d.data() }));
+                
+                sessionStorage.setItem(CACHE_KEY, JSON.stringify(list));
+                sessionStorage.setItem(CACHE_KEY + '_time', now.toString());
+
+                renderAccountsSelect(list);
+            } catch (e) { console.error("Error accounts:", e); }
+        }
+
+        function renderAccountsSelect(list) {
+            const select = document.getElementById('pay-account');
+            select.innerHTML = '<option value="">Seleccione cuenta...</option>';
+            accountsList = list;
+            
+            list.forEach(acc => {
+                select.innerHTML += `<option value="${acc.id}">${acc.name} (Saldo: $${(acc.balance || 0).toLocaleString()})</option>`;
+            });
+        }
+
+        function renderHeader(s) {
+            document.getElementById('sup-name-title').textContent = s.name;
+            document.getElementById('sup-nit-title').textContent = `NIT: ${s.nit || '---'}`;
+            document.getElementById('sup-total-invested').textContent = `$${(s.totalInvested || 0).toLocaleString('es-CO')}`;
+            
+            setText('sup-contact-person', s.contactName || 'No registrado');
+            setText('sup-phone', s.phone || '---');
+            setText('sup-email', s.email || 'No registrado');
+            setText('sup-bank', s.bankName || 'No registrado');
+            setText('sup-account-num', s.accNum || '---');
+            setText('sup-account-type', s.accType || 'Cuenta');
+            
+            const eName = document.getElementById('e-name');
+            if(eName) {
+                eName.value = s.name;
+                document.getElementById('e-nit').value = s.nit || "";
+                document.getElementById('e-phone').value = s.phone || "";
+                document.getElementById('e-contact').value = s.contactName || "";
+                document.getElementById('e-email').value = s.email || "";
+                document.getElementById('e-bank').value = s.bankName || "";
+                document.getElementById('e-account').value = s.accNum || "";
+            }
+        }
+
+        function setText(id, txt) {
+            const el = document.getElementById(id);
+            if(el) el.textContent = txt;
+        }
+
+        // --- PAGO (Lógica On-Demand FIFO) ---
+        // Aquí ocurre la magia: Solo descargamos las facturas pendientes AL MOMENTO DE PAGAR
+        document.getElementById('payment-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const originalText = btn.innerText;
+            btn.disabled = true; btn.innerText = "Procesando...";
+
+            const accountId = document.getElementById('pay-account').value;
+            const amountStr = document.getElementById('pay-amount').value;
+            const amount = cleanNumber(amountStr); // Usando cleanNumber helper
+            const note = document.getElementById('pay-note').value.trim() || "Pago a Proveedor";
+
+            if (!accountId) { alert("Seleccione una cuenta"); btn.disabled=false; btn.innerText=originalText; return; }
+            if (amount <= 0) { alert("Monto inválido"); btn.disabled=false; btn.innerText=originalText; return; }
+            if (amount > totalDebt) { 
+                if(!confirm("El pago es mayor a la deuda total. ¿Continuar?")) {
+                    btn.disabled=false; btn.innerText=originalText; return; 
+                }
+            }
+
+            try {
+                // FASE 1: Buscar facturas pendientes FIFO (En el momento del clic)
+                const qPending = query(
+                    collection(db, "purchases"), 
+                    where("supplierId", "==", supplierId), 
+                    orderBy("createdAt", "asc")
+                );
+                
+                // Limitamos a 50 para no procesar infinito, asumimos que con eso cubrimos el monto
+                // Si la deuda es muy vieja y fragmentada, requeriría mas lógica, pero esto cubre el 99%
+                const snapPending = await getDocs(query(qPending, limit(50)));
+                
+                const purchasesToPay = [];
+                let moneyAvailable = amount;
+
+                snapPending.forEach(d => {
+                    if (moneyAvailable <= 0) return;
+                    const p = d.data();
+                    const bal = (p.totalCost || 0) - (p.amountPaid || 0);
+                    
+                    if (bal > 0) {
+                        purchasesToPay.push({ ref: d.ref, data: p });
+                        moneyAvailable -= bal;
+                    }
+                });
+
+                // FASE 2: Transacción
+                await runTransaction(db, async (t) => {
+                    // Leer Cuenta
+                    const accRef = doc(db, "accounts", accountId);
+                    const accDoc = await t.get(accRef);
+                    if(!accDoc.exists()) throw "Cuenta no encontrada";
+                    
+                    // Re-leer facturas para bloqueo seguro
+                    const validatedPurchases = [];
+                    for(const item of purchasesToPay) {
+                        const freshSnap = await t.get(item.ref);
+                        if(freshSnap.exists()) validatedPurchases.push({ ref: item.ref, data: freshSnap.data() });
+                    }
+
+                    // Escritura
+                    const accData = accDoc.data();
+                    let tax = 0;
+                    if (accData.type === 'banco' && !accData.isExempt) tax = Math.ceil(amount * 0.004);
+
+                    const totalDeduction = amount + tax;
+                    if (accData.balance < totalDeduction) throw `Saldo insuficiente.`;
+
+                    t.update(accRef, { balance: accData.balance - totalDeduction });
+
+                    if (tax > 0) {
+                        const taxRef = doc(collection(db, "expenses"));
+                        t.set(taxRef, {
+                            description: `4x1000 Pago a ${supplierData.name}`,
+                            amount: tax,
+                            category: "Impuestos",
+                            type: 'EXPENSE',
+                            paymentMethod: accData.name,
+                            date: Timestamp.now(),
+                            createdAt: Timestamp.now()
+                        });
+                    }
+
+                    let remaining = amount;
+                    for (const { ref, data } of validatedPurchases) {
+                        if (remaining <= 0) break;
+                        const currentBalance = (data.totalCost || 0) - (data.amountPaid || 0);
+                        const paymentForThis = Math.min(remaining, currentBalance);
+                        
+                        t.update(ref, {
+                            amountPaid: (data.amountPaid || 0) + paymentForThis,
+                            lastPaymentDate: Timestamp.now()
+                        });
+                        remaining -= paymentForThis;
+                    }
+
+                    const expenseRef = doc(collection(db, "expenses"));
+                    t.set(expenseRef, {
+                        supplierId: supplierId,
+                        supplierName: supplierData.name,
+                        description: note,
+                        category: "Pago Proveedores", 
+                        type: 'EXPENSE',
+                        amount: amount,
+                        paymentMethod: accData.name,
+                        date: Timestamp.now(),
+                        createdAt: Timestamp.now()
+                    });
+                });
+
+                alert("✅ Pago registrado");
+                window.closeModal('payment-modal');
+                e.target.reset();
+                loadData(); 
+
+            } catch (err) {
+                console.error(err);
+                alert("Error: " + err.message);
+            } finally {
+                btn.disabled = false; btn.innerText = originalText;
+            }
+        };
+
+        // UI HELPERS
+        window.openPaymentModal = () => document.getElementById('payment-modal').classList.remove('hidden');
+        window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
+        
+        window.openPurchaseDetail = async (id) => {
+            const snap = await getDoc(doc(db, "purchases", id));
+            if(!snap.exists()) return;
+            const p = snap.data();
+            const content = document.getElementById('purchase-modal-content');
+            
+            content.innerHTML = `
+                <div class="flex justify-between items-end mb-6 pb-6 border-b border-gray-100">
+                     <div><p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Total Compra</p><p class="text-3xl font-black text-brand-black tracking-tighter">$${p.totalCost.toLocaleString('es-CO')}</p></div>
+                     <div class="text-right"><p class="text-[9px] font-bold text-gray-400 uppercase">${p.createdAt?.toDate().toLocaleString()}</p></div>
+                </div>
+                <div class="space-y-3">
+                    ${p.items.map(i => `
+                        <div class="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl">
+                            <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-gray-400 shadow-sm font-black text-xs">${i.quantity}x</div>
+                            <div class="flex-grow"><p class="text-xs font-black uppercase text-brand-black">${i.name}</p><p class="text-[9px] font-bold text-gray-400 uppercase">${i.color || ''} ${i.capacity || ''}</p></div>
+                            <p class="text-xs font-bold text-brand-cyan">$${(i.unitCostBase || 0).toLocaleString()}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            document.getElementById('purchase-detail-modal').classList.remove('hidden');
+        };
+
+        document.getElementById('btn-edit-supplier').onclick = () => document.getElementById('edit-supplier-modal').classList.remove('hidden');
+        
+        document.getElementById('edit-supplier-form').onsubmit = async (e) => {
+            e.preventDefault();
+            try {
+                await updateDoc(doc(db, "suppliers", supplierId), {
+                    name: document.getElementById('e-name').value,
+                    nit: document.getElementById('e-nit').value,
+                    phone: document.getElementById('e-phone').value,
+                    contactName: document.getElementById('e-contact').value,
+                    email: document.getElementById('e-email').value,
+                    bankName: document.getElementById('e-bank').value,
+                    accNum: document.getElementById('e-account').value
+                });
+                alert("✅ Actualizado"); location.reload();
+            } catch (err) { alert(err.message); }
+        };
+
+        // Tabs
+        document.querySelectorAll('.crm-tab-btn').forEach(btn => {
+            btn.onclick = (e) => {
+                document.querySelectorAll('.crm-tab-btn').forEach(b => {
+                    b.classList.remove('active', 'border-brand-cyan', 'bg-cyan-50/20', 'border-blue-500', 'bg-blue-50/20', 'border-emerald-500', 'bg-emerald-50/20');
+                    b.classList.add('border-transparent');
+                });
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+                const target = e.currentTarget.dataset.tab;
+                e.currentTarget.classList.remove('border-transparent');
+                
+                if(target === 'generales') e.currentTarget.classList.add('active', 'border-brand-cyan', 'bg-cyan-50/20');
+                if(target === 'historial') e.currentTarget.classList.add('active', 'border-blue-500', 'bg-blue-50/20');
+                if(target === 'pagos') e.currentTarget.classList.add('active', 'border-emerald-500', 'bg-emerald-50/20');
+                
+                document.getElementById(`tab-${target}`).classList.remove('hidden');
+            };
+        });
+
+        // 4x1000 Preview
+        const payAccountSelect = document.getElementById('pay-account');
+        const payAmountInput = document.getElementById('pay-amount');
+
+        function updateTaxPreview() {
+            const accId = payAccountSelect.value;
+            const amount = Number(payAmountInput.value);
+            const acc = accountsList.find(a => a.id === accId);
+            const taxInfo = document.getElementById('tax-info');
+            
+            if(acc && acc.type === 'banco' && !acc.isExempt && amount > 0) {
+                const tax = Math.ceil(amount * 0.004);
+                document.getElementById('tax-amount').textContent = `$${tax.toLocaleString()}`;
+                taxInfo.classList.remove('hidden');
+            } else {
+                taxInfo.classList.add('hidden');
+            }
+        }
+
+        payAccountSelect.onchange = updateTaxPreview;
+        payAmountInput.oninput = updateTaxPreview;
+
+        loadData();
+    </script>
+    <script type="module" src="../js/admin-guard.js"></script>
+</body>
+</html>

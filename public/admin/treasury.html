@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#00AEC7">
+    <link rel="apple-touch-icon" href="/img/icons/icon-192x192.webp">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tesorería y Cuentas | PixelTech Admin</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+    <style> 
+        .hidden { display: none !important; } 
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #CBD5E1; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans text-brand-black flex h-screen overflow-hidden" style="display: none;">
+
+    <div id="admin-sidebar"></div>
+
+    <main class="flex-grow overflow-y-auto p-8 custom-scroll">
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+            <div>
+                <h1 class="text-3xl font-black uppercase tracking-tighter">Tesorería</h1>
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Gestión de Pasarelas, Bancos y Efectivo</p>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="openTransferModal()" class="bg-white border border-gray-200 text-brand-black px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 transition shadow-sm flex items-center gap-2">
+                    <i class="fa-solid fa-money-bill-transfer"></i> Transferir Saldos
+                </button>
+                <button onclick="openAccountModal()" class="bg-brand-black text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-cyan hover:text-brand-black transition shadow-lg flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Nueva Cuenta
+                </button>
+            </div>
+        </header>
+
+        <div id="accounts-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="col-span-3 text-center py-12">
+                <i class="fa-solid fa-circle-notch fa-spin text-brand-cyan text-3xl"></i>
+            </div>
+        </div>
+    </main>
+
+    <div id="account-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onclick="closeModal('account-modal')"></div>
+        <div class="relative bg-white w-full max-w-md rounded-[2rem] shadow-2xl p-8 animate-in fade-in zoom-in-95 duration-200 overflow-y-auto max-h-[90vh] custom-scroll">
+            <h3 class="text-xl font-black uppercase mb-6" id="modal-title">Datos de <span class="text-brand-cyan">Cuenta</span></h3>
+            
+            <form id="account-form" class="space-y-4">
+                <input type="hidden" id="edit-id">
+                
+                <div>
+                    <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-1">Nombre Identificador *</label>
+                    <input type="text" id="acc-name" required placeholder="Ej: PayU Latam" class="w-full bg-slate-50 border border-gray-200 p-3 rounded-xl font-bold text-sm outline-none focus:border-brand-cyan transition-all">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-1">Tipo *</label>
+                        <select id="acc-type" class="w-full bg-slate-50 border border-gray-200 p-3 rounded-xl font-bold text-sm outline-none focus:border-brand-cyan cursor-pointer transition-all">
+                            <option value="banco">Banco Tradicional</option>
+                            <option value="plataforma">Pasarela / Plataforma</option>
+                            <option value="efectivo">Efectivo / Caja</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label id="lbl-balance" class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-1">Saldo Inicial *</label>
+                        <input type="number" id="acc-balance" required value="0" class="w-full bg-slate-50 border border-gray-200 p-3 rounded-xl font-bold text-sm outline-none focus:border-brand-cyan transition-all">
+                    </div>
+                </div>
+
+                <div id="bank-fields" class="hidden grid grid-cols-2 gap-4 p-4 bg-blue-50/50 rounded-xl border border-blue-100">
+                    <div class="col-span-2"><span class="text-[9px] font-black text-blue-400 uppercase tracking-widest">Datos Bancarios</span></div>
+                    <div class="col-span-2">
+                        <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-1">Número de Cuenta</label>
+                        <input type="text" id="acc-number" placeholder="Ej: 987-0000-123" class="w-full bg-white border border-gray-200 p-3 rounded-xl font-bold text-sm outline-none focus:border-brand-cyan">
+                    </div>
+                    <div class="col-span-2">
+                        <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-1">Tipo de Cuenta</label>
+                        <div class="flex gap-4 mt-1">
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="bankType" value="Ahorros" checked class="accent-brand-cyan"><span class="text-xs font-bold text-gray-600">Ahorros</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="bankType" value="Corriente" class="accent-brand-cyan"><span class="text-xs font-bold text-gray-600">Corriente</span></label>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="platform-fields" class="hidden grid grid-cols-2 gap-4 p-4 bg-purple-50/50 rounded-xl border border-purple-100">
+                    <div class="col-span-2"><span class="text-[9px] font-black text-purple-400 uppercase tracking-widest">Configuración de Comisiones</span></div>
+                    
+                    <div class="col-span-2">
+                        <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-1">Tipo de Comisión</label>
+                        <select id="fee-type" class="w-full bg-white border border-gray-200 p-2 rounded-xl font-bold text-xs outline-none focus:border-brand-cyan">
+                            <option value="variable">Variable (% + Fijo)</option>
+                            <option value="fixed">Solo Fija ($)</option>
+                        </select>
+                    </div>
+
+                    <div id="fee-var-group" class="contents">
+                        <div>
+                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-1">Porcentaje (%)</label>
+                            <input type="number" id="fee-percent" step="0.01" placeholder="Ej: 3.49" class="w-full bg-white border border-gray-200 p-3 rounded-xl font-bold text-sm outline-none focus:border-brand-cyan text-center">
+                        </div>
+                    </div>
+                    
+                    <div id="fee-fixed-container">
+                        <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-1">Valor Fijo ($)</label>
+                        <input type="number" id="fee-fixed" placeholder="Ej: 900" class="w-full bg-white border border-gray-200 p-3 rounded-xl font-bold text-sm outline-none focus:border-brand-cyan text-center">
+                    </div>
+
+                    <div class="col-span-2 pt-2 border-t border-purple-200/50">
+                        <div class="flex items-center gap-3 cursor-pointer" onclick="document.getElementById('fee-apply-iva').click()">
+                            <input type="checkbox" id="fee-apply-iva" class="w-4 h-4 accent-purple-500 cursor-pointer">
+                            <div>
+                                <p class="text-[10px] font-black text-purple-800 uppercase">Aplicar IVA (19%) sobre Comisión</p>
+                                <p class="text-[8px] text-purple-400">Se sumará el 19% al valor calculado de la tarifa.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-span-2 mt-2 pt-4 border-t border-purple-200/50">
+                        <span class="text-[9px] font-black text-purple-400 uppercase tracking-widest block mb-3">Liquidación Automática</span>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-1">Días para el giro</label>
+                                <input type="number" id="settle-days" placeholder="Ej: 30" class="w-full bg-white border border-gray-200 p-3 rounded-xl font-bold text-sm outline-none focus:border-brand-cyan text-center">
+                            </div>
+                            <div>
+                                <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-1">Banco Destino</label>
+                                <select id="settle-bank-dest" class="w-full bg-white border border-gray-200 p-3 rounded-xl font-bold text-xs outline-none focus:border-brand-cyan">
+                                    <option value="">-- Manual --</option>
+                                    </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-4 pt-4 border-t border-gray-100">
+                    
+                    <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-gray-200 cursor-pointer hover:bg-slate-100 transition" onclick="document.getElementById('acc-exempt').click()">
+                        <input type="checkbox" id="acc-exempt" class="w-5 h-5 accent-brand-cyan cursor-pointer">
+                        <div>
+                            <p class="text-xs font-bold text-brand-black uppercase">Exenta del 4x1000</p>
+                            <p class="text-[8px] text-gray-400 uppercase">Si marcas esto, no se cobrará impuesto en salidas.</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-cyan-50/50 p-4 rounded-xl border border-cyan-100">
+                        <label class="text-[9px] font-black text-brand-cyan uppercase tracking-widest block mb-2">Vincular a Pasarela de Pagos</label>
+                        <select id="acc-gateway-link" class="w-full bg-white border border-cyan-200 text-brand-black font-bold text-xs p-3 rounded-lg outline-none focus:border-brand-cyan">
+                            <option value="">-- Ninguna (Cuenta Normal) --</option>
+                            <option value="MERCADOPAGO">MercadoPago (Tarjetas)</option>
+                            <!-- 🔥 CAMBIO: Aclaramos que ADDI maneja el débito PSE -->
+                            <option value="ADDI">ADDI / PSE (Crédito y Débito)</option>
+                            <option value="SISTECREDITO">Sistecrédito (Créditos Web)</option>
+                            <option value="BOLD">Próximamente</option>
+                        </select>
+                        <p class="text-[8px] text-gray-400 mt-2 font-bold uppercase">
+                            <i class="fa-solid fa-circle-info text-brand-cyan"></i> 
+                            Los pagos de la pasarela seleccionada entrarán automáticamente aquí.
+                        </p>
+                    </div>
+                </div>
+
+                <button type="submit" id="btn-save-acc" class="w-full bg-brand-black text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-brand-cyan hover:text-brand-black transition mt-2 shadow-lg">Guardar Cuenta</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="commission-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-md" onclick="closeModal('commission-modal')"></div>
+        <div class="relative bg-white w-full max-w-sm rounded-[2rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95">
+            <div class="p-6 bg-purple-50 border-b border-purple-100 text-center">
+                <h3 class="text-lg font-black uppercase text-purple-900">Legalizar Comisión</h3>
+                <p class="text-[10px] font-bold text-purple-400 uppercase tracking-widest" id="comm-acc-name">---</p>
+            </div>
+            
+            <form id="commission-form" class="p-8 space-y-5">
+                <input type="hidden" id="comm-acc-id">
+                <input type="hidden" id="comm-type"> 
+                <input type="hidden" id="comm-rate-percent">
+                <input type="hidden" id="comm-rate-fixed">
+                <input type="hidden" id="comm-apply-iva">
+
+                <div id="comm-gross-container">
+                    <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2">Valor de la Venta (Bruto)</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="comm-gross" placeholder="$0" class="w-full bg-slate-50 border border-gray-200 p-3 rounded-xl font-bold text-lg text-center outline-none focus:border-purple-500 transition-all text-brand-black currency-input">
+                        <button type="button" id="btn-auto-calc" class="bg-purple-100 text-purple-600 px-3 rounded-xl hover:bg-purple-500 hover:text-white transition" title="Calcular Neto y Gasto Automáticamente">
+                            <i class="fa-solid fa-calculator"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="comm-net-container">
+                    <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2">Valor Neto Recibido</label>
+                    <input type="text" id="comm-net" placeholder="$0" class="w-full bg-white border-2 border-purple-100 p-3 rounded-xl font-bold text-lg text-center outline-none focus:border-purple-500 transition-all text-green-600 currency-input">
+                </div>
+
+                <div class="bg-gray-50 p-4 rounded-xl border border-dashed border-gray-200 text-center">
+                    <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Gasto Calculado</p>
+                    <p id="comm-calc-display" class="text-2xl font-black text-red-500 tracking-tight">$0</p>
+                    <p id="iva-msg" class="text-[8px] font-bold text-purple-400 mt-1 hidden">(Incluye IVA 19%)</p>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Concepto</label>
+                    <input type="text" id="comm-desc" placeholder="Ej: Comisión Venta #123" class="w-full bg-white border border-gray-200 p-2 rounded-lg text-xs font-bold outline-none focus:border-purple-500">
+                </div>
+
+                <button type="submit" class="w-full bg-brand-black text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-purple-500 transition shadow-lg">
+                    Registrar Gasto
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div id="transfer-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onclick="closeModal('transfer-modal')"></div>
+        <div class="relative bg-white w-full max-w-md rounded-[2rem] shadow-2xl p-8">
+            <h3 class="text-xl font-black uppercase mb-6">Mover <span class="text-green-500">Dinero</span></h3>
+            <form id="transfer-form" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-1">Origen (Sale)</label>
+                        <select id="tr-source" required class="w-full bg-red-50 border border-red-100 p-3 rounded-xl font-bold text-sm outline-none focus:border-red-500 cursor-pointer"></select>
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-1">Destino (Entra)</label>
+                        <select id="tr-dest" required class="w-full bg-green-50 border border-green-100 p-3 rounded-xl font-bold text-sm outline-none focus:border-green-500 cursor-pointer"></select>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-1">Monto a Transferir</label>
+                    <input type="text" id="tr-amount" required placeholder="$0" class="w-full bg-slate-50 border border-gray-200 p-4 rounded-xl text-xl font-black text-center outline-none focus:border-brand-black currency-input">
+                </div>
+                <div id="tr-max-info" class="text-center hidden">
+                    <p class="text-[9px] text-gray-400 font-bold">Máximo transferible (Neto): <span id="tr-max-val" class="text-brand-black font-black">$0</span></p>
+                </div>
+                <div id="tax-warning" class="hidden bg-yellow-50 p-3 rounded-xl border border-yellow-200 flex items-center gap-3">
+                    <i class="fa-solid fa-triangle-exclamation text-yellow-600"></i>
+                    <p class="text-[9px] font-bold text-yellow-700 uppercase">Se aplicará 4x1000: <span id="tax-preview" class="font-black">$0</span></p>
+                </div>
+                <button type="submit" class="w-full bg-brand-black text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-brand-cyan transition mt-2 shadow-lg">Confirmar Transferencia</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="history-modal" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-md" onclick="closeModal('history-modal')"></div>
+        <div class="relative bg-white w-full max-w-3xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-in fade-in zoom-in-95 duration-200">
+            <div class="p-8 border-b border-gray-100 flex justify-between items-center bg-slate-50">
+                <div>
+                    <h3 class="text-xl font-black uppercase tracking-tighter text-brand-black">Extracto <span class="text-brand-cyan">Mensual</span></h3>
+                    <p class="text-xs font-bold text-gray-400" id="hist-acc-name">---</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <input type="month" id="hist-month" class="bg-white border border-gray-200 rounded-xl px-4 py-2 text-sm font-bold outline-none focus:border-brand-cyan shadow-sm cursor-pointer">
+                    <button onclick="closeModal('history-modal')" class="w-10 h-10 rounded-full bg-white text-gray-400 border border-gray-200 hover:text-brand-red flex items-center justify-center transition"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            </div>
+            <div class="px-8 py-6 bg-white border-b border-gray-100 shrink-0">
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="bg-green-50 p-4 rounded-2xl border border-green-100 flex flex-col justify-center items-center text-center">
+                        <p class="text-[9px] font-black uppercase tracking-widest text-green-600 mb-1">Total Ingresos</p>
+                        <p id="hist-in" class="text-xl font-black text-green-600 tracking-tight">$0</p>
+                    </div>
+                    <div class="bg-red-50 p-4 rounded-2xl border border-red-100 flex flex-col justify-center items-center text-center">
+                        <p class="text-[9px] font-black uppercase tracking-widest text-red-500 mb-1">Total Egresos</p>
+                        <p id="hist-out" class="text-xl font-black text-red-500 tracking-tight">$0</p>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-gray-200 flex flex-col justify-center items-center text-center">
+                        <p class="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-1">Flujo del Mes</p>
+                        <p id="hist-balance" class="text-xl font-black text-brand-black tracking-tight">$0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex-grow overflow-y-auto custom-scroll p-0 pb-12">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 text-[9px] uppercase font-black text-gray-400 tracking-widest sticky top-0 z-10 border-b border-gray-100 shadow-sm">
+                        <tr>
+                            <th class="px-6 py-4 bg-slate-50">Fecha</th>
+                            <th class="px-6 py-4 bg-slate-50">Concepto</th>
+                            <th class="px-6 py-4 bg-slate-50">Categoría</th>
+                            <th class="px-6 py-4 bg-slate-50 text-right">Valor</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table-body" class="divide-y divide-gray-50 text-xs font-medium text-gray-600">
+                        <tr><td colspan="4" class="p-8 text-center">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+<script type="module">
+        import { db, collection, addDoc, getDocs, doc, updateDoc, onSnapshot, runTransaction, Timestamp, query, where, orderBy } from '../js/firebase-init.js';
+        import { loadAdminSidebar } from '../js/admin-ui.js?v=2.0.0';
+
+        loadAdminSidebar();
+
+        let accounts = [];
+        let unsubscribeAccounts = null;
+
+        // --- DOM ELEMENTS ---
+        const grid = document.getElementById('accounts-grid');
+        const accForm = document.getElementById('account-form');
+        const bankFields = document.getElementById('bank-fields');
+        const platFields = document.getElementById('platform-fields');
+        const accTypeInput = document.getElementById('acc-type');
+        const feeTypeInput = document.getElementById('fee-type');
+        
+        // --- HELPERS ---
+        const cleanNumber = (val) => {
+            if (typeof val === 'number') return val;
+            if (!val) return 0;
+            return parseFloat(val.toString().replace(/[^\d-]/g, '')) || 0;
+        };
+
+        const formatMoney = (amount) => `$${Math.round(amount).toLocaleString('es-CO')}`;
+
+        // Input Mask
+        document.querySelectorAll('.currency-input').forEach(input => {
+            input.addEventListener('input', (e) => {
+                let val = e.target.value.replace(/\D/g, "");
+                if (val === "") { e.target.value = ""; return; }
+                e.target.value = "$" + parseInt(val, 10).toLocaleString('es-CO');
+                
+                if(input.id === 'tr-amount') calculateTransferTax();
+                if(input.id === 'comm-gross' || input.id === 'comm-net') updateExpenseDisplay(); 
+            });
+        });
+
+        // --- LÓGICA VISUAL FORMULARIO ---
+        const toggleFields = () => {
+            const type = accTypeInput.value;
+            bankFields.classList.add('hidden');
+            platFields.classList.add('hidden');
+            if(type === 'banco') bankFields.classList.remove('hidden');
+            if(type === 'plataforma') {
+                platFields.classList.remove('hidden');
+                toggleFeeFields();
+            }
+        };
+        
+        const toggleFeeFields = () => {
+            const ft = feeTypeInput.value;
+            const pDiv = document.getElementById('fee-var-group');
+            const fDiv = document.getElementById('fee-fixed-container');
+            if(ft === 'fixed') {
+                pDiv.classList.add('hidden');
+                fDiv.classList.remove('hidden');
+                fDiv.classList.add('col-span-2');
+            } else {
+                pDiv.classList.remove('hidden');
+                fDiv.classList.remove('hidden');
+                fDiv.classList.remove('col-span-2');
+            }
+        };
+
+        accTypeInput.onchange = toggleFields;
+        feeTypeInput.onchange = toggleFeeFields;
+
+        // =========================================================
+        // 🧠 1. SMART REAL-TIME CACHE: CUENTAS Y TESORERÍA
+        // =========================================================
+        function initSmartAccounts() {
+            const CACHE_KEY = 'pixeltech_admin_accounts_cache';
+            
+            // 1. Carga Rápida desde Caché
+            const cachedAccounts = sessionStorage.getItem(CACHE_KEY);
+            if (cachedAccounts) {
+                try {
+                    accounts = JSON.parse(cachedAccounts);
+                    renderAccountsGrid();
+                } catch(e) {}
+            }
+
+            // 2. Conexión en vivo a Firebase
+            if (unsubscribeAccounts) unsubscribeAccounts();
+
+            const q = query(collection(db, "accounts"), orderBy("name", "asc"));
+            
+            unsubscribeAccounts = onSnapshot(q, (snapshot) => {
+                let hasChanges = false;
+                const newAccounts = [];
+
+                snapshot.forEach(d => {
+                    newAccounts.push({ id: d.id, ...d.data() });
+                });
+
+                // Comparación sencilla para evitar repintar inútilmente
+                if (JSON.stringify(accounts) !== JSON.stringify(newAccounts)) {
+                    hasChanges = true;
+                }
+
+                if (hasChanges) {
+                    console.log("💰 [Tesorería] Saldos actualizados en tiempo real.");
+                    accounts = newAccounts;
+                    sessionStorage.setItem(CACHE_KEY, JSON.stringify(accounts));
+                    renderAccountsGrid();
+                }
+            }, (error) => {
+                console.error("Error en SmartSync Accounts:", error);
+                if (accounts.length === 0) {
+                    grid.innerHTML = `<div class="col-span-3 text-center py-10 text-red-500 font-bold">Error de conexión con el banco central.</div>`;
+                }
+            });
+        }
+
+        function renderAccountsGrid() {
+            const sourceSelect = document.getElementById('tr-source');
+            const destSelect = document.getElementById('tr-dest');
+            const settleBankSelect = document.getElementById('settle-bank-dest');
+
+            grid.innerHTML = "";
+            if(sourceSelect) sourceSelect.innerHTML = "<option value=''>Seleccione...</option>";
+            if(destSelect) destSelect.innerHTML = "<option value=''>Seleccione...</option>";
+            if(settleBankSelect) settleBankSelect.innerHTML = "<option value=''>-- Manual --</option>";
+
+            if (accounts.length === 0) {
+                grid.innerHTML = `<div class="col-span-3 text-center py-10 opacity-50"><p class="font-bold">No hay cuentas registradas.</p></div>`; 
+                return;
+            }
+
+            accounts.forEach(acc => {
+                if (acc.type === 'banco') {
+                    const option = `<option value="${acc.id}">${acc.name}</option>`;
+                    if(settleBankSelect) settleBankSelect.innerHTML += option;
+                }
+
+                // Cálculo visual de saldo disponible (Proyección)
+                let available = acc.balance;
+                
+                if (acc.type === 'plataforma') {
+                    let fee = 0;
+                    const percent = acc.feePercent || 0;
+                    const fixed = acc.feeFixed || 0;
+
+                    if (acc.feeType === 'fixed') fee = fixed; 
+                    else fee = (acc.balance * (percent / 100)) + fixed;
+
+                    if (acc.applyIvaOnFee) fee = fee * 1.19; 
+                    fee = Math.ceil(fee); 
+                    available = available - fee;
+                }
+
+                if (!acc.isExempt && acc.type !== 'efectivo') {
+                    available = Math.floor(available / 1.004);
+                }
+
+                available = Math.floor(available);
+                if (available < 0) available = 0;
+
+                // Render
+                let icon = 'fa-money-bill';
+                let colorClass = 'bg-green-50 text-green-500';
+                let actionBtn = '';
+                let totalBalanceInt = Math.floor(acc.balance || 0);
+
+                if(acc.type === 'banco') { 
+                    icon = 'fa-building-columns'; 
+                    colorClass = 'bg-blue-50 text-blue-500'; 
+                }
+                if(acc.type === 'plataforma') { 
+                    icon = 'fa-globe'; 
+                    colorClass = 'bg-purple-50 text-purple-500';
+                    actionBtn = `<button onclick="window.openCommissionModal('${acc.id}')" title="Deducir Comisión" class="w-full mt-4 py-2 rounded-xl bg-purple-50 text-purple-600 font-bold text-[10px] uppercase tracking-widest hover:bg-purple-500 hover:text-white transition flex items-center justify-center gap-2"><i class="fa-solid fa-percent"></i> Deducir Comisión</button>`;
+                }
+
+                let subInfo = '';
+                if (acc.type === 'banco' && acc.accountNumber) subInfo = `<p class="text-[10px] text-gray-400 font-mono mt-1">${acc.accountCategory || ''} ••• ${acc.accountNumber.slice(-4)}</p>`;
+                if (acc.type === 'plataforma') subInfo = `<p class="text-[10px] text-gray-400 font-bold mt-1">${acc.feeType === 'fixed' ? 'Tarifa Fija' : 'Tarifa Variable'}</p>`;
+
+                let linkBadge = "";
+                if (acc.gatewayLink === 'MERCADOPAGO') {
+                    linkBadge = `<span class="absolute top-4 right-4 bg-blue-500 text-white text-[8px] font-black px-2 py-1 rounded shadow-md uppercase tracking-widest z-20">MP</span>`;
+                } else if (acc.gatewayLink === 'ADDI') {
+                    // 🔥 CAMBIO: Actualizamos el texto de la etiqueta a ADDI / PSE
+                    linkBadge = `<span class="absolute top-4 right-4 bg-[#00D6D6] text-white text-[8px] font-black px-2 py-1 rounded shadow-md uppercase tracking-widest z-20">ADDI / PSE</span>`;
+                } else if (acc.gatewayLink === 'SISTECREDITO') { 
+                    linkBadge = `<span class="absolute top-4 right-4 bg-[#00B34A] text-white text-[8px] font-black px-2 py-1 rounded shadow-md uppercase tracking-widest z-20">SISTECRÉDITO</span>`;
+                } else if (acc.gatewayLink === 'BOLD') {
+                    linkBadge = `<span class="absolute top-4 right-4 bg-red-500 text-white text-[8px] font-black px-2 py-1 rounded shadow-md uppercase tracking-widest z-20">BOLD</span>`;
+                }
+                grid.innerHTML += `
+                    <div class="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden flex flex-col justify-between ${acc.gatewayLink ? 'ring-2 ring-brand-cyan/20' : ''} fade-in">
+                        ${linkBadge}
+                        <div class="absolute -right-4 -top-4 w-24 h-24 rounded-full ${colorClass.split(' ')[0]} blur-2xl opacity-50 pointer-events-none"></div>
+                        <div>
+                            <div class="flex justify-between items-start mb-6 relative z-10">
+                                <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-xl ${colorClass}"><i class="fa-solid ${icon}"></i></div>
+                                <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button onclick="window.openHistory('${acc.name}')" title="Extracto" class="w-8 h-8 rounded-lg bg-slate-100 text-gray-500 hover:bg-brand-black hover:text-white transition flex items-center justify-center"><i class="fa-solid fa-list-ul text-xs"></i></button>
+                                    <button onclick="window.editAccount('${acc.id}')" title="Editar" class="w-8 h-8 rounded-lg bg-slate-100 text-gray-500 hover:bg-brand-cyan hover:text-brand-black transition flex items-center justify-center"><i class="fa-solid fa-pen text-xs"></i></button>
+                                </div>
+                            </div>
+                            <div class="relative z-10">
+                                <div class="flex items-center gap-2"><h3 class="font-bold text-gray-600 text-xs uppercase tracking-widest">${acc.name}</h3>${acc.isExempt ? '<i class="fa-solid fa-shield-halved text-green-500 text-xs" title="Exenta 4x1000"></i>' : ''}</div>
+                                ${subInfo}
+                                <p class="text-3xl font-black text-brand-black tracking-tighter mt-2">${formatMoney(totalBalanceInt)}</p>
+                                <p class="text-[9px] font-bold text-gray-400 mt-1">Disponible: <span class="text-gray-600">${formatMoney(available)}</span></p>
+                            </div>
+                        </div>
+                        ${actionBtn}
+                    </div>
+                `;
+
+                const opt = `<option value="${acc.id}">${acc.name} (${formatMoney(totalBalanceInt)})</option>`;
+                if(sourceSelect) sourceSelect.innerHTML += opt;
+                if(destSelect) destSelect.innerHTML += opt;
+            });
+        }
+
+        // =========================================================
+        // 2. MODAL DE HISTORIAL (Extracto / Statement)
+        // =========================================================
+        window.openHistory = async (accountName) => {
+            const modal = document.getElementById('history-modal');
+            document.getElementById('hist-acc-name').textContent = accountName;
+            const now = new Date();
+            const monthStr = now.toISOString().slice(0, 7); 
+            document.getElementById('hist-month').value = monthStr;
+            
+            loadHistoryData(accountName, monthStr);
+            document.getElementById('hist-month').onchange = (e) => loadHistoryData(accountName, e.target.value);
+            modal.classList.remove('hidden');
+        };
+
+        async function loadHistoryData(accountName, monthStr) {
+            const tbody = document.getElementById('history-table-body');
+            tbody.innerHTML = `<tr><td colspan="4" class="p-8 text-center"><i class="fa-solid fa-circle-notch fa-spin text-brand-cyan"></i> Cargando movimientos...</td></tr>`;
+            document.getElementById('hist-in').textContent = "...";
+            document.getElementById('hist-out').textContent = "...";
+            document.getElementById('hist-balance').textContent = "...";
+
+            try {
+                const [year, month] = monthStr.split('-').map(Number);
+                const start = new Date(year, month - 1, 1);
+                const end = new Date(year, month, 0, 23, 59, 59);
+
+                const q = query(
+                    collection(db, "expenses"), 
+                    where("paymentMethod", "==", accountName), 
+                    where("date", ">=", Timestamp.fromDate(start)), 
+                    where("date", "<=", Timestamp.fromDate(end)), 
+                    orderBy("date", "desc")
+                );
+
+                const snap = await getDocs(q);
+                
+                tbody.innerHTML = "";
+                let totalIncome = 0;
+                let totalExpense = 0;
+
+                if(snap.empty) {
+                    tbody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-xs text-gray-400 font-bold uppercase">Sin movimientos este mes</td></tr>`;
+                    document.getElementById('hist-in').textContent = "$0";
+                    document.getElementById('hist-out').textContent = "$0";
+                    document.getElementById('hist-balance').textContent = "$0";
+                    return;
+                }
+
+                let count = 0;
+                snap.forEach(d => {
+                    const t = d.data();
+                    const absAmount = Math.floor(Math.abs(Number(t.amount)));
+                    
+                    const isIncome = t.type === 'INCOME' || 
+                                     t.category?.includes('Ingreso') || 
+                                     t.category?.includes('Entrante') || 
+                                     Number(t.amount) < 0;
+
+                    if (isIncome) totalIncome += absAmount;
+                    else totalExpense += absAmount;
+
+                    if (count < 50) {
+                        const dateObj = t.date?.toDate ? t.date.toDate() : new Date(t.date);
+                        const colorClass = isIncome ? 'text-green-600' : 'text-brand-red';
+                        const sign = isIncome ? '+' : '-';
+                        const iconCat = isIncome ? '<i class="fa-solid fa-arrow-down text-green-500 mr-1"></i>' : '';
+
+                        tbody.innerHTML += `
+                            <tr class="hover:bg-slate-50 transition border-b border-gray-50 last:border-0 fade-in">
+                                <td class="px-6 py-4 text-gray-500 font-mono text-xs">${dateObj.toLocaleDateString('es-CO')}</td>
+                                <td class="px-6 py-4 font-bold text-brand-black text-xs uppercase">${t.description}</td>
+                                <td class="px-6 py-4"><span class="bg-gray-100 px-2 py-1 rounded text-[9px] font-black uppercase text-gray-500 border border-gray-200">${iconCat}${t.category}</span></td>
+                                <td class="px-6 py-4 text-right font-black ${colorClass} text-xs">${sign}${formatMoney(absAmount)}</td>
+                            </tr>`;
+                    }
+                    count++;
+                });
+                
+                if (count > 50) {
+                    tbody.innerHTML += `<tr><td colspan="4" class="p-4 text-center text-xs text-gray-400 italic">Mostrando últimos 50 de ${count} movimientos</td></tr>`;
+                }
+
+                document.getElementById('hist-in').textContent = formatMoney(totalIncome);
+                document.getElementById('hist-out').textContent = formatMoney(totalExpense);
+                const net = totalIncome - totalExpense;
+                document.getElementById('hist-balance').textContent = `${net >= 0 ? '+' : ''}${formatMoney(Math.abs(net))}`;
+                document.getElementById('hist-balance').className = `text-xl font-black tracking-tight ${net >= 0 ? 'text-green-600' : 'text-red-500'}`;
+
+            } catch (e) { 
+                console.error(e);
+                tbody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-red-400">Error: ${e.message}</td></tr>`;
+            }
+        }
+
+        // =========================================================
+        // 3. TRANSFERENCIAS (CON IMPUESTOS)
+        // =========================================================
+        const amountInput = document.getElementById('tr-amount');
+        const sourceInput = document.getElementById('tr-source');
+        
+        function calculateTransferTax() {
+            const accId = sourceInput.value;
+            const amount = cleanNumber(amountInput.value);
+            const account = accounts.find(a => a.id === accId);
+            const warning = document.getElementById('tax-warning');
+            const maxInfo = document.getElementById('tr-max-info');
+            const maxVal = document.getElementById('tr-max-val');
+
+            if (!account) { 
+                warning.classList.add('hidden'); 
+                maxInfo.classList.add('hidden'); 
+                return; 
+            }
+
+            let availableForTransfer = account.balance;
+
+            if (account.type === 'plataforma') {
+                let fee = 0;
+                const percent = account.feePercent || 0;
+                const fixed = account.feeFixed || 0;
+                if (account.feeType === 'fixed') fee = fixed;
+                else fee = (account.balance * (percent / 100)) + fixed;
+                if (account.applyIvaOnFee) fee *= 1.19;
+                availableForTransfer -= Math.ceil(fee); 
+            }
+
+            if (!account.isExempt && account.type !== 'efectivo') {
+                availableForTransfer = Math.floor(availableForTransfer / 1.004);
+            }
+
+            availableForTransfer = Math.floor(availableForTransfer);
+            if (availableForTransfer < 0) availableForTransfer = 0;
+
+            maxVal.textContent = formatMoney(availableForTransfer);
+            maxInfo.classList.remove('hidden');
+
+            let taxRate = 0;
+            if (!account.isExempt && account.type !== 'efectivo') taxRate = 0.004;
+
+            if (taxRate > 0 && amount > 0) {
+                const tax = Math.ceil(amount * taxRate);
+                document.getElementById('tax-preview').textContent = formatMoney(tax);
+                warning.classList.remove('hidden');
+            } else {
+                warning.classList.add('hidden');
+            }
+        }
+        
+        sourceInput.onchange = calculateTransferTax;
+        
+        document.getElementById('transfer-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const originalText = btn.innerText;
+            btn.disabled = true; btn.innerText = "Procesando...";
+
+            const sourceId = sourceInput.value;
+            const destId = document.getElementById('tr-dest').value;
+            const amount = cleanNumber(amountInput.value);
+
+            if(sourceId === destId) { alert("Cuentas iguales"); btn.disabled=false; btn.innerText=originalText; return; }
+            if(amount <= 0) { alert("Monto inválido"); btn.disabled=false; btn.innerText=originalText; return; }
+
+            try {
+                await runTransaction(db, async (t) => {
+                    const sRef = doc(db, "accounts", sourceId);
+                    const dRef = doc(db, "accounts", destId);
+                    const sDoc = await t.get(sRef);
+                    const dDoc = await t.get(dRef);
+                    const sData = sDoc.data();
+                    const dData = dDoc.data();
+
+                    let available = sData.balance;
+                    if (sData.type === 'plataforma') {
+                        let fee = 0;
+                        const percent = sData.feePercent || 0;
+                        const fixed = sData.feeFixed || 0;
+                        if (sData.feeType === 'fixed') fee = fixed;
+                        else fee = (sData.balance * (percent / 100)) + fixed;
+                        if (sData.applyIvaOnFee) fee *= 1.19;
+                        available -= Math.ceil(fee);
+                    }
+
+                    let tax = 0;
+                    if(sData.type !== 'efectivo' && !sData.isExempt) tax = Math.ceil(amount * 0.004);
+                    
+                    if((amount + tax) > available) throw `Fondos insuficientes (El saldo real disponible es ${formatMoney(available)})`;
+
+                    const finalSource = Math.floor(sData.balance - (amount + tax));
+                    const finalDest = Math.floor(dData.balance + amount);
+
+                    t.update(sRef, { balance: finalSource });
+                    t.update(dRef, { balance: finalDest });
+
+                    const outRef = doc(collection(db, "expenses"));
+                    t.set(outRef, {
+                        description: `Transferencia a ${dData.name}`,
+                        amount: amount,
+                        category: "Transferencia Saliente",
+                        type: 'EXPENSE',
+                        paymentMethod: sData.name,
+                        date: Timestamp.now(),
+                        createdAt: Timestamp.now()
+                    });
+
+                    const inRef = doc(collection(db, "expenses"));
+                    t.set(inRef, {
+                        description: `Transferencia desde ${sData.name}`,
+                        amount: amount,
+                        category: "Transferencia Entrante",
+                        type: 'INCOME',
+                        paymentMethod: dData.name,
+                        date: Timestamp.now(),
+                        createdAt: Timestamp.now()
+                    });
+
+                    if(tax > 0) {
+                        const txRef = doc(collection(db, "expenses"));
+                        t.set(txRef, {
+                            description: `4x1000 Transferencia`,
+                            amount: tax,
+                            category: "Impuestos",
+                            type: 'EXPENSE',
+                            paymentMethod: sData.name,
+                            date: Timestamp.now(),
+                            createdAt: Timestamp.now()
+                        });
+                    }
+                });
+                alert("✅ Transferencia Exitosa");
+                window.closeModal('transfer-modal');
+                // No necesitamos repintar las tarjetas, el onSnapshot de arriba lo hace solo.
+            } catch(e) { alert("Error: " + e); }
+            finally { btn.disabled = false; btn.innerText = originalText; }
+        };
+
+        // =========================================================
+        // 4. COMISIONES
+        // =========================================================
+        window.openCommissionModal = (id) => {
+            const acc = accounts.find(a => a.id === id);
+            if (!acc) return;
+            document.getElementById('comm-acc-id').value = acc.id;
+            document.getElementById('comm-acc-name').textContent = acc.name;
+            document.getElementById('comm-type').value = acc.feeType || 'variable';
+            document.getElementById('comm-rate-percent').value = acc.feePercent || 0;
+            document.getElementById('comm-rate-fixed').value = acc.feeFixed || 0;
+            
+            const appliesIva = acc.applyIvaOnFee || false;
+            document.getElementById('comm-apply-iva').value = appliesIva;
+            const ivaMsg = document.getElementById('iva-msg');
+            appliesIva ? ivaMsg.classList.remove('hidden') : ivaMsg.classList.add('hidden');
+
+            if(acc.feeType === 'fixed') {
+                document.getElementById('comm-gross-container').classList.add('hidden');
+                document.getElementById('comm-net-container').classList.add('hidden');
+                
+                let fixedCost = acc.feeFixed || 0;
+                if(appliesIva) fixedCost *= 1.19;
+                
+                document.getElementById('comm-calc-display').textContent = formatMoney(fixedCost);
+            } else {
+                document.getElementById('comm-gross-container').classList.remove('hidden');
+                document.getElementById('comm-net-container').classList.remove('hidden');
+                document.getElementById('comm-gross').value = "";
+                document.getElementById('comm-net').value = "";
+                document.getElementById('comm-calc-display').textContent = "$0";
+            }
+            document.getElementById('comm-desc').value = "";
+            document.getElementById('commission-modal').classList.remove('hidden');
+        };
+
+        const updateExpenseDisplay = () => {
+            const cType = document.getElementById('comm-type').value;
+            if(cType === 'fixed') return;
+
+            const gross = cleanNumber(document.getElementById('comm-gross').value);
+            const net = cleanNumber(document.getElementById('comm-net').value);
+            
+            if (gross > 0 && net > 0) {
+                const cost = gross - net;
+                const display = cost > 0 ? `-${formatMoney(cost)}` : `$0`;
+                document.getElementById('comm-calc-display').textContent = display;
+            }
+        };
+
+        document.getElementById('btn-auto-calc').onclick = () => {
+            const gross = cleanNumber(document.getElementById('comm-gross').value);
+            if (gross <= 0) return;
+
+            const type = document.getElementById('comm-type').value;
+            const percent = Number(document.getElementById('comm-rate-percent').value) || 0;
+            const fixed = Number(document.getElementById('comm-rate-fixed').value) || 0;
+            const applyIva = document.getElementById('comm-apply-iva').value === 'true';
+
+            let fee = 0;
+            if (type === 'fixed') fee = fixed;
+            else fee = (gross * (percent / 100)) + fixed;
+
+            if (applyIva) fee = fee * 1.19;
+
+            const net = Math.floor(gross - fee);
+            document.getElementById('comm-net').value = formatMoney(net);
+            updateExpenseDisplay();
+        };
+
+        document.getElementById('commission-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('commission-form').querySelector('button');
+            const originalText = btn.innerText;
+            btn.disabled = true; btn.innerText = "Procesando...";
+
+            const accId = document.getElementById('comm-acc-id').value;
+            const cType = document.getElementById('comm-type').value;
+            const desc = document.getElementById('comm-desc').value;
+            const acc = accounts.find(a => a.id === accId);
+            const applyIva = document.getElementById('comm-apply-iva').value === 'true';
+            
+            let cost = 0;
+            let gross = 0;
+
+            if (cType === 'fixed') {
+                cost = Number(document.getElementById('comm-rate-fixed').value);
+                if(applyIva) cost *= 1.19;
+            } else {
+                gross = cleanNumber(document.getElementById('comm-gross').value);
+                const net = cleanNumber(document.getElementById('comm-net').value);
+                cost = gross - net;
+            }
+
+            if (cost <= 0) { alert("Costo inválido"); btn.disabled=false; btn.innerText=originalText; return; }
+
+            try {
+                await runTransaction(db, async (t) => {
+                    const accRef = doc(db, "accounts", accId);
+                    const accDoc = await t.get(accRef);
+                    const newBalance = Math.floor(accDoc.data().balance - cost);
+                    
+                    t.update(accRef, { balance: newBalance });
+                    const expRef = doc(collection(db, "expenses"));
+                    t.set(expRef, {
+                        description: desc || (cType === 'fixed' ? 'Comisión Fija' : `Comisión Venta ${formatMoney(gross)}`),
+                        category: "Comisiones Plataforma",
+                        type: 'EXPENSE',
+                        amount: cost,
+                        paymentMethod: acc.name,
+                        date: Timestamp.now(),
+                        createdAt: Timestamp.now(),
+                        supplierName: acc.name
+                    });
+                });
+                alert("✅ Registrado"); 
+                window.closeModal('commission-modal');
+                // No necesitamos repintar las tarjetas, el onSnapshot de arriba lo hace solo.
+            } catch (e) { alert(e.message); } finally { btn.disabled = false; btn.innerText=originalText; }
+        };
+
+        // =========================================================
+        // 5. CRUD CUENTAS
+        // =========================================================
+        window.openAccountModal = () => {
+            accForm.reset();
+            document.getElementById('edit-id').value = "";
+            document.getElementById('modal-title').innerHTML = `Nueva <span class="text-brand-cyan">Cuenta</span>`;
+            const balInput = document.getElementById('acc-balance');
+            balInput.disabled = false;
+            balInput.value = 0;
+            balInput.classList.remove('bg-gray-200', 'text-gray-500');
+            balInput.classList.add('bg-slate-50');
+            document.getElementById('lbl-balance').textContent = "Saldo Inicial *"; 
+            toggleFields();
+            document.getElementById('account-modal').classList.remove('hidden');
+        };
+
+        window.editAccount = (id) => {
+            const acc = accounts.find(a => a.id === id);
+            if(!acc) return;
+            document.getElementById('edit-id').value = acc.id;
+            document.getElementById('acc-name').value = acc.name;
+            document.getElementById('acc-type').value = acc.type;
+            
+            // --- CAMBIO: Desbloqueamos el input del saldo ---
+            const balInput = document.getElementById('acc-balance');
+            balInput.value = Math.floor(acc.balance);
+            balInput.disabled = false; // Ahora se puede editar
+            balInput.classList.remove('bg-gray-200', 'text-gray-500');
+            balInput.classList.add('bg-slate-50');
+            document.getElementById('lbl-balance').textContent = "Saldo Actual *"; // Cambiamos el título
+            
+            document.getElementById('acc-exempt').checked = acc.isExempt || false;
+            document.getElementById('acc-gateway-link').value = acc.gatewayLink || "";
+            
+            if(acc.type === 'banco') {
+                document.getElementById('acc-number').value = acc.accountNumber || '';
+                const radios = document.getElementsByName('bankType');
+                if(acc.accountCategory === 'Corriente' && radios[1]) radios[1].checked = true;
+                else if(radios[0]) radios[0].checked = true;
+            } else if (acc.type === 'plataforma') {
+                document.getElementById('fee-type').value = acc.feeType || 'variable';
+                document.getElementById('fee-percent').value = acc.feePercent || '';
+                document.getElementById('fee-fixed').value = acc.feeFixed || '';
+                document.getElementById('settle-days').value = acc.settlementDays || "";
+                document.getElementById('settle-bank-dest').value = acc.settlementTargetId || "";
+                document.getElementById('fee-apply-iva').checked = acc.applyIvaOnFee || false;
+            }
+            toggleFields();
+            document.getElementById('modal-title').innerHTML = `Editar <span class="text-brand-cyan">Cuenta</span>`;
+            document.getElementById('account-modal').classList.remove('hidden');
+        };
+
+        window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
+
+        accForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-save-acc');
+            btn.disabled = true; btn.innerText = "Guardando...";
+            const id = document.getElementById('edit-id').value;
+            const type = document.getElementById('acc-type').value;
+            
+            // --- CAMBIO: Siempre tomamos el saldo del input ---
+            const newBalance = Math.floor(Number(document.getElementById('acc-balance').value));
+
+            const data = {
+                name: document.getElementById('acc-name').value,
+                type: type,
+                balance: newBalance, // Guardamos el saldo ya sea nuevo o editado
+                updatedAt: Timestamp.now(),
+                isExempt: document.getElementById('acc-exempt').checked,
+                gatewayLink: document.getElementById('acc-gateway-link').value
+            };
+
+            if (!id) {
+                data.createdAt = Timestamp.now();
+            }
+
+            if (type === 'banco') {
+                data.accountNumber = document.getElementById('acc-number').value;
+                const radios = document.querySelector('input[name="bankType"]:checked');
+                data.accountCategory = radios ? radios.value : 'Ahorros';
+            } else if (type === 'plataforma') {
+                data.feeType = document.getElementById('fee-type').value;
+                data.feeFixed = Number(document.getElementById('fee-fixed').value);
+                if(data.feeType === 'variable') data.feePercent = Number(document.getElementById('fee-percent').value);
+                data.settlementDays = Number(document.getElementById('settle-days').value) || 0;
+                data.settlementTargetId = document.getElementById('settle-bank-dest').value || null;
+                data.applyIvaOnFee = document.getElementById('fee-apply-iva').checked; 
+            }
+
+            try {
+                if(id) {
+                    // Si estamos editando, revisamos si el saldo cambió para dejar un registro en el historial
+                    const oldAcc = accounts.find(a => a.id === id);
+                    const difference = newBalance - (oldAcc.balance || 0);
+
+                    await updateDoc(doc(db, "accounts", id), data);
+
+                    // Dejar huella del ajuste en tesorería
+                    if (difference !== 0) {
+                        await addDoc(collection(db, "expenses"), {
+                            description: difference > 0 ? "Ajuste Manual de Saldo (Suma)" : "Ajuste Manual de Saldo (Resta)",
+                            category: "Ajuste de Tesorería",
+                            type: difference > 0 ? 'INCOME' : 'EXPENSE',
+                            amount: Math.abs(difference),
+                            paymentMethod: data.name,
+                            date: Timestamp.now(),
+                            createdAt: Timestamp.now()
+                        });
+                    }
+                } else {
+                    await addDoc(collection(db, "accounts"), data);
+                }
+                
+                window.closeModal('account-modal');
+            } catch (err) { alert(err.message); }
+            finally { btn.disabled = false; btn.innerText = "Guardar Cuenta"; }
+        };
+
+        window.openTransferModal = () => {
+            document.getElementById('transfer-form').reset();
+            document.getElementById('tax-warning').classList.add('hidden');
+            document.getElementById('tr-max-info').classList.add('hidden');
+            document.getElementById('transfer-modal').classList.remove('hidden');
+        };
+
+        // INICIAR
+        initSmartAccounts();
+    </script>
+<script type="module" src="../js/admin-guard.js"></script>
+</body>
+</html>

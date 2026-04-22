@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#00AEC7">
+    <link rel="apple-touch-icon" href="/img/icons/icon-192x192.webp">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Producto | PixelTech Admin</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        .admin-input-group {
+            background-color: #ffffff;
+            border: 2px solid #e5e7eb; 
+            border-radius: 1.5rem;
+            padding: 1.25rem;
+            transition: all 0.3s ease;
+        }
+        
+        .admin-input-group:focus-within {
+            border-color: #00AEC7; 
+            box-shadow: 0 10px 15px -3px rgba(0, 174, 199, 0.1);
+        }
+
+        /* Input Readonly visualmente distinto */
+        .admin-input-group.readonly-group {
+            background-color: #f8fafc; /* Slate-50 */
+            border-color: #e2e8f0;
+            border-style: dashed;
+        }
+
+        .rich-editor {
+            min-height: 400px;
+            width: 100%;
+            padding: 2.5rem;
+            outline: none;
+            background-color: #ffffff;
+            line-height: 1.6;
+        }
+        .rich-editor h1 { font-size: 2.25rem; font-weight: 900; margin-bottom: 1.5rem; text-transform: uppercase; }
+        .rich-editor p { margin-bottom: 1rem; }
+        .rich-editor b { font-weight: 700; }
+        .rich-editor ul { list-style-type: disc; margin-left: 1.5rem; margin-bottom: 1rem; }
+        
+        /* Ajuste para tabla en móvil */
+        @media (max-width: 640px) {
+            .rich-editor { padding: 1.5rem; min-height: 300px; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans text-brand-black flex h-screen overflow-hidden" style="display: none;">
+
+    <div id="admin-sidebar"></div>
+
+    <main class="flex-grow overflow-y-auto no-scrollbar">
+        <header class="bg-white border-b border-gray-200 px-6 py-4 md:px-10 md:py-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 sticky top-0 z-50 shadow-sm transition-all">
+            <div class="flex items-center gap-4 w-full md:w-auto">
+                <a href="products.html" class="w-10 h-10 md:w-12 md:h-12 shrink-0 rounded-full border-2 border-gray-100 flex items-center justify-center text-gray-400 hover:border-brand-cyan transition">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </a>
+                <div class="overflow-hidden">
+                    <h1 class="text-xl md:text-3xl font-black uppercase tracking-tighter truncate">Editar <span class="text-gray-300">Producto</span></h1>
+                    <p id="product-id-display" class="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-[0.2em] truncate">Cargando...</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 w-full md:w-auto">
+                <button type="button" onclick="location.href='products.html'" class="flex-1 md:flex-none py-3 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-red transition border border-transparent hover:border-gray-100 rounded-xl">Descartar</button>
+                <button id="btn-update" form="main-form" type="submit" class="flex-[2] md:flex-none bg-brand-black text-white px-6 py-3 md:px-10 md:py-4 rounded-xl md:rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] shadow-xl hover:bg-brand-cyan transition-all whitespace-nowrap">
+                    Guardar
+                </button>
+            </div>
+        </header>
+
+        <div id="loader-view" class="p-32 text-center">
+            <i class="fa-solid fa-circle-notch fa-spin text-4xl text-brand-cyan opacity-20"></i>
+        </div>
+
+        <div id="edit-view" class="p-4 md:p-10 max-w-7xl mx-auto space-y-8 hidden">
+            <form id="main-form" class="space-y-8">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
+                    
+                    <div class="lg:col-span-7 space-y-6">
+                        <div class="admin-input-group">
+                            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Nombre Comercial</label>
+                            <input type="text" id="p-name" required class="w-full bg-transparent border-none p-0 text-lg md:text-xl text-brand-black font-bold outline-none">
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            <div class="admin-input-group">
+                                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">SKU</label>
+                                <input type="text" id="p-sku" class="w-full bg-transparent border-none p-0 text-sm font-semibold outline-none">
+                            </div>
+                            <div class="admin-input-group">
+                                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Marca</label>
+                                <input type="text" id="p-brand" class="w-full bg-transparent border-none p-0 text-sm font-semibold outline-none">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            <div class="admin-input-group">
+                                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Precio Base (COP)</label>
+                                <input type="text" id="p-price" required class="w-full bg-transparent border-none p-0 text-lg text-brand-cyan font-black outline-none" placeholder="$ 0">
+                            </div>
+                            <div class="admin-input-group">
+                                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Garantía</label>
+                                <div class="flex gap-4">
+                                    <input type="number" id="p-warranty-time" placeholder="6" class="w-20 bg-transparent border-b border-gray-200 p-1 text-sm font-bold outline-none text-center">
+                                    <select id="p-warranty-unit" class="flex-grow bg-transparent border-b border-gray-200 p-1 text-xs font-bold outline-none cursor-pointer">
+                                        <option value="months">Meses</option>
+                                        <option value="days">Días</option>
+                                        <option value="years">Años</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="admin-input-group relative">
+                            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Categoría</label>
+                            <input type="text" id="cat-search" placeholder="Buscar..." class="w-full bg-transparent border-none p-0 text-sm font-semibold outline-none">
+                            <div id="cat-results" class="absolute z-50 w-full left-0 mt-6 bg-white border-2 border-gray-100 rounded-2xl shadow-2xl hidden max-h-48 overflow-y-auto p-2"></div>
+                            <input type="hidden" id="p-category">
+                        </div>
+
+                        <div class="bg-white border-2 border-gray-200 rounded-[2.5rem] overflow-hidden shadow-sm mt-4">
+                            <div class="bg-gray-50 border-b border-gray-100 p-6">
+                                <span class="block text-[10px] font-black text-brand-black uppercase tracking-[0.2em] mb-4">Definición de Variantes</span>
+                                <div class="grid grid-cols-1 gap-6">
+                                    <div class="bg-white p-4 rounded-2xl border border-gray-200">
+                                        <label class="block text-[8px] font-black text-gray-400 uppercase mb-2">1. Colores</label>
+                                        <div class="flex gap-2 mb-3">
+                                            <input type="text" id="new-color-input" placeholder="Ej: Negro" class="flex-grow bg-slate-50 border border-gray-200 rounded-xl p-2 text-xs outline-none">
+                                            <button type="button" id="btn-add-color" class="bg-brand-black text-white px-3 rounded-xl hover:bg-brand-cyan transition"><i class="fa-solid fa-plus text-xs"></i></button>
+                                        </div>
+                                        <div id="tags-colors" class="flex flex-wrap gap-2"></div>
+                                    </div>
+                                    <div class="bg-white p-4 rounded-2xl border border-gray-200">
+                                        <label class="block text-[8px] font-black text-gray-400 uppercase mb-2">2. Capacidades</label>
+                                        <div class="flex gap-2 mb-3">
+                                            <input type="text" id="new-cap-input" placeholder="Ej: 128GB" class="flex-grow bg-slate-50 border border-gray-200 rounded-xl p-2 text-xs outline-none">
+                                            <button type="button" id="btn-add-cap" class="bg-brand-black text-white px-3 rounded-xl hover:bg-brand-cyan transition"><i class="fa-solid fa-plus text-xs"></i></button>
+                                        </div>
+                                        <div id="tags-caps" class="flex flex-wrap gap-2"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="color-images-section" class="p-6 border-b border-gray-100 hidden">
+                                <span class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-4">Fotos por Color</span>
+                                <div id="color-uploaders-container" class="grid grid-cols-1 gap-4"></div>
+                            </div>
+                            <div class="p-4 md:p-6">
+                                <div class="flex justify-between items-center mb-4">
+                                    <span class="text-[10px] font-black text-brand-cyan uppercase tracking-widest">Matriz de Inventario</span>
+                                </div>
+                                <div class="overflow-x-auto border rounded-2xl border-gray-100">
+                                    <table class="w-full text-left border-collapse min-w-[600px]">
+                                        <thead class="bg-gray-50 text-[8px] font-black text-gray-400 uppercase tracking-wider">
+                                            <tr>
+                                                <th class="p-4">Combinación</th>
+                                                <th class="p-4 w-40 md:w-48">SKU / Código</th> 
+                                                <th class="p-4 w-32 md:w-40">Precio</th>
+                                                <th class="p-4 w-24 md:w-32">Stock</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="matrix-tbody" class="text-sm font-bold text-brand-black"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white border-2 border-gray-200 rounded-[2.5rem] overflow-hidden shadow-sm">
+                            <div class="bg-gray-50 border-b border-gray-100 p-6 flex items-center justify-between">
+                                <span class="block text-[10px] font-black text-brand-black uppercase tracking-[0.2em]">Descripción</span>
+                                <div class="flex gap-2 bg-white p-1.5 rounded-2xl border border-gray-200 shadow-sm">
+                                    <button type="button" onclick="formatDoc('bold')" class="w-10 h-10 rounded-xl hover:bg-gray-100 transition"><i class="fa-solid fa-bold"></i></button>
+                                    <button type="button" onclick="formatDoc('insertUnorderedList')" class="w-10 h-10 rounded-xl hover:bg-gray-100 transition"><i class="fa-solid fa-list-ul"></i></button>
+                                </div>
+                            </div>
+                            <div id="p-description-editor" contenteditable="true" class="rich-editor no-scrollbar"></div>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-5 space-y-6">
+                        <div class="admin-input-group readonly-group bg-gray-50 border-dashed border-gray-200">
+                            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">
+                                Stock Total <span id="stock-label-type" class="text-brand-cyan">(Calculado)</span>
+                            </label>
+                            <input type="number" id="p-stock" readonly required 
+                                class="w-full bg-transparent border-none p-0 text-2xl text-gray-500 font-black outline-none cursor-not-allowed" 
+                                placeholder="0">
+                            <p class="text-[8px] text-gray-400 mt-1">El stock se gestiona mediante entradas/salidas.</p>
+                        </div>
+
+                        <div class="bg-white border-2 border-gray-200 rounded-[2.5rem] p-6 md:p-8 h-fit shadow-sm">
+                            <div class="flex justify-between items-center mb-6">
+                                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest">Multimedia Global</label>
+                                <span class="text-[8px] font-bold text-brand-cyan uppercase">Ordenable</span>
+                            </div>
+                            
+                            <div id="gallery-container" class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 mb-6"></div>
+
+                            <label class="mt-auto w-full flex flex-col items-center justify-center gap-4 py-8 md:py-12 bg-slate-50 border-2 border-dashed border-gray-200 rounded-[2rem] cursor-pointer hover:border-brand-cyan hover:bg-white transition-all group">
+                                <i class="fa-solid fa-camera-retro text-3xl text-gray-300 group-hover:text-brand-cyan transition"></i>
+                                <span class="font-black text-[9px] uppercase text-gray-400 group-hover:text-brand-black">Cargar Fotos</span>
+                                <input type="file" id="p-images" multiple accept=".png, .jpg, .jpeg, .webp, image/png, image/jpeg, image/webp" class="hidden">
+                            </label>
+                        </div>
+
+                        <div class="admin-input-group">
+                            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Estado</label>
+                            <select id="p-status" class="w-full bg-transparent border-none p-0 text-sm font-bold uppercase outline-none cursor-pointer">
+                                <option value="active">🟢 Activo</option>
+                                <option value="draft">🟡 Borrador</option>
+                            </select>
+                        </div>
+
+                        <div class="bg-white border-2 border-gray-200 rounded-[2.5rem] overflow-hidden shadow-sm">
+                            <div class="bg-gray-50 border-b border-gray-100 p-6 flex items-center justify-between">
+                                <span class="block text-[10px] font-black text-brand-black uppercase tracking-[0.2em]">Historial</span>
+                                <i class="fa-solid fa-history text-gray-300"></i>
+                            </div>
+                            <div id="history-container" class="p-8 space-y-4"></div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script type="module" src="../js/admin-edit-product.js"></script>
+    <script type="module" src="../js/admin-guard.js"></script>
+    <script>
+        function formatDoc(cmd, value = null) {
+            document.execCommand(cmd, false, value);
+            document.getElementById('p-description-editor').focus();
+        }
+    </script>
+</body>
+</html>

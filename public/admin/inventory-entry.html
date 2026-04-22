@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#00AEC7">
+    <link rel="apple-touch-icon" href="/img/icons/icon-192x192.webp">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrada de Mercancía | PixelTech Admin</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+    <style>
+        .hidden {
+            display: none !important;
+        }
+
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #00AEC7;
+            border-radius: 10px;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body
+    class="bg-slate-50 font-sans text-brand-black flex h-screen overflow-hidden selection:bg-brand-cyan selection:text-white" style="display: none;">
+
+    <div id="admin-sidebar"></div>
+
+    <main class="flex-grow overflow-y-auto relative custom-scroll">
+        <header
+            class="bg-white/90 backdrop-blur-xl border-b border-gray-100 px-8 py-5 flex justify-between items-center sticky top-0 z-40 shadow-sm">
+            <div>
+                <h2 class="font-black text-gray-400 text-[9px] uppercase tracking-[0.4em]">Logística & Abastecimiento
+                </h2>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="text-right hidden md:block">
+                    <span id="admin-name"
+                        class="text-xs font-black text-brand-black uppercase tracking-widest block">Administrador</span>
+                    <span class="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Sesión Activa</span>
+                </div>
+                <div
+                    class="w-10 h-10 bg-brand-black text-white rounded-xl flex items-center justify-center font-bold shadow-lg">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                </div>
+            </div>
+        </header>
+
+        <div class="p-8 max-w-7xl mx-auto text-left pb-40">
+            <div class="mb-10 flex flex-col md:flex-row justify-between items-end gap-6">
+                <div>
+                    <h1
+                        class="text-4xl lg:text-5xl font-black text-brand-black tracking-tighter uppercase leading-none">
+                        Entrada de <br><span class="text-brand-cyan">Mercancía</span></h1>
+                    <p class="text-gray-400 text-sm font-bold mt-2 tracking-wide">Gestión de compras, costos e
+                        incremento de stock.</p>
+                </div>
+                <div
+                    class="bg-blue-50 text-blue-800 px-6 py-4 rounded-2xl text-xs font-bold border border-blue-100 shadow-sm max-w-sm">
+                    <i class="fa-solid fa-circle-info mr-2"></i>
+                    Recuerda que al procesar la entrada, el stock se sumará automáticamente y se recalculará el costo
+                    promedio.
+                </div>
+            </div>
+
+            <div
+                class="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm mb-8 group hover:shadow-lg transition-all duration-300 fade-in relative z-30">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-8 h-8 rounded-full bg-brand-cyan/10 flex items-center justify-center text-brand-cyan">
+                        <i class="fa-solid fa-truck-field"></i>
+                    </div>
+                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Proveedor de la
+                        Factura</label>
+                </div>
+
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-6 top-1/2 -translate-y-1/2 text-gray-300"></i>
+                    <input type="text" id="supplier-search" placeholder="Buscar aliado comercial..."
+                        class="w-full bg-slate-50 border-2 border-transparent rounded-2xl py-4 pl-14 pr-6 text-sm font-black text-gray-600 outline-none focus:bg-white focus:border-brand-cyan/30 focus:text-brand-black transition-all">
+
+                    <div id="supplier-results"
+                        class="absolute left-0 top-full mt-2 w-full bg-white border border-gray-100 rounded-2xl shadow-2xl max-h-60 overflow-y-auto hidden z-50 p-2 custom-scroll">
+                    </div>
+                    <input type="hidden" id="entry-supplier-id">
+                </div>
+            </div>
+
+            <div class="bg-white rounded-[3rem] shadow-xl border border-gray-100 overflow-visible mb-10 fade-in relative z-20"
+                style="animation-delay: 100ms;">
+                <div
+                    class="p-8 border-b border-gray-50 flex justify-between items-center bg-slate-50/50 rounded-t-[3rem]">
+                    <h3
+                        class="font-black text-brand-black uppercase text-[11px] tracking-widest flex items-center gap-3">
+                        <span class="w-2 h-2 rounded-full bg-brand-cyan shadow-[0_0_10px_#00AEC7]"></span> Equipos
+                        Recibidos
+                    </h3>
+                    <button id="btn-add-item-row"
+                        class="bg-brand-black text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-cyan hover:text-brand-black transition-all shadow-lg hover:shadow-cyan-500/20 transform active:scale-95 flex items-center gap-2">
+                        <i class="fa-solid fa-plus"></i> Añadir Linea
+                    </button>
+                </div>
+
+                <div id="entry-items-container" class="p-8 space-y-4 bg-white min-h-[200px]"></div>
+
+                <div class="p-10 bg-slate-900 text-white mt-4 relative overflow-hidden rounded-b-[3rem]">
+                    <div
+                        class="absolute top-0 right-0 w-64 h-64 bg-brand-cyan/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none">
+                    </div>
+
+                    <div class="flex flex-col lg:flex-row justify-between items-center gap-10 relative z-10">
+                        <div
+                            class="flex items-center gap-6 bg-white/5 p-4 rounded-2xl border border-white/10 backdrop-blur-sm">
+                            <label for="global-iva-toggle" class="flex items-center cursor-pointer relative">
+                                <input type="checkbox" id="global-iva-toggle" class="sr-only peer">
+                                <div
+                                    class="w-14 h-8 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-7 after:w-7 after:transition-all peer-checked:bg-brand-cyan">
+                                </div>
+                            </label>
+                            <div>
+                                <p class="text-[10px] font-black uppercase text-white tracking-widest">Aplicar IVA (19%)
+                                </p>
+                                <p class="text-[8px] font-bold text-white/40 uppercase mt-0.5">Calcula base + impuestos
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap justify-end gap-8 md:gap-12 text-right">
+                            <div>
+                                <p class="text-[9px] font-black text-white/40 uppercase tracking-widest mb-1">Base Neta
+                                </p>
+                                <h4 id="display-base" class="text-xl font-bold text-white/80">$0</h4>
+                            </div>
+                            <div>
+                                <p class="text-[9px] font-black text-brand-cyan uppercase tracking-widest mb-1">IVA
+                                    Calculado</p>
+                                <h4 id="display-iva" class="text-xl font-bold text-brand-cyan">$0</h4>
+                            </div>
+                            <div class="pl-8 md:pl-12 border-l border-white/10">
+                                <p class="text-[9px] font-black text-white/40 uppercase tracking-widest mb-1">Total
+                                    Factura</p>
+                                <h3 id="display-grand-total"
+                                    class="text-4xl font-black text-white leading-none tracking-tight">$0</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex justify-end">
+                        <button id="btn-save-entry"
+                            class="w-full md:w-auto bg-brand-cyan text-brand-black px-12 py-5 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-[0_0_20px_rgba(0,174,199,0.3)] hover:bg-white hover:shadow-white/20 transition-all duration-300 transform active:scale-95">
+                            Procesar Entrada de Inventario
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+<script type="module">
+        import { db, collection, getDocs, doc, runTransaction, orderBy, query, limit, startAt, endAt } from '../js/firebase-init.js';
+        import { loadAdminSidebar } from '../js/admin-ui.js?v=2.0.0';
+
+        loadAdminSidebar();
+
+        const supplierSearchInput = document.getElementById('supplier-search');
+        const supplierResults = document.getElementById('supplier-results');
+        const supplierIdField = document.getElementById('entry-supplier-id');
+        const itemsContainer = document.getElementById('entry-items-container');
+        const btnSave = document.getElementById('btn-save-entry');
+        const ivaToggle = document.getElementById('global-iva-toggle');
+
+        // --- ESTADO LOCAL (CACHÉ) ---
+        let localProductIndex = []; 
+        let isProductIndexLoading = false;
+
+        // --- HELPER: Capitalizar ---
+        function capitalizeFirst(str) {
+            if (!str) return "";
+            return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+        }
+
+        // ========================================================================
+        // 1. BUSCADOR DE PROVEEDORES (Híbrido: Server-Side Optimizado)
+        // ========================================================================
+        let supplierTimeout = null;
+        supplierSearchInput.addEventListener('input', (e) => {
+            const rawTerm = e.target.value.trim();
+            supplierResults.innerHTML = `<div class="p-3 text-xs text-gray-400 text-center"><i class="fa-solid fa-circle-notch fa-spin"></i> Buscando...</div>`;
+            supplierResults.classList.remove('hidden');
+            supplierIdField.value = ""; 
+
+            if (rawTerm.length < 2) { 
+                supplierResults.classList.add('hidden'); 
+                return; 
+            }
+
+            clearTimeout(supplierTimeout);
+            supplierTimeout = setTimeout(async () => {
+                try {
+                    const queries = [];
+                    const coll = collection(db, "suppliers");
+                    const termCap = capitalizeFirst(rawTerm); 
+
+                    queries.push(getDocs(query(coll, orderBy('name'), startAt(termCap), endAt(termCap + '\uf8ff'), limit(3))));
+                    queries.push(getDocs(query(coll, orderBy('nit'), startAt(rawTerm), endAt(rawTerm + '\uf8ff'), limit(3))));
+                    
+                    const snapshots = await Promise.all(queries);
+                    const resultsMap = new Map();
+                    
+                    snapshots.forEach(snap => snap.forEach(doc => resultsMap.set(doc.id, doc.data())));
+
+                    supplierResults.innerHTML = "";
+                    if (resultsMap.size === 0) {
+                        supplierResults.innerHTML = `<div class="p-3 text-xs text-gray-400 font-bold text-center">No encontrado</div>`;
+                    } else {
+                        resultsMap.forEach((s, id) => {
+                            const div = document.createElement('div');
+                            div.className = "p-3 hover:bg-brand-cyan/5 cursor-pointer border-b border-gray-50 last:border-0 rounded-lg flex justify-between items-center transition-colors";
+                            div.innerHTML = `<div><p class="text-[11px] font-black uppercase text-brand-black">${s.name}</p><p class="text-[9px] font-bold text-gray-400">NIT: ${s.nit || '---'}</p></div><i class="fa-solid fa-check text-brand-cyan text-xs opacity-0 group-hover:opacity-100"></i>`;
+                            div.onclick = () => {
+                                supplierSearchInput.value = s.name;
+                                supplierIdField.value = id;
+                                supplierResults.classList.add('hidden');
+                            };
+                            supplierResults.appendChild(div);
+                        });
+                    }
+                } catch (e) {
+                    console.error(e);
+                    supplierResults.innerHTML = `<div class="p-3 text-xs text-red-400 text-center">Error</div>`;
+                }
+            }, 300); 
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!supplierSearchInput.contains(e.target) && !supplierResults.contains(e.target)) {
+                supplierResults.classList.add('hidden');
+            }
+        });
+
+        // ========================================================================
+        // 2. SISTEMA DE CACHÉ DE PRODUCTOS (SMART REAL-TIME INTEGRATION)
+        // ========================================================================
+        
+        async function ensureProductIndex() {
+            if (localProductIndex.length > 0) return true; // Ya tenemos datos en RAM
+            if (isProductIndexLoading) return false;
+
+            isProductIndexLoading = true;
+            
+            // 🔥 LEEMOS EL CACHÉ CENTRALIZADO 🔥 (Creado por admin-inventory.js)
+            const STORAGE_KEY = 'pixeltech_admin_master_inventory';
+            const cachedRaw = localStorage.getItem(STORAGE_KEY);
+            
+            if (cachedRaw) {
+                try {
+                    const parsed = JSON.parse(cachedRaw);
+                    if (parsed.map) {
+                        // Extraemos los valores del mapa y los asignamos al índice local
+                        localProductIndex = Object.values(parsed.map);
+                        console.log(`⚡ [Entradas] Cargados ${localProductIndex.length} productos del Smart Cache central.`);
+                        isProductIndexLoading = false;
+                        return true;
+                    }
+                } catch (e) {
+                    console.warn("Caché central corrupto, procediendo a descarga manual...", e);
+                }
+            }
+
+            // Fallback: Si por alguna razón el caché central no existe o está vacío
+            console.log("☁️ [Entradas] Caché central no encontrado. Descargando catálogo...");
+            try {
+                const snapshot = await getDocs(collection(db, "products"));
+                localProductIndex = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                isProductIndexLoading = false;
+                return true;
+            } catch (e) {
+                console.error("Error cargando índice fallback:", e);
+                isProductIndexLoading = false;
+                return false;
+            }
+        }
+
+        const normalizeText = (str) => {
+            if (!str) return "";
+            return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); 
+        };
+
+        // BUSCADOR LOCAL (JavaScript puro en RAM)
+        async function searchProductsLocal(rawTerm, resultsContainer, inputEl, row) {
+            if (localProductIndex.length === 0) {
+                resultsContainer.innerHTML = `<div class="p-3 text-[10px] text-gray-400 text-center"><i class="fa-solid fa-circle-notch fa-spin"></i> Preparando catálogo...</div>`;
+                resultsContainer.classList.remove('hidden');
+                await ensureProductIndex();
+            }
+
+            const term = normalizeText(rawTerm);
+            const words = term.split(" ").filter(w => w.length > 0);
+
+            // Filtrado en RAM usando el campo searchStr que creamos en el inventory
+            const results = localProductIndex.filter(p => {
+                const searchableText = p.searchStr || normalizeText(`${p.name} ${p.brand || ''} ${p.sku || ''}`);
+                return words.every(word => searchableText.includes(word));
+            });
+
+            resultsContainer.innerHTML = "";
+            
+            if (results.length === 0) {
+                resultsContainer.innerHTML = `<div class="p-3 text-[10px] text-gray-400 font-bold text-center">No encontrado en el catálogo</div>`;
+            } else {
+                results.slice(0, 10).forEach(item => {
+                    const d = document.createElement('div');
+                    d.className = "p-3 hover:bg-slate-50 cursor-pointer text-[10px] font-black uppercase rounded-lg border-b border-gray-50 last:border-0 transition-colors flex justify-between items-center group";
+                    d.innerHTML = `
+                        <div>
+                            <span class="block text-brand-black truncate max-w-[200px]">${item.name}</span>
+                            <span class="text-[8px] text-gray-400 font-bold">${item.brand || 'N/A'} • SKU: ${item.sku || 'N/A'}</span>
+                        </div>
+                        <i class="fa-solid fa-plus text-brand-cyan opacity-0 group-hover:opacity-100"></i>`;
+                    
+                    d.onclick = () => {
+                        inputEl.value = item.name;
+                        row.querySelector('.p-id').value = item.id;
+                        
+                        // Renderizamos usando la data completa del objeto item
+                        renderVariants(row, item);
+                        
+                        resultsContainer.classList.add('hidden');
+                        if (item.lastPurchaseCost) {
+                            row.querySelector('.p-unit-cost-input').value = item.lastPurchaseCost;
+                            window.updateAllTotals();
+                        }
+                    };
+                    resultsContainer.appendChild(d);
+                });
+            }
+            resultsContainer.classList.remove('hidden');
+        }
+
+        // ========================================================================
+        // 3. LÓGICA DE FILAS Y UI
+        // ========================================================================
+
+        window.updateAllTotals = () => {
+            let grandTotal = 0;
+            document.querySelectorAll('.item-row').forEach(row => {
+                const qty = parseInt(row.querySelector('.p-qty').value) || 0;
+                const unitCost = parseFloat(row.querySelector('.p-unit-cost-input').value) || 0;
+                const rowTotal = qty * unitCost;
+                row.querySelector('.p-row-total-display').textContent = `$${Math.round(rowTotal).toLocaleString('es-CO')}`;
+                grandTotal += rowTotal;
+            });
+            const hasIva = ivaToggle.checked;
+            const base = hasIva ? Math.round(grandTotal / 1.19) : grandTotal;
+            const iva = grandTotal - base;
+            document.getElementById('display-grand-total').textContent = `$${Math.round(grandTotal).toLocaleString('es-CO')}`;
+            document.getElementById('display-base').textContent = `$${Math.round(base).toLocaleString('es-CO')}`;
+            document.getElementById('display-iva').textContent = `$${Math.round(iva).toLocaleString('es-CO')}`;
+        };
+
+        function addProductRow() {
+            const div = document.createElement('div');
+            div.className = "item-row bg-slate-50 p-5 rounded-[2rem] border border-gray-100 relative group hover:bg-white hover:shadow-lg hover:border-brand-cyan/30 transition-all duration-300 fade-in z-10";
+            div.onmouseenter = () => div.style.zIndex = "50";
+            div.onmouseleave = () => div.style.zIndex = "10";
+            div.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+                    <div class="md:col-span-4 relative">
+                        <label class="text-[8px] font-black text-gray-400 uppercase mb-2 block tracking-widest ml-1">Producto / Equipo</label>
+                        <div class="relative"><i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 text-xs z-10"></i><input type="text" placeholder="Buscar nombre, marca o SKU..." class="p-search w-full bg-white border border-gray-200 rounded-xl py-3 pl-10 pr-4 text-xs font-bold outline-none focus:border-brand-cyan focus:ring-4 focus:ring-cyan-500/10 transition-all" onfocus="window.preloadIndex()"></div>
+                        <div class="p-results absolute z-[100] w-full mt-2 bg-white border border-gray-100 rounded-xl shadow-2xl hidden max-h-60 overflow-y-auto p-2 custom-scroll"></div>
+                        <input type="hidden" class="p-id">
+                    </div>
+                    <div class="md:col-span-3 flex gap-2 p-variants-container">
+                        <div class="w-full h-[42px] bg-gray-100/50 rounded-xl border border-dashed border-gray-300 flex items-center justify-center text-[9px] text-gray-400 uppercase font-bold">Selecciona un producto</div>
+                    </div>
+                    <div class="md:col-span-1">
+                        <label class="text-[8px] font-black text-gray-400 uppercase mb-2 block text-center tracking-widest">Cant.</label>
+                        <input type="number" value="1" min="1" class="p-qty w-full h-[42px] bg-white border border-gray-200 rounded-xl px-2 text-xs font-black text-center outline-none focus:border-brand-cyan transition-all">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="text-[8px] font-black text-gray-400 uppercase mb-2 block tracking-widest ml-1">Costo Unitario</label>
+                        <div class="flex items-center bg-white border border-gray-200 rounded-xl px-3 h-[42px] focus-within:border-brand-cyan focus-within:ring-4 focus-within:ring-cyan-500/10 transition-all"><span class="text-xs font-black text-gray-400 mr-2">$</span><input type="number" placeholder="0" class="p-unit-cost-input w-full bg-transparent border-none text-xs font-black outline-none text-brand-black h-full"></div>
+                    </div>
+                    <div class="md:col-span-2 flex items-center justify-between pl-2 h-[42px]">
+                            <div class="flex flex-col justify-center h-full"><label class="text-[8px] font-black text-gray-300 uppercase leading-none mb-1">Subtotal</label><span class="text-sm font-black text-brand-black p-row-total-display leading-none">$0</span></div>
+                        <button class="w-9 h-9 rounded-xl bg-white border border-gray-200 text-gray-300 hover:text-brand-red hover:border-brand-red hover:bg-red-50 transition-all flex items-center justify-center shadow-sm" onclick="window.removeEntryRow(this)"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                    </div>
+                </div>`;
+            itemsContainer.appendChild(div);
+            setupRowLogic(div);
+        }
+
+        // Trigger manual
+        window.preloadIndex = () => { ensureProductIndex(); };
+
+        window.removeEntryRow = (btn) => {
+            const row = btn.closest('.item-row');
+            row.style.opacity = '0';
+            setTimeout(() => { row.remove(); window.updateAllTotals(); }, 300);
+        };
+
+        function setupRowLogic(row) {
+            const input = row.querySelector('.p-search');
+            const results = row.querySelector('.p-results');
+            const qtyInput = row.querySelector('.p-qty');
+            const unitCostInput = row.querySelector('.p-unit-cost-input');
+            
+            let debounce = null;
+
+            input.oninput = (e) => {
+                const term = e.target.value;
+                row.querySelector('.p-id').value = ""; 
+                
+                clearTimeout(debounce);
+                
+                if (term.trim().length < 1) { 
+                    results.classList.add('hidden'); 
+                    return; 
+                }
+
+                debounce = setTimeout(() => {
+                    searchProductsLocal(term, results, input, row);
+                }, 100); 
+            };
+
+            document.addEventListener('click', (e) => {
+                if (!input.contains(e.target) && !results.contains(e.target)) results.classList.add('hidden');
+            });
+            
+            qtyInput.oninput = window.updateAllTotals;
+            unitCostInput.oninput = window.updateAllTotals;
+        }
+
+        function renderVariants(row, product) {
+            const container = row.querySelector('.p-variants-container');
+            container.innerHTML = "";
+            
+            let colors = [];
+            if (product.definedColors) colors = product.definedColors;
+            else if (product.combinations) colors = product.combinations.map(v => v.color).filter(c => c);
+            colors = [...new Set(colors)]; 
+
+            let caps = [];
+            if (product.definedCapacities) caps = product.definedCapacities;
+            else if (product.capacities) caps = product.capacities.map(c => c.label);
+            caps = [...new Set(caps)];
+
+            if (colors.length === 0 && caps.length === 0) {
+                container.innerHTML = `<div class="w-full h-[42px] flex items-center pl-2"><span class="text-[9px] font-bold text-gray-300 uppercase bg-gray-50 px-2 py-1 rounded">Producto Único</span></div>`;
+                return;
+            }
+
+            if (colors.length > 0) {
+                const wrap = document.createElement('div');
+                wrap.className = "flex-1";
+                wrap.innerHTML = `<label class="text-[8px] font-black text-gray-400 uppercase mb-2 block tracking-widest ml-1">Color</label><select class="variant-select p-color w-full bg-white border border-gray-200 rounded-xl px-2 h-[42px] text-xs font-bold outline-none focus:border-brand-cyan"><option value="">Selecciona</option>${colors.map(c => `<option value="${c}">${c}</option>`).join('')}</select>`;
+                container.appendChild(wrap);
+            }
+            if (caps.length > 0) {
+                const wrap = document.createElement('div');
+                wrap.className = "flex-1";
+                wrap.innerHTML = `<label class="text-[8px] font-black text-gray-400 uppercase mb-2 block tracking-widest ml-1">Capacidad</label><select class="variant-select p-capacity w-full bg-white border border-gray-200 rounded-xl px-2 h-[42px] text-xs font-bold outline-none focus:border-brand-cyan"><option value="">Selecciona</option>${caps.map(c => `<option value="${c}">${c}</option>`).join('')}</select>`;
+                container.appendChild(wrap);
+            }
+        }
+
+        ivaToggle.onchange = window.updateAllTotals;
+
+        // ========================================================================
+        // 4. LÓGICA DE GUARDADO (TRANSACCIÓN)
+        // ========================================================================
+        btnSave.onclick = async () => {
+            const supplierId = supplierIdField.value;
+            const itemRows = document.querySelectorAll('.item-row');
+
+            if (!supplierId) return alert("⚠️ Seleccione un proveedor válido.");
+            if (itemRows.length === 0) return alert("⚠️ Agregue al menos un producto.");
+
+            const originalText = btnSave.innerHTML;
+            btnSave.disabled = true;
+            btnSave.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> PROCESANDO...';
+
+            try {
+                const groupedItems = {}; 
+
+                for (const row of itemRows) {
+                    const pid = row.querySelector('.p-id').value;
+                    const name = row.querySelector('.p-search').value;
+                    
+                    if (!pid) throw `⚠️ Producto no seleccionado en la fila: ${name}`;
+
+                    const qty = parseInt(row.querySelector('.p-qty').value);
+                    const unitCostEntered = parseFloat(row.querySelector('.p-unit-cost-input').value);
+                    const selectedColor = row.querySelector('.p-color')?.value || null;
+                    const selectedCap = row.querySelector('.p-capacity')?.value || null;
+
+                    if (!qty || qty <= 0) throw "Cantidad inválida en una fila";
+                    if (isNaN(unitCostEntered)) throw "Costo inválido en una fila";
+
+                    if (row.querySelector('.p-color') && !selectedColor) throw `⚠️ Selecciona un color para: ${name}`;
+                    if (row.querySelector('.p-capacity') && !selectedCap) throw `⚠️ Selecciona una capacidad para: ${name}`;
+
+                    if (!groupedItems[pid]) groupedItems[pid] = { name, updates: [] };
+                    
+                    groupedItems[pid].updates.push({
+                        qty,
+                        unitCostEntered,
+                        selectedColor,
+                        selectedCap,
+                        name
+                    });
+                }
+
+                await runTransaction(db, async (transaction) => {
+                    const suppRef = doc(db, "suppliers", supplierId);
+                    const suppSnap = await transaction.get(suppRef);
+                    if (!suppSnap.exists()) throw "Proveedor no encontrado";
+
+                    const uniquePids = Object.keys(groupedItems);
+                    
+                    const productReads = uniquePids.map(pid => transaction.get(doc(db, "products", pid)));
+                    const productSnaps = await Promise.all(productReads);
+
+                    let totalInvoice = 0;
+                    const purchaseItems = [];
+                    const hasIvaGlobal = ivaToggle.checked;
+
+                    uniquePids.forEach((pid, index) => {
+                        const pSnap = productSnaps[index];
+                        if (!pSnap.exists()) throw `Producto con ID ${pid} ya no existe.`;
+
+                        const pData = pSnap.data();
+                        const pRef = doc(db, "products", pid);
+                        const group = groupedItems[pid];
+
+                        let combinations = pData.combinations ? [...pData.combinations] : [];
+                        let lastCost = pData.lastPurchaseCost;
+                        let additionalStockTotal = 0;
+
+                        group.updates.forEach(update => {
+                            const rowTotal = update.qty * update.unitCostEntered;
+                            totalInvoice += rowTotal;
+                            const unitCostBase = hasIvaGlobal ? Math.round(update.unitCostEntered / 1.19) : update.unitCostEntered;
+                            lastCost = unitCostBase;
+                            additionalStockTotal += update.qty;
+
+                            if (update.selectedColor || update.selectedCap) {
+                                const comboIndex = combinations.findIndex(c => {
+                                    const colorMatch = (c.color || "") === (update.selectedColor || "");
+                                    const capMatch = (c.capacity || "") === (update.selectedCap || "");
+                                    return colorMatch && capMatch;
+                                });
+
+                                if (comboIndex >= 0) {
+                                    combinations[comboIndex].stock = (parseInt(combinations[comboIndex].stock) || 0) + update.qty;
+                                } else {
+                                    combinations.push({
+                                        color: update.selectedColor,
+                                        capacity: update.selectedCap,
+                                        stock: update.qty,
+                                        price: pData.price 
+                                    });
+                                }
+                            }
+
+                            purchaseItems.push({
+                                id: pid,
+                                name: update.name,
+                                quantity: update.qty,
+                                unitCostBase,
+                                totalRow: Math.round(rowTotal),
+                                color: update.selectedColor,
+                                capacity: update.selectedCap
+                            });
+                        });
+
+                        let newStockTotal = 0;
+                        if (combinations.length > 0) {
+                            newStockTotal = combinations.reduce((sum, i) => sum + (parseInt(i.stock) || 0), 0);
+                        } else {
+                            newStockTotal = (parseInt(pData.stock) || 0) + additionalStockTotal;
+                        }
+
+                        transaction.update(pRef, {
+                            stock: newStockTotal,
+                            combinations: combinations,
+                            lastPurchaseCost: lastCost,
+                            updatedAt: new Date()
+                        });
+                    });
+
+                    const finalTotal = Math.round(totalInvoice);
+
+                    transaction.update(suppRef, {
+                        totalInvested: (suppSnap.data().totalInvested || 0) + finalTotal,
+                        ordersCount: (suppSnap.data().ordersCount || 0) + 1,
+                        lastPurchase: new Date()
+                    });
+
+                    const purchaseRef = doc(collection(db, "purchases"));
+                    transaction.set(purchaseRef, {
+                        supplierId,
+                        supplierName: supplierSearchInput.value,
+                        totalCost: finalTotal,
+                        amountPaid: 0,
+                        hasIVA: hasIvaGlobal,
+                        items: purchaseItems,
+                        createdAt: new Date(),
+                        createdBy: document.getElementById('admin-name').innerText
+                    });
+
+                    const payableRef = doc(collection(db, "payables"));
+                    transaction.set(payableRef, {
+                        provider: supplierSearchInput.value,
+                        description: `Compra Inv. #${purchaseRef.id.slice(0,6).toUpperCase()}`,
+                        total: finalTotal,
+                        amountPaid: 0,
+                        balance: finalTotal,
+                        status: 'PENDING',
+                        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                        createdAt: new Date(),
+                        purchaseId: purchaseRef.id
+                    });
+                });
+
+                // No necesitamos borrar el caché central porque el onSnapshot de admin-inventory
+                // o de donde sea que se esté escuchando se encargará de actualizar los stocks automáticamente.
+                alert("✅ Inventario actualizado correctamente.");
+                window.location.reload();
+
+            } catch (e) {
+                console.error(e);
+                alert("Error crítico: " + e);
+                btnSave.disabled = false;
+                btnSave.innerHTML = originalText;
+            }
+        };
+
+        // Init
+        addProductRow();
+        document.getElementById('btn-add-item-row').onclick = addProductRow;
+    </script>
+<script type="module" src="../js/admin-guard.js"></script>
+</body>
+
+</html>

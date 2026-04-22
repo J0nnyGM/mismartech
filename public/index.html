@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PixelTech">
+
+    <link rel="preload" href="css/styles.css" as="style">
+    <link rel="stylesheet" href="css/styles.css">
+
+    <link rel="preconnect" href="https://firebasestorage.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+
+    <link rel="apple-touch-startup-image" href="/img/icons/icon-512x512.webp">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#00AEC7">
+    <link rel="apple-touch-icon" href="/img/icons/icon-192x192.webp">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PixelTech Colombia- Tienda de Tecnologia</title>
+    <meta name="description"
+        content="Descubre lo mejor en tecnología en PixelTech Colombia. Celulares, audífonos, smartwatches, gadgets y accesorios con garantía. Envíos a todo el país y crédito con ADDI o SISTECREDITO.">
+    <meta property="og:title" content="PixelTech Colombia - Lo mejor en Tecnología">
+    <meta property="og:description"
+        content="Compra celulares, smartwatches y accesorios. Envíos a toda Colombia, pago contra entrega y crédito ADDI. ¡Visítanos!">
+    <meta property="og:image" content="https://pixeltechcol.com/img/icons/icon-512x512.webp">
+
+    <link rel="canonical" href="https://pixeltechcol.com/" />
+
+    <script>
+        const initGTM = () => {
+            if (window.gtagLoaded) return;
+            window.gtagLoaded = true;
+
+            // Inyectamos el script de Google de forma invisible
+            const script = document.createElement('script');
+            script.src = "https://www.googletagmanager.com/gtag/js?id=G-0HP0VNV5F5";
+            script.async = true;
+            document.head.appendChild(script);
+
+            window.dataLayer = window.dataLayer || [];
+            function gtag() { dataLayer.push(arguments); }
+            window.gtag = gtag;
+            gtag('js', new Date());
+            gtag('config', 'G-0HP0VNV5F5', { 'page_path': window.location.pathname });
+        };
+
+        // Solo se ejecuta si el usuario interactúa o si pasan 6 segundos
+        ['scroll', 'mousemove', 'touchstart'].forEach(e => window.addEventListener(e, initGTM, { once: true, passive: true }));
+        setTimeout(initGTM, 6000);
+    </script>
+    <script>
+        try {
+            const cache = localStorage.getItem('pixeltech_promo_slider_cache');
+            if (cache && cache.length > 10) {
+                const promos = JSON.parse(cache);
+                if (promos.length > 0) {
+                    const img = promos[0].promoBannerUrl || promos[0].mainImage || promos[0].image;
+                    if(img) {
+                        document.head.insertAdjacentHTML('beforeend', `<link rel="preload" href="${img}" as="image" fetchpriority="high">`);
+                    }
+                }
+            }
+        } catch(e){}
+    </script>
+
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style"
+        onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    </noscript>
+
+    <style>
+        /* 🔥 FORZAR SWAP EN FUENTES EXTERNAS PARA MEJORAR FCP */
+        @font-face {
+            font-family: 'Font Awesome 6 Free';
+            font-style: normal;
+            font-weight: 900;
+            font-display: swap;
+            src: url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-solid-900.woff2') format('woff2');
+        }
+
+        @font-face {
+            font-family: 'Font Awesome 6 Free';
+            font-style: normal;
+            font-weight: 400;
+            font-display: swap;
+            src: url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-regular-400.woff2') format('woff2');
+        }
+
+        @font-face {
+            font-family: 'Font Awesome 6 Brands';
+            font-style: normal;
+            font-weight: 400;
+            font-display: swap;
+            src: url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-brands-400.woff2') format('woff2');
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .smooth-scroll {
+            scroll-behavior: smooth;
+        }
+
+        @keyframes scrollLeft {
+            0% {
+                transform: translateX(0);
+            }
+
+            100% {
+                transform: translateX(-50%);
+            }
+        }
+
+        .animate-scroll {
+            animation: scrollLeft 60s linear infinite;
+        }
+
+        .pause-animation:hover {
+            animation-play-state: paused;
+        }
+
+        .mask-fade {
+            -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+            mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+        }
+        /* 🔥 OPTIMIZACIÓN EXTREMA DE LAYOUT 🔥 */
+        .opt-section {
+            content-visibility: auto;
+            contain-intrinsic-size: 500px; /* Tamaño estimado para evitar saltos */
+        }
+    </style>
+
+    <link rel="modulepreload" href="js/app.js">
+    <link rel="modulepreload" href="js/firebase-init.js">
+    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js">
+    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js">
+    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js">
+    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js">
+    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js">
+
+</head>
+
+<body class="bg-white font-sans text-brand-black antialiased flex flex-col min-h-screen">
+
+    <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php'; ?>
+
+    <main class="flex-grow w-full flex flex-col gap-4 md:gap-6 pb-12">
+        <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/home-hero.php'; ?>
+
+        <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/home-promos.php'; ?>
+
+        <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/home-benefits.php'; ?>
+
+        <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/home-grids.php'; ?>
+    </main>
+
+    <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php'; ?>
+
+    <script type="application/ld+json">
+    {
+    "@context": "https://schema.org",
+    "@type": "ElectronicsStore",
+    "name": "PixelTech Col SAS",
+    "image": "https://pixeltechcol.com/img/logo.webp",
+    "@id": "https://pixeltechcol.com",
+    "url": "https://pixeltechcol.com",
+    "telephone": "+573009046450",
+    "priceRange": "  $",
+    "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Calle 31 # 13A-51 Oficina 223 Ed. Panorama", 
+        "addressLocality": "Bogotá",
+        "addressRegion": "Cundinamarca",
+        "postalCode": "110231",
+        "addressCountry": "CO"
+    },
+    "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 4.634667, 
+        "longitude": -74.0677931
+    },
+    "openingHoursSpecification": {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": [ "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" ],
+        "opens": "09:00",
+        "closes": "18:00"
+    },
+    "sameAs": [
+        "https://www.facebook.com/pixeltech.col",
+        "https://www.instagram.com/pixeltech.col",
+        "https://www.tiktok.com/@pixeltech.col"
+    ]
+    }
+    </script>
+
+    <script type="module">
+        import { loadGlobalHeader, loadGlobalFooter } from '/js/global-components.js?v=2.1';        
+        loadGlobalHeader();
+        loadGlobalFooter();
+    </script>
+    
+    <script type="module" src="/js/app.js?v=2.2"></script>
+</body>
+</html>
+
+</html>

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#00AEC7">
+    <link rel="apple-touch-icon" href="/img/icons/icon-192x192.webp">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clientes - PixelTech Admin</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <style>
+        .hidden { display: none !important; }
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #00AEC7; border-radius: 10px; }
+    </style>
+</head>
+
+<body class="bg-gray-100 font-sans text-brand-black flex h-screen overflow-hidden" style="display: none;">
+    <div id="admin-sidebar"></div>
+    <main class="flex-grow overflow-y-auto bg-slate-50 relative custom-scroll">
+        <header class="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center sticky top-0 z-10">
+            <h2 class="font-black text-gray-400 text-[10px] uppercase tracking-[0.3em]">Base de Datos de Clientes</h2>
+            <div class="flex gap-3">
+                <button id="btn-import-clients" class="bg-white border border-gray-200 text-brand-black px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:border-emerald-500 hover:text-emerald-500 transition shadow-sm flex items-center gap-2">
+                    <i class="fa-solid fa-file-excel"></i> Importar Excel
+                </button>
+                <button id="btn-add-client" class="bg-brand-black text-white px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-cyan hover:text-brand-black transition shadow-lg flex items-center gap-2">
+                    <i class="fa-solid fa-user-plus"></i> Nuevo Cliente
+                </button>
+            </div>
+        </header>
+
+        <div class="p-8">
+            <div class="mb-8 flex flex-col lg:flex-row justify-between items-start lg:items-end gap-4">
+                <div>
+                    <h1 class="text-3xl font-black tracking-tighter">Clientes</h1>
+                    <p class="text-sm text-gray-500">Gestiona compradores web, ventas directas y mayoristas.</p>
+                </div>
+                
+                <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+                    <div class="relative w-full sm:w-48">
+                        <select id="filter-client-type" class="w-full bg-white border border-gray-200 py-3 pl-4 pr-10 rounded-2xl text-xs focus:ring-2 focus:ring-brand-cyan/20 outline-none transition font-bold appearance-none cursor-pointer">
+                            <option value="ALL">Todos los tipos</option>
+                            <option value="WEB">Origen Web</option>
+                            <option value="MANUAL">Manual</option>
+                            <option value="MAYORISTA">Mayoristas</option>
+                        </select>
+                        <i class="fa-solid fa-filter absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 text-xs pointer-events-none"></i>
+                    </div>
+                    <div class="relative w-full sm:w-72">
+                        <input type="text" id="search-client" placeholder="Buscar por nombre, cel o doc..." class="w-full bg-white border border-gray-200 py-3 pl-12 pr-4 rounded-2xl text-xs focus:ring-2 focus:ring-brand-cyan/20 outline-none transition font-bold">
+                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+                <div class="overflow-x-auto custom-scroll pb-2"> <table class="w-full text-left text-sm min-w-[800px]"> 
+                        <thead class="bg-gray-50 text-[10px] uppercase font-black text-gray-400 tracking-widest border-b border-gray-100">
+                            <tr>
+                                <th class="px-4 md:px-8 py-4 whitespace-nowrap">Nombre / Documento</th> 
+                                <th class="px-4 md:px-8 py-4 whitespace-nowrap">Contacto</th>
+                                <th class="px-4 md:px-8 py-4 whitespace-nowrap">Tipo Cliente</th>
+                                <th class="px-4 md:px-8 py-4 whitespace-nowrap">Fecha Registro</th>
+                                <th class="px-4 md:px-8 py-4 text-center whitespace-nowrap">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clients-table-body" class="divide-y divide-gray-50"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="load-more-container" class="py-8 text-center hidden">
+                <button onclick="window.loadMoreClients()" class="text-xs font-bold text-gray-400 hover:text-brand-cyan transition uppercase tracking-widest flex items-center justify-center gap-2 mx-auto">
+                    <i class="fa-solid fa-circle-plus"></i> Cargar siguientes 50
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <div id="client-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity close-modal"></div>
+        
+        <div class="relative bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300 max-h-[90vh] flex flex-col">
+            <div class="p-8 border-b border-gray-50 flex justify-between items-center bg-slate-50/50">
+                <h3 id="modal-title" class="font-black text-xl uppercase tracking-tighter">Registrar <span class="text-brand-cyan">Cliente</span></h3>
+                <button class="close-modal w-10 h-10 rounded-full bg-white border border-gray-200 text-gray-400 hover:text-brand-red hover:bg-red-50 transition flex items-center justify-center">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            
+            <div class="p-8 overflow-y-auto custom-scroll space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    
+                    <div class="md:col-span-2">
+                        <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 block ml-1">Tipo de Cliente *</label>
+                        <div class="relative">
+                            <select id="new-client-type" class="w-full bg-slate-50 border border-gray-100 p-4 rounded-2xl text-sm font-bold outline-none focus:border-brand-cyan focus:bg-white transition-all appearance-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed">
+                                <option value="MANUAL">Normal</option>
+                                <option value="MAYORISTA">Mayorista</option>
+                                <option value="WEB" class="hidden">Web (Automático)</option>
+                            </select>
+                            <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none text-xs"></i>
+                        </div>
+                        <p id="web-client-warning" class="text-[9px] text-brand-cyan font-bold mt-1 hidden"><i class="fa-solid fa-circle-info"></i> El origen de los clientes web no se puede modificar.</p>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 block ml-1">Nombre Completo / Empresa *</label>
+                        <input type="text" id="new-client-name" placeholder="Ej: Juan Pérez" class="w-full bg-slate-50 border border-gray-100 p-4 rounded-2xl text-sm font-bold outline-none focus:border-brand-cyan focus:bg-white transition-all">
+                    </div>
+
+                    <div>
+                        <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 block ml-1">Teléfono / WhatsApp</label>
+                        <input type="text" id="new-client-phone" placeholder="Ej: 3001234567" class="w-full bg-slate-50 border border-gray-100 p-4 rounded-2xl text-sm font-bold outline-none focus:border-brand-cyan focus:bg-white transition-all">
+                    </div>
+
+                    <div>
+                        <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 block ml-1">Cédula / NIT</label>
+                        <input type="text" id="new-client-doc" placeholder="Opcional" class="w-full bg-slate-50 border border-gray-100 p-4 rounded-2xl text-sm font-bold outline-none focus:border-brand-cyan focus:bg-white transition-all">
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 block ml-1">Email</label>
+                        <input type="email" id="new-client-email" placeholder="cliente@ejemplo.com" class="w-full bg-slate-50 border border-gray-100 p-4 rounded-2xl text-sm font-bold outline-none focus:border-brand-cyan focus:bg-white transition-all">
+                    </div>
+
+                    <div>
+                        <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 block ml-1">Departamento</label>
+                        <div class="relative">
+                            <select id="new-client-dept" class="w-full bg-slate-50 border border-gray-100 p-4 rounded-2xl text-sm font-bold outline-none focus:border-brand-cyan focus:bg-white transition-all appearance-none cursor-pointer">
+                                <option value="">Seleccione...</option>
+                            </select>
+                            <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none text-xs"></i>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 block ml-1">Ciudad</label>
+                        <div class="relative">
+                            <select id="new-client-city" class="w-full bg-slate-50 border border-gray-100 p-4 rounded-2xl text-sm font-bold outline-none focus:border-brand-cyan focus:bg-white transition-all appearance-none cursor-pointer" disabled>
+                                <option value="">Seleccione Depto...</option>
+                            </select>
+                            <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none text-xs"></i>
+                        </div>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 block ml-1">Dirección de Entrega</label>
+                        <input type="text" id="new-client-address" placeholder="Ej: Calle 123 # 45-67" class="w-full bg-slate-50 border border-gray-100 p-4 rounded-2xl text-sm font-bold outline-none focus:border-brand-cyan focus:bg-white transition-all">
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 block ml-1">Notas Internas</label>
+                        <textarea id="new-client-notes" placeholder="Información adicional (solo visible para admin)..." class="w-full bg-slate-50 border border-gray-100 p-4 rounded-2xl text-sm font-bold outline-none focus:border-brand-cyan focus:bg-white transition-all resize-none h-24"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-8 bg-slate-50 border-t border-gray-100">
+                <button id="save-client" class="w-full bg-brand-black text-white font-black py-4 rounded-2xl uppercase text-xs tracking-widest hover:bg-brand-cyan hover:text-brand-black transition shadow-lg transform active:scale-95">
+                    Guardar Cliente
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="import-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity close-modal"></div>
+        <div class="relative bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300 flex flex-col">
+            <div class="p-8 border-b border-gray-50 flex justify-between items-center bg-slate-50/50">
+                <h3 class="font-black text-xl uppercase tracking-tighter text-emerald-600"><i class="fa-solid fa-file-excel mr-2"></i> Importar <span class="text-brand-black">Excel</span></h3>
+                <button class="close-modal w-10 h-10 rounded-full bg-white border border-gray-200 text-gray-400 hover:text-brand-red hover:bg-red-50 transition flex items-center justify-center">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            
+            <div class="p-8 space-y-6 text-center">
+                <p class="text-xs text-gray-500 font-medium">1. Descarga la plantilla.<br>2. Revisa la pestaña "Valores_Permitidos".<br>3. Sube el archivo (Se omitirán Cédulas repetidas o tipos inválidos).</p>
+                
+                <button id="btn-download-template" class="w-full bg-slate-100 text-brand-black border border-slate-200 font-black py-3 rounded-xl uppercase text-[10px] tracking-widest hover:bg-slate-200 transition">
+                    <i class="fa-solid fa-download mr-2"></i> Descargar Plantilla .XLSX
+                </button>
+
+                <div class="relative">
+                    <input type="file" id="excel-file-input" accept=".xlsx, .xls" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                    <div class="border-2 border-dashed border-emerald-500/50 bg-emerald-50/50 rounded-2xl p-8 pointer-events-none transition-colors group-hover:bg-emerald-100">
+                        <i class="fa-solid fa-cloud-arrow-up text-3xl text-emerald-500 mb-3"></i>
+                        <p class="text-xs font-bold text-emerald-700">Clic aquí para subir archivo completo</p>
+                        <p id="file-name-display" class="text-[10px] text-gray-400 mt-2 font-medium">Ningún archivo seleccionado</p>
+                    </div>
+                </div>
+
+                <div id="import-status" class="hidden text-left bg-slate-50 p-4 rounded-xl border border-gray-100 text-xs space-y-1">
+                    <p class="font-black text-brand-black mb-2 uppercase tracking-widest text-[9px]">Progreso de Importación</p>
+                    <p class="text-gray-600"><i class="fa-solid fa-check text-green-500 w-4"></i> Agregados: <span id="res-added" class="font-black">0</span></p>
+                    <p class="text-gray-600"><i class="fa-solid fa-forward-step text-yellow-500 w-4"></i> Omitidos (Duplicados): <span id="res-skipped" class="font-black">0</span></p>
+                    <p class="text-gray-600"><i class="fa-solid fa-xmark text-red-500 w-4"></i> Errores (Tipo inválido/Fallo): <span id="res-errors" class="font-black">0</span></p>
+                </div>
+            </div>
+
+            <div class="p-6 bg-slate-50 border-t border-gray-100">
+                <button id="btn-process-import" disabled class="w-full bg-emerald-500 text-white font-black py-4 rounded-2xl uppercase text-xs tracking-widest hover:bg-emerald-600 transition shadow-lg transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Procesar Clientes
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { loadAdminSidebar } from '../js/admin-ui.js?v=2.0.0';
+        loadAdminSidebar();
+    </script>
+    <script type="module" src="../js/admin-guard.js"></script>
+    <script type="module" src="../js/admin-clients.js"></script>
+</body>
+</html>

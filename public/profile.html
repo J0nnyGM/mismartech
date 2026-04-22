@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#00AEC7">
+    <link rel="apple-touch-icon" href="/img/icons/icon-192x192.webp">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Panel | PixelTech Col SAS</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+    <style>
+        /* Transiciones de Sección */
+        .page-section { display: none; opacity: 0; transform: translateY(10px); transition: all 0.4s ease-out; }
+        .page-section.active { display: block; opacity: 1; transform: translateY(0); }
+
+        /* Scroll personalizado */
+        .custom-scroll::-webkit-scrollbar { width: 5px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #00AEC7; }
+
+        /* Sidebar Link Activo */
+        .nav-link.active {
+            background: linear-gradient(90deg, rgba(0,174,199,0.1) 0%, transparent 100%);
+            border-left: 4px solid #00AEC7;
+            color: #00AEC7;
+        }
+        .nav-link.active i { color: #00AEC7; }
+
+        /* Estilos de Input Modernos */
+        .profile-input-group label {
+            display: block; font-size: 10px; font-weight: 900; 
+            text-transform: uppercase; letter-spacing: 0.1em; color: #94a3b8; margin-bottom: 6px;
+        }
+        .profile-input-group input, .profile-input-group select {
+            width: 100%; background: #f8fafc; border: 1px solid #e2e8f0;
+            padding: 12px 16px; border-radius: 12px;
+            font-weight: 700; font-size: 0.9rem; color: #1e293b;
+            outline: none; transition: all 0.3s;
+        }
+        .profile-input-group input:focus {
+            background: #fff; border-color: #00AEC7; box-shadow: 0 0 0 4px rgba(0,174,199,0.1);
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0; z-index: 60;
+            background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);
+            align-items: center; justify-content: center; padding: 1rem;
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .modal-overlay.active { display: flex; opacity: 1; }
+    </style>
+
+    <link rel="modulepreload" href="js/firebase-init.js">
+    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js">
+    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js">
+    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js">
+    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js">
+    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js">
+</head>
+
+<body class="bg-slate-50 font-sans text-brand-black h-screen overflow-hidden flex flex-col">
+
+    <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php'; ?>
+
+    <div class="flex flex-grow overflow-hidden relative">
+        
+        <aside id="profile-sidebar" class="absolute inset-y-0 left-0 z-50 w-72 bg-white transform -translate-x-full transition-transform duration-300 md:translate-x-0 md:relative md:flex flex-col border-r border-gray-100 shadow-2xl md:shadow-none">
+            
+            <div class="p-8 pb-4 text-center">
+                <div class="relative w-20 h-20 mx-auto mb-4 group">
+                    <div class="absolute inset-0 bg-brand-cyan blur-xl opacity-20 group-hover:opacity-40 transition duration-500 rounded-full"></div>
+                    <div id="user-avatar" class="relative w-full h-full bg-slate-900 text-brand-cyan rounded-full flex items-center justify-center font-black text-3xl shadow-xl border-4 border-white">
+                        <i class="fa-regular fa-user"></i>
+                    </div>
+                </div>
+                <h3 id="user-name-side" class="font-black text-brand-black text-sm uppercase tracking-tight">Cargando...</h3>
+                <p id="user-email-side" class="text-[10px] font-bold text-gray-400 truncate mt-1">...</p>
+            </div>
+
+            <nav class="flex-grow px-6 py-6 space-y-2 overflow-y-auto custom-scroll">
+                <p class="px-4 text-[9px] font-black text-gray-300 uppercase tracking-widest mb-2">General</p>
+                
+                <button class="nav-link active w-full flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all font-bold text-xs text-gray-500 hover:bg-slate-50 hover:text-brand-black group" data-target="section-orders">
+                    <i class="fa-solid fa-box-open w-5 text-center transition group-hover:scale-110 text-gray-400"></i>
+                    <span class="uppercase tracking-wide">Mis Compras</span>
+                </button>
+                
+                <button class="nav-link w-full flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all font-bold text-xs text-gray-500 hover:bg-slate-50 hover:text-brand-black group" data-target="section-data">
+                    <i class="fa-regular fa-id-card w-5 text-center transition group-hover:scale-110 text-gray-400"></i>
+                    <span class="uppercase tracking-wide">Datos Personales</span>
+                </button>
+                
+                <button class="nav-link w-full flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all font-bold text-xs text-gray-500 hover:bg-slate-50 hover:text-brand-black group" data-target="section-addresses">
+                    <i class="fa-solid fa-map-location-dot w-5 text-center transition group-hover:scale-110 text-gray-400"></i>
+                    <span class="uppercase tracking-wide">Direcciones</span>
+                </button>
+            </nav>
+
+            <div class="p-6 border-t border-gray-50">
+                <button id="btn-logout-profile" class="w-full flex items-center justify-center gap-3 px-4 py-3.5 rounded-xl bg-slate-50 text-slate-500 hover:bg-red-50 hover:text-red-500 transition duration-300 font-black uppercase text-[10px] tracking-widest group">
+                    <i class="fa-solid fa-power-off transition group-hover:scale-110"></i>
+                    <span>Cerrar Sesión</span>
+                </button>
+            </div>
+        </aside>
+
+        <div id="mobile-sidebar-overlay" class="fixed inset-0 bg-slate-900/50 z-40 hidden md:hidden backdrop-blur-sm transition-opacity" onclick="toggleSidebar()"></div>
+
+        <main class="flex-grow w-full h-full overflow-y-auto custom-scroll relative bg-slate-50">
+            <div class="p-6 md:p-10 lg:p-14 max-w-6xl mx-auto pb-20">
+                
+                <div class="md:hidden flex items-center gap-4 mb-8">
+                    <button id="btn-open-sidebar" onclick="toggleSidebar()" class="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-brand-black shadow-sm border border-gray-100">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div>
+                        <h1 class="text-xl font-black text-brand-black uppercase tracking-tighter">Mi Cuenta</h1>
+                    </div>
+                </div>
+
+                <section id="section-orders" class="page-section active">
+                    <div class="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
+                        <div>
+                            <h1 class="text-3xl md:text-4xl font-black tracking-tighter uppercase text-brand-black">Historial <span class="text-brand-cyan">Pedidos</span></h1>
+                            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Gestiona tus compras y garantías</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm mb-6 flex flex-col md:flex-row gap-4 items-center">
+                        
+                        <div class="profile-input-group w-full md:w-auto min-w-[200px]">
+                            <label>Filtrar Por</label>
+                            <select id="filter-mode" onchange="window.toggleDateFilters()" class="cursor-pointer">
+                                <option value="last3">Últimos 3 Meses</option>
+                                <option value="this_year">Este Año</option>
+                                <option value="all">Todo el Historial</option>
+                                <option value="custom">Mes Específico...</option>
+                            </select>
+                        </div>
+
+                        <div id="date-selectors" class="hidden flex gap-4 w-full md:w-auto">
+                            <div class="profile-input-group w-1/2 md:w-40">
+                                <label>Mes</label>
+                                <select id="filter-month">
+                                    <option value="0">Enero</option>
+                                    <option value="1">Febrero</option>
+                                    <option value="2">Marzo</option>
+                                    <option value="3">Abril</option>
+                                    <option value="4">Mayo</option>
+                                    <option value="5">Junio</option>
+                                    <option value="6">Julio</option>
+                                    <option value="7">Agosto</option>
+                                    <option value="8">Septiembre</option>
+                                    <option value="9">Octubre</option>
+                                    <option value="10">Noviembre</option>
+                                    <option value="11">Diciembre</option>
+                                </select>
+                            </div>
+                            <div class="profile-input-group w-1/2 md:w-32">
+                                <label>Año</label>
+                                <select id="filter-year"></select>
+                            </div>
+                        </div>
+
+                        <button onclick="window.applyOrderFilters()" class="w-full md:w-auto bg-brand-black text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-cyan hover:text-brand-black transition shadow-lg h-[46px] mt-auto">
+                            <i class="fa-solid fa-filter"></i> Filtrar
+                        </button>
+                    </div>
+                    
+                    <div id="orders-container" class="space-y-4 min-h-[200px]">
+                        </div>
+
+                    <div id="load-more-container" class="text-center mt-8 hidden">
+                        <button onclick="window.loadMoreOrders()" class="bg-white border-2 border-gray-100 text-brand-black px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-widest hover:border-brand-cyan hover:text-brand-cyan transition">
+                            Cargar más pedidos
+                        </button>
+                    </div>
+                </section>
+
+                <section id="section-data" class="page-section">
+                    <div class="mb-8">
+                        <h1 class="text-3xl md:text-4xl font-black tracking-tighter uppercase text-brand-black">Mis <span class="text-brand-cyan">Datos</span></h1>
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Mantén tu perfil al día</p>
+                    </div>
+
+                    <div class="bg-white rounded-[2rem] p-8 md:p-10 border border-gray-100 shadow-sm relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-bl-[100px] -z-0"></div>
+                        
+                        <form id="profile-form" class="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+                            <div class="profile-input-group md:col-span-2">
+                                <label>Nombre Completo</label>
+                                <input type="text" id="form-name" required placeholder="Tu nombre">
+                            </div>
+                            <div class="profile-input-group">
+                                <label>Documento ID (C.C. / NIT)</label>
+                                <input type="text" id="form-id" placeholder="Cédula">
+                            </div>
+                            <div class="profile-input-group">
+                                <label>Teléfono / Móvil</label>
+                                <input type="text" id="form-phone" placeholder="Contacto">
+                            </div>
+                            <div class="profile-input-group">
+                                <label>Fecha de Nacimiento</label>
+                                <input type="date" id="form-birth">
+                            </div>
+                            <div class="profile-input-group">
+                                <label>Correo Electrónico</label>
+                                <input type="email" id="form-email-readonly" disabled class="cursor-not-allowed opacity-70 bg-gray-50">
+                            </div>
+                            <div class="md:col-span-2 pt-4">
+                                <button type="submit" class="bg-brand-black text-white px-8 py-4 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-brand-cyan hover:text-brand-black transition-all shadow-lg hover:shadow-cyan-500/20 transform hover:-translate-y-1">
+                                    Guardar Cambios
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+
+                <section id="section-addresses" class="page-section">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-6">
+                        <div>
+                            <h1 class="text-3xl md:text-4xl font-black tracking-tighter uppercase text-brand-black">Libreta <span class="text-brand-cyan">Direcciones</span></h1>
+                            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Tus puntos de entrega guardados</p>
+                        </div>
+                        <button id="btn-open-address-modal" class="bg-white text-brand-black border-2 border-brand-black px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-black hover:text-white transition-all flex items-center gap-2">
+                            <i class="fa-solid fa-plus"></i> Nueva Dirección
+                        </button>
+                    </div>
+                    
+                    <div id="addresses-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <div id="address-modal" class="modal-overlay">
+        <div class="bg-white w-full max-w-lg rounded-[2.5rem] p-8 shadow-2xl relative flex flex-col max-h-[90vh] animate-in">
+            <div class="flex justify-between items-center mb-6 shrink-0">
+                <h3 class="text-xl font-black tracking-tighter uppercase text-brand-black" id="modal-addr-title">Nueva Dirección</h3>
+                <button onclick="toggleModal(false)" class="w-8 h-8 bg-slate-50 rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 transition"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="overflow-y-auto custom-scroll pr-2 pb-2">
+                <form id="address-form" class="space-y-5">
+                    <div class="profile-input-group">
+                        <label>Alias (Ej: Casa, Trabajo)</label>
+                        <input type="text" id="modal-addr-alias" required placeholder="Nombre para identificarla">
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="relative">
+                            <div class="profile-input-group">
+                                <label>Departamento</label>
+                                <input type="text" id="modal-dept-search" placeholder="Buscar..." autocomplete="off" required>
+                                <input type="hidden" id="modal-addr-dept-id">
+                            </div>
+                            <div id="dept-results" class="absolute z-50 w-full mt-1 bg-white border border-gray-100 rounded-xl shadow-xl hidden max-h-40 overflow-y-auto p-1 custom-scroll"></div>
+                        </div>
+                        <div class="relative">
+                            <div class="profile-input-group opacity-50 transition-opacity" id="city-input-container">
+                                <label>Ciudad</label>
+                                <input type="text" id="modal-city-search" placeholder="---" autocomplete="off" required disabled>
+                            </div>
+                            <div id="city-results" class="absolute z-50 w-full mt-1 bg-white border border-gray-100 rounded-xl shadow-xl hidden max-h-40 overflow-y-auto p-1 custom-scroll"></div>
+                        </div>
+                    </div>
+
+                    <div class="profile-input-group">
+                        <label>Dirección Exacta</label>
+                        <input type="text" id="modal-addr-value" required placeholder="Calle 123 # 45-67 Int 2">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="profile-input-group">
+                            <label>Código Postal</label>
+                            <input type="text" id="modal-addr-zip" placeholder="Opcional">
+                        </div>
+                        <div class="flex items-center justify-between bg-slate-50 rounded-xl px-4 border border-gray-200">
+                            <span class="text-[9px] font-black uppercase text-gray-500">Predeterminada</span>
+                            <input type="checkbox" id="modal-addr-default" class="accent-brand-cyan w-4 h-4 cursor-pointer">
+                        </div>
+                    </div>
+
+                    <div class="profile-input-group">
+                        <label>Notas Adicionales</label>
+                        <input type="text" id="modal-addr-notes" placeholder="Ej: Dejar en portería">
+                    </div>
+
+                    <div class="pt-4 flex gap-3">
+                        <button type="button" onclick="toggleModal(false)" class="flex-1 bg-white border border-gray-200 text-gray-500 py-3.5 rounded-xl font-bold text-xs uppercase hover:bg-gray-50 transition">Cancelar</button>
+                        <button type="submit" class="flex-1 bg-brand-cyan text-brand-black py-3.5 rounded-xl font-black text-xs uppercase hover:shadow-lg transition">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const sidebar = document.getElementById('profile-sidebar');
+        const overlay = document.getElementById('mobile-sidebar-overlay');
+        function toggleSidebar() {
+            const isClosed = sidebar.classList.contains('-translate-x-full');
+            if (isClosed) { sidebar.classList.remove('-translate-x-full'); overlay.classList.remove('hidden'); } 
+            else { sidebar.classList.add('-translate-x-full'); overlay.classList.add('hidden'); }
+        }
+        
+        document.querySelectorAll('.nav-link').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.nav-link').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.target).classList.add('active');
+                if(window.innerWidth < 768) toggleSidebar();
+            });
+        });
+    </script>
+
+    <script type="module">
+        import { loadGlobalHeader, loadGlobalFooter } from '../js/global-components.js?v=2.0';        loadGlobalHeader();
+        // Footer es opcional en dashboard para maximizar espacio, pero lo dejamos si gustas
+    </script>
+    <script type="module" src="js/profile.js"></script>
+</body>
+</html>

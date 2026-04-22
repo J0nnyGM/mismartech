@@ -1,0 +1,127 @@
+# ----------------------------------------------------------------------
+# 1. EJECUTAR PHP DENTRO DE ARCHIVOS HTML (Ajustado para tu cPanel)
+# ----------------------------------------------------------------------
+# Usamos el manejador exacto que tu servidor ya definió al final del archivo
+<IfModule mime_module>
+  AddHandler application/x-httpd-ea-php74___lsphp .html .htm
+</IfModule>
+
+# ----------------------------------------------------------------------
+# 2. PÁGINAS DE ERROR PERSONALIZADAS
+# ----------------------------------------------------------------------
+ErrorDocument 404 /404.html
+
+# ----------------------------------------------------------------------
+# 3. MOTOR DE REESCRITURA (RUTAS, DOMINIOS Y SEGURIDAD)
+# ----------------------------------------------------------------------
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # ======================================================================
+    # REGLA 1: FORZAR HTTPS Y QUITAR "www"
+    # ======================================================================
+    RewriteCond %{HTTPS} off [OR]
+    RewriteCond %{HTTP_HOST} ^www\. [NC]
+    RewriteRule ^(.*)$ https://pixeltechcol.com/$1 [L,R=301]
+
+    # ======================================================================
+    # REGLA 2: INYECCIÓN DINÁMICA DE PRODUCTOS (SEO & BOTS)
+    # ======================================================================
+    RewriteCond %{REQUEST_URI} ^/shop/product\.html$ [NC]
+    RewriteCond %{QUERY_STRING} id=([a-zA-Z0-9_-]+)
+    RewriteRule ^(.*)$ serve_product_meta.php?id=%1 [L]
+    
+    # ======================================================================
+    # REGLA 3: LIMPIEZA Y REDIRECCIONES MENORES
+    # ======================================================================
+    # Quitar /index.html de la URL de inicio
+    RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /index\.html\ HTTP/
+    RewriteRule ^index\.html$ / [R=301,L]
+
+    # REESCRITURA DE SITEMAP Y GOOGLE FEED
+    RewriteRule ^sitemap\.xml$ serve_sitemap.php [L]
+    RewriteRule ^google-feed\.xml$ serve_feed.php [L]
+
+    # REDIRECCIONES 301 WOOCOMMERCE
+    RewriteRule ^catalogo\.html$ /shop/catalog.html [R=301,L]
+    RewriteRule ^catalog\.html$ /shop/catalog.html [R=301,L]
+    RewriteRule ^etiqueta-producto/?(.*)$ /shop/catalog.html [R=301,L]
+    RewriteRule ^categoria-producto/?(.*)$ /shop/catalog.html [R=301,L]
+    RewriteRule ^tienda/?(.*)$ / [R=301,L]
+    RewriteRule ^producto/?(.*)$ / [R=301,L]
+    RewriteRule ^faqs/?(.*)$ / [R=301,L]
+    RewriteRule ^carrito/?(.*)$ / [R=301,L]
+    RewriteRule ^finalizar-compra/?(.*)$ / [R=301,L]
+    RewriteRule ^mi-cuenta/?(.*)$ / [R=301,L]
+    RewriteRule ^wp-content/?(.*)$ / [R=301,L]
+
+    # Ocultar extensión .html
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME}.html -f
+    RewriteRule ^([^\.]+)$ $1.html [NC,L]
+</IfModule>
+
+# ----------------------------------------------------------------------
+# 4. COMPRESIÓN GZIP / DEFLATE
+# ----------------------------------------------------------------------
+<IfModule mod_deflate.c>
+    SetOutputFilter DEFLATE
+    <IfModule mod_setenvif.c>
+        <IfModule mod_headers.c>
+            SetEnvIfNoCase ^(Accept-EncodXng|X-cept-Encoding|X{15}|~{15}|-{15})$ ^((gzip|deflate)\s*,?\s*)+|[X~-]{4,13}$ HAVE_Accept-Encoding
+            RequestHeader append Accept-Encoding "gzip,deflate" env=HAVE_Accept-Encoding
+            SetEnvIfNoCase Request_URI \.(?:gif|jpe?g|png|rar|zip|exe|flv|mov|wma|mp3|avi|swf|mp?g|mp4|webm|webp|pdf)$ no-gzip dont-vary
+        </IfModule>
+    </IfModule>
+    <IfModule mod_filter.c>
+        AddOutputFilterByType DEFLATE application/atom+xml application/javascript application/json application/rss+xml application/vnd.ms-fontobject application/x-font-ttf application/xhtml+xml application/xml font/opentype image/svg+xml image/x-icon text/css text/html text/plain text/x-component text/xml
+    </IfModule>
+    <IfModule mod_headers.c>
+        Header append Vary: Accept-Encoding
+    </IfModule>
+</IfModule>
+
+# ----------------------------------------------------------------------
+# 5. CACHÉ DEL NAVEGADOR
+# ----------------------------------------------------------------------
+<IfModule mod_expires.c>
+    ExpiresActive on
+    ExpiresDefault                              "access plus 1 month"
+    
+    # HTML y Datos dinámicos
+    ExpiresByType text/html                     "access plus 0 seconds"
+    ExpiresByType text/xml                      "access plus 0 seconds"
+    ExpiresByType application/xml               "access plus 0 seconds"
+    ExpiresByType application/json              "access plus 0 seconds"
+    
+    # Recursos multimedia
+    ExpiresByType image/gif                     "access plus 4 months"
+    ExpiresByType image/png                     "access plus 4 months"
+    ExpiresByType image/jpeg                    "access plus 4 months"
+    ExpiresByType image/webp                    "access plus 4 months"
+    ExpiresByType image/avif                    "access plus 4 months"
+    ExpiresByType video/mp4                     "access plus 4 months"
+    ExpiresByType video/webm                    "access plus 4 months"
+    
+    # Fuentes web
+    ExpiresByType font/ttf                      "access plus 4 months"
+    ExpiresByType font/otf                      "access plus 4 months"
+    ExpiresByType font/woff                     "access plus 4 months"
+    ExpiresByType font/woff2                    "access plus 4 months"
+    ExpiresByType image/svg+xml                 "access plus 4 months"
+    
+    # CSS y JavaScript
+    ExpiresByType text/css                      "access plus 1 year"
+    ExpiresByType application/javascript        "access plus 1 year"
+</IfModule>
+
+# ----------------------------------------------------------------------
+# 6. MANEJADOR DE PHP DE CPANEL (NO EDITAR)
+# ----------------------------------------------------------------------
+# php -- BEGIN cPanel-generated handler, do not edit
+<IfModule mime_module>
+  AddHandler application/x-httpd-ea-php74___lsphp .php .php7 .phtml
+</IfModule>
+# php -- END cPanel-generated handler, do not edit

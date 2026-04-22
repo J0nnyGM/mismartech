@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#00AEC7">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rentabilidad FIFO | PixelTech Admin</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+    <style>
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #00AEC7; border-radius: 10px; }
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; opacity: 0; transform: translateY(10px); }
+        @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+
+<body class="bg-slate-50 font-sans text-brand-black flex h-screen overflow-hidden selection:bg-brand-cyan selection:text-white" style="display: none;">
+
+    <div id="admin-sidebar"></div>
+
+    <main class="flex-grow overflow-y-auto relative custom-scroll">
+        <header class="bg-white/90 backdrop-blur-xl border-b border-gray-100 px-8 py-5 flex justify-between items-center sticky top-0 z-40 shadow-sm">
+            <div>
+                <h2 class="font-black text-gray-400 text-[9px] uppercase tracking-[0.4em]">Finanzas & Análisis</h2>
+            </div>
+            <div class="w-10 h-10 bg-brand-black text-white rounded-xl flex items-center justify-center font-bold shadow-lg">
+                <i class="fa-solid fa-chart-line"></i>
+            </div>
+        </header>
+
+        <div class="p-8 max-w-7xl mx-auto pb-40">
+            <div class="mb-10 flex justify-between items-end">
+                <div>
+                    <h1 class="text-4xl font-black text-brand-black tracking-tighter uppercase leading-none">
+                        Rentabilidad <span class="text-brand-cyan">FIFO</span>
+                    </h1>
+                    <p class="text-gray-400 text-sm font-bold mt-2 tracking-wide">Analiza el margen de ganancia real basado en tu historial de abastecimiento.</p>
+                </div>
+                <button id="btn-back-general" onclick="window.showGeneralDashboard()" class="hidden bg-white border border-gray-200 text-brand-black px-5 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:border-brand-cyan hover:text-brand-cyan transition shadow-sm items-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i> Volver al Resumen
+                </button>
+            </div>
+
+            <div class="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm mb-8 relative z-30">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-8 h-8 rounded-full bg-brand-cyan/10 flex items-center justify-center text-brand-cyan">
+                        <i class="fa-solid fa-box-open"></i>
+                    </div>
+                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Buscar Producto Específico</label>
+                </div>
+
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-6 top-1/2 -translate-y-1/2 text-gray-300"></i>
+                    <input type="text" id="product-search" placeholder="Escribe el nombre o SKU del producto..."
+                        class="w-full bg-slate-50 border-2 border-transparent rounded-2xl py-4 pl-14 pr-6 text-sm font-black text-gray-600 outline-none focus:bg-white focus:border-brand-cyan/30 focus:text-brand-black transition-all">
+                    
+                    <div id="product-results" class="absolute left-0 top-full mt-2 w-full bg-white border border-gray-100 rounded-2xl shadow-2xl max-h-60 overflow-y-auto hidden z-50 p-2 custom-scroll">
+                    </div>
+                </div>
+            </div>
+
+            <div id="general-dashboard" class="fade-in space-y-8">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
+                        <h3 class="font-black text-brand-black uppercase text-sm mb-6 flex items-center gap-2 border-b border-gray-50 pb-4">
+                            <i class="fa-solid fa-trophy text-yellow-500 text-xl"></i> Top 10 Más Vendidos <span class="text-[9px] text-gray-400 ml-auto">(Por Ingresos)</span>
+                        </h3>
+                        <div id="top-sales-list" class="space-y-1">
+                            <div class="text-center p-8 text-gray-400 text-xs"><i class="fa-solid fa-circle-notch fa-spin text-2xl text-brand-cyan mb-2"></i><br>Calculando finanzas...</div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
+                        <h3 class="font-black text-brand-black uppercase text-sm mb-6 flex items-center gap-2 border-b border-gray-50 pb-4">
+                            <i class="fa-solid fa-chart-pie text-emerald-500 text-xl"></i> Top 10 Más Rentables <span class="text-[9px] text-gray-400 ml-auto">(Por Utilidad Neta)</span>
+                        </h3>
+                        <div id="top-profit-list" class="space-y-1">
+                            <div class="text-center p-8 text-gray-400 text-xs"><i class="fa-solid fa-circle-notch fa-spin text-2xl text-brand-cyan mb-2"></i><br>Calculando finanzas...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="specific-dashboard" class="hidden fade-in space-y-8">
+                
+                <div class="flex items-center gap-4 bg-slate-900 p-6 rounded-[2rem] shadow-xl border border-slate-800">
+                    <img id="dash-img" src="" class="w-16 h-16 rounded-xl bg-white object-contain p-1">
+                    <div>
+                        <h2 id="dash-name" class="text-xl font-black text-white uppercase">Producto</h2>
+                        <p id="dash-sku" class="text-xs font-bold text-gray-400 uppercase tracking-widest">SKU: ---</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+                        <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Unidades Vendidas</p>
+                        <h3 id="dash-qty-sold" class="text-3xl font-black text-brand-black">0</h3>
+                    </div>
+                    <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+                        <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Ingresos (Ventas)</p>
+                        <h3 id="dash-revenue" class="text-3xl font-black text-emerald-500">$0</h3>
+                    </div>
+                    <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+                        <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Costo FIFO (COGS)</p>
+                        <h3 id="dash-cogs" class="text-3xl font-black text-red-400">-$0</h3>
+                    </div>
+                    <div class="bg-gradient-to-br from-brand-cyan to-blue-600 p-6 rounded-3xl shadow-lg text-white">
+                        <p class="text-[9px] font-black text-white/70 uppercase tracking-widest mb-1">Ganancia Bruta</p>
+                        <h3 id="dash-profit" class="text-3xl font-black tracking-tight">$0</h3>
+                        <p id="dash-margin" class="text-xs font-bold mt-1 text-white/90">Margen: 0%</p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-[2.5rem] shadow-xl border border-gray-100 overflow-hidden">
+                    <div class="p-6 border-b border-gray-50 bg-slate-50/50">
+                        <h3 class="font-black text-brand-black uppercase text-[11px] tracking-widest">Línea de Tiempo FIFO</h3>
+                    </div>
+                    <div class="overflow-x-auto custom-scroll">
+                        <table class="w-full text-left text-sm min-w-[800px]">
+                            <thead class="bg-white text-[9px] uppercase font-black text-gray-400 tracking-widest border-b border-gray-100">
+                                <tr>
+                                    <th class="px-6 py-4">Fecha</th>
+                                    <th class="px-6 py-4">Movimiento</th>
+                                    <th class="px-6 py-4 text-center">Cant.</th>
+                                    <th class="px-6 py-4 text-right">Precio / Costo Unit.</th>
+                                    <th class="px-6 py-4 text-right">Total Movimiento</th>
+                                    <th class="px-6 py-4 text-right text-brand-cyan">Utilidad (FIFO)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="timeline-table-body" class="divide-y divide-gray-50">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <script type="module" src="../js/admin-guard.js"></script>
+    <script type="module" src="../js/admin-profitability.js"></script>
+</body>
+</html>

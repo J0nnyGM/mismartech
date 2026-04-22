@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#00AEC7">
+    <link rel="apple-touch-icon" href="/img/icons/icon-192x192.webp">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Pedidos - PixelTech</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+    <style>
+        .hidden {
+            display: none !important;
+        }
+
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #00AEC7;
+            border-radius: 10px;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+            opacity: 0;
+            transform: translateY(5px);
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .tab-btn.active {
+            background-color: #00AEC7;
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 174, 199, 0.3);
+            border-color: transparent;
+        }
+
+        .tab-btn {
+            background-color: white;
+            color: #111827;
+            border: 1px solid #e5e7eb;
+            font-weight: 900;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-slate-50 font-sans text-brand-black flex h-screen overflow-hidden selection:bg-brand-cyan selection:text-white"
+    style="display: none;">
+
+    <div id="admin-sidebar"></div>
+
+    <main class="flex-grow overflow-y-auto relative custom-scroll">
+        <header
+            class="bg-white/90 backdrop-blur-xl border-b border-gray-100 px-8 py-4 flex justify-between items-center sticky top-0 z-20 shadow-sm">
+            <h2 class="font-black text-brand-black text-[9px] uppercase tracking-[0.3em]">Centro Logístico</h2>
+            <div class="flex items-center gap-4">
+                <!-- NUEVO: Botón de Imprimir Rótulos -->
+                <div class="flex bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                    <button onclick="window.openBulkPaymentModal()" title="Cobrar Seleccionados" class="px-4 py-2.5 text-gray-400 hover:text-green-600 hover:bg-green-50 transition border-r border-gray-100 flex items-center justify-center">
+                        <i class="fa-solid fa-hand-holding-dollar"></i>
+                    </button>
+                    <button onclick="window.openBulkPackingModal()" title="Alistar Seleccionados" class="px-4 py-2.5 text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition border-r border-gray-100 flex items-center justify-center">
+                        <i class="fa-solid fa-box-open"></i>
+                    </button>
+                    <button onclick="window.openBulkDispatchModal()" title="Despachar Seleccionados" class="px-4 py-2.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition border-r border-gray-100 flex items-center justify-center">
+                        <i class="fa-solid fa-truck-fast"></i>
+                    </button>
+                    <button onclick="window.printSelectedLabels()" title="Imprimir Rótulos" class="px-4 py-2.5 text-gray-500 hover:text-brand-black hover:bg-slate-100 transition flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
+                        <i class="fa-solid fa-tags"></i> Rótulos
+                    </button>
+                </div>
+
+                <button id="btn-open-manual"
+                    class="bg-brand-black text-white px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-cyan hover:text-brand-black hover:shadow-lg transition-all flex items-center gap-2 transform active:scale-95">
+                    <i class="fa-solid fa-plus"></i> Nueva Venta
+                </button>
+                <div class="w-10 h-10 bg-slate-100 text-brand-cyan rounded-xl flex items-center justify-center font-bold shadow-sm">
+                    <i class="fa-solid fa-user-shield"></i>
+                </div>
+            </div>
+        </header>
+
+        <div class="p-8 max-w-[1600px] mx-auto pb-20">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-8 gap-6">
+                <div>
+                    <h1 class="text-4xl font-black tracking-tighter text-brand-black uppercase leading-none mb-2">
+                        Pedidos & <span class="text-brand-cyan">Envíos</span></h1>
+                    <p class="text-sm text-brand-black font-bold tracking-wide">Administra el flujo de ventas y
+                        despachos.</p>
+                </div>
+                <div class="relative w-full md:w-auto">
+                    <i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-brand-black text-xs"></i>
+                    <input type="text" id="search-input" placeholder="Buscar por # Orden o Cliente..."
+                        class="w-full md:w-64 pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-xs font-bold outline-none focus:border-brand-cyan transition bg-white shadow-sm text-brand-black">
+                </div>
+            </div>
+
+            <div class="flex flex-wrap gap-3 mb-8">
+                <button onclick="window.switchTab('ACTIONABLE')" id="tab-actionable"
+                    class="tab-btn active px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2"><i
+                        class="fa-solid fa-bell"></i> Por Atender</button>
+                <button onclick="window.switchTab('WAITING')" id="tab-waiting"
+                    class="tab-btn px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2"><i
+                        class="fa-solid fa-clock"></i> En Espera</button>
+                <button onclick="window.switchTab('DISPATCHED')" id="tab-dispatched"
+                    class="tab-btn px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2"><i
+                        class="fa-solid fa-truck-fast"></i> Enviados</button>
+                <button onclick="window.switchTab('REFUNDS')" id="tab-refunds"
+                    class="tab-btn px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2"><i
+                        class="fa-solid fa-rotate-left"></i> Devoluciones</button>
+
+                <button onclick="window.switchTab('FAILED')" id="tab-failed"
+                    class="tab-btn px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2"><i
+                        class="fa-solid fa-ban"></i> Cancelados</button>
+                <button onclick="window.switchTab('ALL')" id="tab-all"
+                    class="tab-btn px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2"><i
+                        class="fa-solid fa-list"></i> Todo</button>
+            </div>
+
+            <div class="bg-white rounded-[2.5rem] shadow-xl border border-gray-100 overflow-hidden fade-in">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm min-w-[900px]">
+                        <thead class="bg-slate-50 text-[9px] uppercase font-black text-brand-black tracking-widest border-b border-gray-100">
+                            <tr>
+                                <!-- NUEVO: Checkbox para seleccionar todos -->
+                                <th class="px-4 py-6 w-12 text-center">
+                                    <input type="checkbox" id="select-all-orders" onclick="window.toggleAllOrders(this)" class="cursor-pointer w-4 h-4 rounded text-brand-cyan focus:ring-brand-cyan border-gray-300">
+                                </th>
+                                <th class="px-8 py-6 w-36"># Orden / Fecha</th>
+                                <th class="px-8 py-6">Cliente</th>
+                                <th class="px-8 py-6 text-center">Canal</th>
+                                <th class="px-8 py-6 text-center">Estado Pago</th>
+                                <th class="px-8 py-6 text-center">Logística</th>
+                                <th class="px-8 py-6 text-right">Total</th>
+                                <th class="px-8 py-6 text-center w-40">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-table-body" class="divide-y divide-gray-50"></tbody>
+                    </table>
+                </div>
+
+                <div id="load-more-container" class="p-6 text-center hidden border-t border-gray-100">
+                    <button onclick="window.loadMoreOrders()"
+                        class="text-xs font-bold text-gray-400 hover:text-brand-cyan transition uppercase tracking-widest flex items-center justify-center gap-2 mx-auto">
+                        <i class="fa-solid fa-circle-plus"></i> Cargar siguientes 50
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="order-modal" class="fixed inset-0 z-[70] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity"
+            onclick="document.getElementById('order-modal').classList.add('hidden')"></div>
+        <div
+            class="relative bg-white w-full max-w-5xl rounded-[2.5rem] shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-fadeIn">
+            <div class="p-8 border-b border-gray-50 flex justify-between items-center bg-slate-50/50">
+                <div class="flex items-center gap-6">
+                    <div id="modal-source-icon"></div>
+                    <div>
+                        <div class="flex items-center gap-3">
+                            <h3 class="text-3xl font-black tracking-tighter uppercase text-brand-black"
+                                id="modal-order-id">#ORDEN</h3>
+                            <span id="modal-order-status-badge">...</span>
+                        </div>
+                        <p id="modal-order-date"
+                            class="text-[10px] font-bold text-brand-black uppercase tracking-widest mt-1">...</p>
+                    </div>
+                </div>
+                <button
+                    class="w-10 h-10 rounded-full bg-white border border-gray-200 text-brand-black hover:bg-brand-red hover:text-white transition flex items-center justify-center"
+                    onclick="document.getElementById('order-modal').classList.add('hidden')"><i
+                        class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-8 overflow-y-auto custom-scroll space-y-8 bg-white">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-1 space-y-6">
+                        <div id="modal-payment-info"
+                            class="hidden bg-white border border-gray-100 p-6 rounded-[2rem] shadow-sm animate-fadeIn">
+                        </div>
+
+                        <div class="bg-white border border-gray-100 p-6 rounded-[2rem] shadow-sm">
+                            <h4
+                                class="text-[9px] font-black uppercase tracking-[0.2em] text-brand-black mb-4 flex items-center gap-2">
+                                <i class="fa-solid fa-user-tag text-brand-cyan"></i> Cliente</h4>
+                            <p id="modal-client-name" class="font-black text-brand-black uppercase text-sm mb-1">...</p>
+                            <p id="modal-client-doc" class="text-[10px] font-bold text-brand-black uppercase mb-1">...
+                            </p>
+                            <p id="modal-client-contact" class="text-xs text-brand-black font-bold break-all">...</p>
+                        </div>
+                        <div class="bg-white border border-gray-100 p-6 rounded-[2rem] shadow-sm">
+                            <h4 class="text-[9px] font-black uppercase tracking-[0.2em] text-brand-black mb-4 flex items-center gap-2"><i class="fa-solid fa-map-location-dot text-brand-cyan"></i> Envío</h4>
+                            <p id="modal-delivery-address" class="text-xs font-bold text-brand-black mb-1">...</p>
+                            <p id="modal-delivery-city" class="text-[10px] text-gray-500 font-black uppercase">...</p>
+                            
+                            <div id="modal-tracking-info" class="mt-4 p-4 bg-brand-cyan/5 rounded-xl border border-brand-cyan/20 hidden animate-fadeIn">
+                                <p class="text-[9px] font-black text-brand-cyan uppercase tracking-widest mb-1">Datos de Despacho</p>
+                                <p class="text-xs font-bold text-brand-black uppercase"><i class="fa-solid fa-truck-fast mr-1 text-gray-400"></i> <span id="modal-carrier"></span></p>
+                                <p class="text-[10px] font-mono font-bold text-gray-500 mt-1">Guía: <span id="modal-tracking-number" class="select-all text-brand-black"></span></p>
+                            </div>
+
+                            <div id="modal-order-notes" class="mt-4 p-4 bg-yellow-50 rounded-xl text-[10px] text-yellow-900 font-bold border border-yellow-100 hidden"><i class="fa-regular fa-note-sticky mr-1"></i> <span id="note-text"></span></div>
+                        </div>
+                        <div id="modal-billing-section"
+                            class="hidden bg-brand-cyan/5 border border-brand-cyan/10 p-6 rounded-[2rem]">
+                            <h4
+                                class="text-[9px] font-black uppercase tracking-[0.2em] text-brand-cyan mb-4 flex items-center gap-2">
+                                <i class="fa-solid fa-file-invoice-dollar"></i> Facturación</h4>
+                            <div class="space-y-2 text-xs font-bold text-brand-black">
+                                <p id="bill-modal-name">--</p>
+                                <p id="bill-modal-id">--</p>
+                                <p id="bill-modal-email" class="break-all">--</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-2">
+                        <h4
+                            class="text-[9px] font-black uppercase tracking-[0.2em] text-brand-black mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-boxes-packing text-brand-cyan"></i> Picking List & Seriales</h4>
+                        <div class="bg-slate-50 rounded-[2rem] border border-gray-100 overflow-hidden"
+                            id="modal-items-list-responsive"></div>
+                    </div>
+                </div>
+            </div>
+            <div
+                class="p-8 bg-slate-50 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="flex gap-10 text-right md:text-left">
+                    <div>
+                        <p class="text-[9px] font-black text-brand-black uppercase tracking-widest">Subtotal</p>
+                        <p id="modal-order-subtotal" class="text-sm font-bold text-brand-black">---</p>
+                    </div>
+                    <div>
+                        <p class="text-[9px] font-black text-brand-cyan uppercase tracking-widest">Envío</p>
+                        <p id="modal-order-shipping" class="text-sm font-bold text-brand-cyan">---</p>
+                    </div>
+                    <div id="modal-total-container" class="pl-8 border-l border-gray-200 min-w-[150px] text-right">
+                        <p class="text-[9px] font-black text-brand-black uppercase tracking-widest">Total Neto</p>
+                        <h4 id="modal-order-total" class="text-3xl font-black text-brand-black leading-none">---</h4>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4 w-full md:w-auto justify-end">
+                    <div id="modal-footer-msg" class="text-xs font-bold uppercase tracking-widest hidden"></div>
+                    <div id="modal-footer-actions" class="flex gap-3 w-full md:w-auto hidden">
+                        <button id="btn-save-alistado"
+                            onclick="window.saveAlistamiento(() => window.switchTab('ACTIONABLE'))"
+                            class="flex-1 md:flex-none bg-brand-black text-white px-8 py-4 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-brand-cyan hover:text-brand-black transition-all shadow-xl">Guardar
+                            Alistamiento</button>
+                        <button id="btn-set-despachado" onclick="window.openDispatchModal()"
+                            class="flex-1 md:flex-none bg-green-500 text-white px-8 py-4 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-green-600 transition-all shadow-xl"><i
+                                class="fa-solid fa-truck-fast mr-2"></i> Marcar Despachado</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="dispatch-modal" class="fixed inset-0 z-[80] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/70 backdrop-blur-sm"
+            onclick="document.getElementById('dispatch-modal').classList.add('hidden')"></div>
+        <div class="relative bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl text-center">
+            <h3 class="text-xl font-black text-brand-black uppercase mb-6">Confirmar Envío</h3>
+            <div class="space-y-4 mb-8 text-left">
+                <select id="dispatch-carrier"
+                    class="w-full bg-slate-50 border border-gray-200 rounded-xl p-3 text-sm font-bold outline-none text-brand-black">
+                    <option value="">Transportadora...</option>
+                    <option value="Servientrega">Servientrega</option>
+                    <option value="Interrapidisimo">Interrapidísimo</option>
+                    <option value="Envía">Envía</option>
+                    <option value="Coordinadora">Coordinadora</option>
+                    <option value="DespachoBogota">Despacho Bogota</option>
+                </select>
+                <input type="text" id="dispatch-tracking" placeholder="Número de Guía"
+                    class="w-full bg-slate-50 border border-gray-200 rounded-xl p-3 text-sm font-mono font-bold outline-none text-brand-black">
+            </div>
+            <button id="btn-confirm-dispatch" onclick="window.confirmDispatch(() => window.switchTab('ACTIONABLE'))"
+                class="w-full bg-green-500 text-white font-black py-4 rounded-xl shadow-lg uppercase text-xs tracking-widest hover:bg-green-600 transition">Confirmar
+                y Enviar</button>
+        </div>
+    </div>
+
+    <div id="payment-modal" class="fixed inset-0 z-[90] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-brand-black/80 backdrop-blur-sm transition-opacity"
+            onclick="document.getElementById('payment-modal').classList.add('hidden')"></div>
+        <div
+            class="relative bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95">
+            <div class="p-8 border-b border-gray-100 flex justify-between items-center bg-slate-50">
+                <div>
+                    <h3 class="text-xl font-black uppercase tracking-tighter text-brand-black">Registrar <span
+                            class="text-green-500">Ingreso</span></h3>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest" id="pay-modal-order-id">
+                        #ORDEN</p>
+                </div>
+                <button onclick="document.getElementById('payment-modal').classList.add('hidden')"
+                    class="w-8 h-8 rounded-full bg-white text-gray-400 hover:text-brand-red flex items-center justify-center transition border border-gray-200"><i
+                        class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="payment-form" class="p-8 space-y-6">
+                <input type="hidden" id="pay-target-id">
+                <div class="bg-green-50 p-6 rounded-2xl text-center border border-green-100">
+                    <p class="text-[9px] font-black text-green-600 uppercase tracking-widest mb-1">Monto a Recibir
+                        (Saldo Pendiente)</p>
+                    <input type="text" id="pay-amount"
+                        class="w-full bg-transparent text-4xl font-black text-green-700 text-center outline-none placeholder-green-300"
+                        placeholder="$0">
+                </div>
+                <div>
+                    <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Cuenta
+                        de Destino (Tesorería)</label>
+                    <div class="relative">
+                        <i
+                            class="fa-solid fa-building-columns absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        <select id="pay-account-select" required
+                            class="w-full bg-slate-50 border border-gray-200 pl-10 pr-4 py-4 rounded-xl font-bold text-xs outline-none focus:border-brand-cyan focus:ring-1 focus:ring-brand-cyan/20 appearance-none text-brand-black cursor-pointer shadow-sm transition-all">
+                            <option value="">Cargando cuentas...</option>
+                        </select>
+                        <i
+                            class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none"></i>
+                    </div>
+                </div>
+                <button type="submit"
+                    class="w-full bg-brand-black text-white py-5 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-green-500 hover:text-white transition-all shadow-xl hover:shadow-green-500/30 flex items-center justify-center gap-3 group">
+                    Confirmar Pago <div
+                        class="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-green-500 transition">
+                        <i class="fa-solid fa-check"></i></div>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div id="refund-modal" class="fixed inset-0 z-[95] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-red-900/40 backdrop-blur-sm transition-opacity"
+            onclick="document.getElementById('refund-modal').classList.add('hidden')"></div>
+        <div
+            class="relative bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-fadeIn flex flex-col max-h-[90vh]">
+            <div class="p-8 border-b border-gray-100 flex justify-between items-center bg-red-50">
+                <div>
+                    <h3 class="text-xl font-black uppercase tracking-tighter text-brand-black">Gestionar <span
+                            class="text-red-500">Devolución</span></h3>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest" id="refund-modal-order-id">
+                        #ORDEN</p>
+                </div>
+                <button onclick="document.getElementById('refund-modal').classList.add('hidden')"
+                    class="w-8 h-8 rounded-full bg-white text-gray-400 hover:text-brand-black flex items-center justify-center transition border border-gray-200"><i
+                        class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="refund-form" class="flex flex-col flex-grow overflow-hidden">
+                <input type="hidden" id="refund-target-id">
+                <input type="hidden" id="refund-was-paid">
+                <div class="p-8 overflow-y-auto custom-scroll flex-grow">
+                    <h4 class="text-[9px] font-black uppercase tracking-widest text-brand-black mb-3">1. Artículos a
+                        Reingresar al Inventario</h4>
+                    <div id="refund-items-container" class="space-y-3 mb-8"></div>
+                    <div id="refund-financial-section">
+                        <h4
+                            class="text-[9px] font-black uppercase tracking-widest text-brand-black mb-3 border-t border-gray-100 pt-4">
+                            2. Devolución de Dinero</h4>
+                        <div class="bg-red-50 p-4 rounded-xl border border-red-100 mb-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label
+                                        class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Cuenta
+                                        de Egreso</label>
+                                    <div class="relative">
+                                        <select id="refund-account-select"
+                                            class="w-full bg-white border border-gray-200 p-3 rounded-xl font-bold text-xs outline-none focus:border-red-500 appearance-none cursor-pointer text-brand-black">
+                                            <option value="">Seleccione Cuenta...</option>
+                                        </select>
+                                        <i
+                                            class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label
+                                        class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Monto
+                                        a Devolver</label>
+                                    <input type="text" id="refund-amount"
+                                        class="w-full bg-white border border-gray-200 p-3 rounded-xl text-lg font-black outline-none focus:border-red-500 text-brand-black text-right"
+                                        placeholder="$0">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="refund-no-payment-msg"
+                        class="hidden bg-gray-50 p-4 rounded-xl border border-gray-200 text-center mb-4">
+                        <p class="text-xs font-bold text-gray-500"><i class="fa-solid fa-money-bill-wave-slash"></i>
+                            Esta orden no fue pagada. Solo se restaurará el stock.</p>
+                    </div>
+                    <div>
+                        <label
+                            class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Motivo
+                            / Nota</label>
+                        <input type="text" id="refund-reason"
+                            class="w-full bg-white border border-gray-200 p-3 rounded-xl text-xs font-bold outline-none focus:border-red-500 text-brand-black"
+                            placeholder="Ej: Garantía, Cambio de opinión...">
+                    </div>
+                </div>
+                <div class="p-8 bg-slate-50 border-t border-gray-100">
+                    <button type="submit"
+                        class="w-full bg-red-500 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-red-600 transition-all shadow-xl hover:shadow-red-500/30">
+                        Confirmar Devolución
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+<div id="bulk-packing-modal" class="fixed inset-0 z-[85] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/70 backdrop-blur-sm" onclick="document.getElementById('bulk-packing-modal').classList.add('hidden')"></div>
+        <div class="relative bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl flex flex-col text-center">
+            <div class="w-16 h-16 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-3xl mx-auto mb-4">
+                <i class="fa-solid fa-box-open"></i>
+            </div>
+            <h3 class="text-xl font-black text-brand-black uppercase">Alistamiento <span class="text-purple-500">Masivo</span></h3>
+            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1 mb-6"><span id="bulk-pack-valid" class="text-brand-black font-black text-base">0</span> Pedidos Válidos para procesar</p>
+            
+            <div id="bulk-pack-warning" class="hidden bg-yellow-50 text-yellow-700 text-[9px] font-black uppercase tracking-widest p-3 rounded-xl border border-yellow-200 mb-6">
+                </div>
+
+            <button id="btn-confirm-bulk-pack" onclick="window.processBulkPacking()" class="w-full bg-brand-black text-white font-black py-4 rounded-xl shadow-lg uppercase text-[10px] tracking-[0.2em] hover:bg-purple-600 transition flex items-center justify-center gap-2">
+                Confirmar Alistamiento Masivo
+            </button>
+            <button onclick="document.getElementById('bulk-packing-modal').classList.add('hidden')" class="w-full mt-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest hover:text-brand-black transition">
+                Cancelar
+            </button>
+        </div>
+    </div>
+
+    <div id="bulk-dispatch-modal" class="fixed inset-0 z-[85] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/70 backdrop-blur-sm" onclick="document.getElementById('bulk-dispatch-modal').classList.add('hidden')"></div>
+        <div class="relative bg-white w-full max-w-2xl rounded-[2.5rem] p-8 shadow-2xl flex flex-col max-h-[90vh]">
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h3 class="text-xl font-black text-brand-black uppercase">Despacho <span class="text-blue-500">Masivo</span></h3>
+                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1"><span id="bulk-disp-count">0</span> Pedidos Válidos</p>
+                </div>
+                <button onclick="document.getElementById('bulk-dispatch-modal').classList.add('hidden')" class="w-8 h-8 rounded-full bg-slate-50 text-gray-400 hover:text-brand-red flex items-center justify-center transition border border-gray-100"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div id="bulk-disp-warning" class="hidden bg-yellow-50 text-yellow-700 text-[9px] font-black uppercase tracking-widest p-3 rounded-xl border border-yellow-200 mb-4">
+                </div>
+            
+            <div class="mb-4">
+                <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2">Transportadora Global</label>
+                <select id="bulk-dispatch-carrier" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-3 text-sm font-bold outline-none text-brand-black">
+                    <option value="">Seleccione Transportadora...</option>
+                    <option value="Servientrega">Servientrega</option>
+                    <option value="Interrapidisimo">Interrapidísimo</option>
+                    <option value="Envía">Envía</option>
+                    <option value="Coordinadora">Coordinadora</option>
+                    <option value="DespachoBogota">Despacho Bogotá (Mensajería)</option>
+                </select>
+            </div>
+
+            <div class="overflow-y-auto custom-scroll pr-2 mb-6 flex-grow border-t border-b border-gray-100 py-4" id="bulk-dispatch-list">
+                </div>
+
+            <button id="btn-confirm-bulk-dispatch" onclick="window.processBulkDispatch()" class="w-full bg-blue-500 text-white font-black py-4 rounded-xl shadow-lg uppercase text-[10px] tracking-[0.2em] hover:bg-blue-600 transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-truck-ramp-box"></i> Confirmar Envíos Masivos
+            </button>
+        </div>
+    </div>
+
+    <div id="bulk-payment-modal" class="fixed inset-0 z-[90] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-brand-black/80 backdrop-blur-sm" onclick="document.getElementById('bulk-payment-modal').classList.add('hidden')"></div>
+        <div class="relative bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95">
+            <div class="p-8 border-b border-gray-100 flex justify-between items-center bg-slate-50">
+                <div>
+                    <h3 class="text-xl font-black uppercase tracking-tighter text-brand-black">Cobro <span class="text-green-500">Masivo</span></h3>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1"><span id="bulk-pay-count">0</span> Pedidos Válidos</p>
+                </div>
+                <button onclick="document.getElementById('bulk-payment-modal').classList.add('hidden')" class="w-8 h-8 rounded-full bg-white text-gray-400 hover:text-brand-red flex items-center justify-center transition border border-gray-200"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="p-8 space-y-6">
+                <div id="bulk-pay-warning" class="hidden bg-yellow-50 text-yellow-700 text-[9px] font-black uppercase tracking-widest p-3 rounded-xl border border-yellow-200 text-center">
+                    </div>
+
+                <div class="bg-green-50 p-6 rounded-2xl text-center border border-green-100">
+                    <p class="text-[9px] font-black text-green-600 uppercase tracking-widest mb-1">Monto Total a Recibir</p>
+                    <p id="bulk-pay-total" class="text-4xl font-black text-green-700 tracking-tight">$0</p>
+                </div>
+                <div>
+                    <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Cuenta de Destino (Tesorería)</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-building-columns absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        <select id="bulk-pay-account-select" class="w-full bg-slate-50 border border-gray-200 pl-10 pr-4 py-4 rounded-xl font-bold text-xs outline-none focus:border-brand-cyan appearance-none text-brand-black cursor-pointer shadow-sm transition-all">
+                            <option value="">Cargando cuentas...</option>
+                        </select>
+                    </div>
+                </div>
+                <button id="btn-confirm-bulk-pay" onclick="window.processBulkPayment()" class="w-full bg-brand-black text-white py-5 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-green-500 transition-all shadow-xl hover:shadow-green-500/30 flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-check-double"></i> Confirmar Pagos
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import '../js/admin-guard.js';
+        import { db, collection, getDocs, orderBy, query, limit, auth, doc, getDoc, where, onSnapshot } from '../js/firebase-init.js';
+        import { loadAdminSidebar } from '../js/admin-ui.js?v=2.0.0';
+        import { initManualSale, openManualSaleModal } from '../js/manual-sale.js';
+        import '../js/order-actions.js';
+
+        loadAdminSidebar();
+
+        // --- ESTADO GLOBAL ---
+        let currentFilter = 'ACTIONABLE';
+        let globalConfig = { cutoffTime: "14:00" };
+        let adminOrdersCache = []; // Array en RAM para filtrar rápido
+
+        initManualSale(() => { window.switchTab('ACTIONABLE'); });
+        document.getElementById('btn-open-manual').onclick = openManualSaleModal;
+
+        async function loadInitialData() {
+            try {
+                const configSnap = await getDoc(doc(db, "config", "shipping"));
+                if (configSnap.exists()) globalConfig = configSnap.data();
+
+                const accSelect = document.getElementById('pay-account-select');
+                if (accSelect) {
+                    const accSnap = await getDocs(collection(db, "accounts"));
+                    let ops = '<option value="">Seleccione Cuenta...</option>';
+                    accSnap.forEach(d => {
+                        const acc = d.data();
+                        const label = acc.accountNumber ? `${acc.name} - ${acc.accountNumber}` : acc.name;
+                        ops += `<option value="${d.id}">${label}</option>`;
+                    });
+                    accSelect.innerHTML = ops;
+                }
+
+                // Iniciamos el motor inteligente
+                SmartAdminOrdersSync.init();
+
+            } catch (e) { console.error("Error init data:", e); }
+        }
+
+        loadInitialData();
+
+        window.switchTab = (tabName) => {
+            currentFilter = tabName;
+            document.getElementById('search-input').value = "";
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.getElementById(`tab-${tabName.toLowerCase()}`);
+            if (activeBtn) activeBtn.classList.add('active');
+
+            // Como los datos están en RAM, el renderizado es instantáneo (0 lecturas)
+            renderOrdersFromMemory();
+        };
+
+        // ==========================================================================
+        // 🧠 SMART REAL-TIME CACHE: MOTOR CENTRAL DE ÓRDENES
+        // ==========================================================================
+        const SmartAdminOrdersSync = {
+            STORAGE_KEY: 'pixeltech_admin_orders_cache',
+            runtimeMap: {},
+            lastSyncTime: 0,
+            unsubscribe: null,
+
+            init() {
+                // 1. CARGA INICIAL DESDE CACHÉ (Instantáneo, 0 lecturas)
+                const cachedRaw = localStorage.getItem(this.STORAGE_KEY);
+                if (cachedRaw) {
+                    try {
+                        const parsed = JSON.parse(cachedRaw);
+                        if (parsed.map && parsed.lastSync) {
+                            this.runtimeMap = parsed.map;
+                            this.lastSyncTime = parsed.lastSync;
+
+                            this.updateGlobalArray();
+                            if (adminOrdersCache.length > 0) {
+                                console.log(`⚡ [Orders] Cargados ${adminOrdersCache.length} pedidos de caché local.`);
+                                renderOrdersFromMemory();
+                            }
+                        }
+                    } catch (e) {
+                        console.warn("Caché corrupto, limpiando...");
+                        localStorage.removeItem(this.STORAGE_KEY);
+                    }
+                }
+
+                // 2. CONEXIÓN EN TIEMPO REAL (Deltas)
+                this.listenForUpdates();
+            },
+
+            updateGlobalArray() {
+                // Convertimos el mapa a Array y ordenamos por fecha descendente
+                adminOrdersCache = Object.values(this.runtimeMap).sort((a, b) => {
+                    const dateA = a.createdAt?.seconds || new Date(a.createdAt).getTime();
+                    const dateB = b.createdAt?.seconds || new Date(b.createdAt).getTime();
+                    return dateB - dateA;
+                });
+                
+                // 🔥 NUEVA LÍNEA: Compartimos esta memoria viva con order-actions.js
+                window.adminOrdersCache = adminOrdersCache; 
+            },
+
+            listenForUpdates() {
+                if (this.unsubscribe) this.unsubscribe();
+
+                const ordersRef = collection(db, "orders");
+                
+                console.log("☁️ [Orders] Estableciendo conexión en vivo (Fuente de Verdad)...");
+                const q = query(ordersRef, orderBy("createdAt", "desc"), limit(150));
+
+                this.unsubscribe = onSnapshot(q, (snapshot) => {
+                    // 1. Si no hay nada en Firebase, limpiamos TODO
+                    if (snapshot.empty) {
+                        this.runtimeMap = {};
+                        adminOrdersCache = [];
+                        localStorage.removeItem(this.STORAGE_KEY);
+                        document.getElementById('orders-table-body').innerHTML = `<tr><td colspan="7" class="p-10 text-center text-xs text-brand-black font-bold uppercase">No se encontraron pedidos.</td></tr>`;
+                        return;
+                    }
+
+                    // 🚨 MAGIA ANTI-FANTASMAS: En lugar de buscar "cambios", 
+                    // reconstruimos el mapa desde cero con la foto EXACTA del servidor.
+                    const freshMap = {};
+                    
+                    snapshot.docs.forEach(docSnap => {
+                        const data = docSnap.data();
+                        const id = docSnap.id;
+
+                        // Normalizar fechas para evitar errores de guardado
+                        if (!data.updatedAt) data.updatedAt = data.createdAt;
+                        if (data.createdAt?.toDate) data.createdAt = data.createdAt.toDate().toISOString();
+                        if (data.updatedAt?.toDate) data.updatedAt = data.updatedAt.toDate().toISOString();
+
+                        freshMap[id] = { id, ...data };
+                    });
+
+                    // 2. Reemplazamos la memoria RAM local con los datos frescos
+                    this.runtimeMap = freshMap;
+                    this.updateGlobalArray();
+
+                    // 3. Sobreescribimos el caché para que el próximo inicio sea rápido y sin basura
+                    localStorage.setItem(this.STORAGE_KEY, JSON.stringify({
+                        map: this.runtimeMap,
+                        lastSync: Date.now()
+                    }));
+                    this.lastSyncTime = Date.now();
+
+                    console.log(`🔥 [Orders] Sincronización perfecta: ${adminOrdersCache.length} pedidos al día.`);
+
+                    // 4. Forzamos el repintado de la tabla al instante
+                    const searchVal = document.getElementById('search-input').value.trim();
+                    if (searchVal.length === 0) {
+                        renderOrdersFromMemory(); 
+                    } else {
+                        // Si estaba buscando algo, re-filtramos usando la data nueva
+                        document.getElementById('search-input').dispatchEvent(new Event('input'));
+                    }
+
+                }, (error) => {
+                    console.error("Error Live Orders:", error);
+                });
+            }
+        };
+
+        // --- FILTRADO Y RENDERIZADO EN MEMORIA RAM (CERO LECTURAS) ---
+        function renderOrdersFromMemory() {
+            const tableBody = document.getElementById('orders-table-body');
+            if (!tableBody) return;
+            
+            // 🚨 LIMPIEZA OBLIGATORIA AQUÍ ANTES DEL RENDER
+            tableBody.innerHTML = "";
+
+            let filtered = [];
+
+            if (currentFilter === 'ACTIONABLE') {
+                filtered = adminOrdersCache.filter(o => ["PAGADO", "PENDIENTE", "ALISTADO"].includes(o.status));
+            } else if (currentFilter === 'WAITING') {
+                filtered = adminOrdersCache.filter(o => o.status === "PENDIENTE_PAGO");
+            } else if (currentFilter === 'DISPATCHED') {
+                filtered = adminOrdersCache.filter(o => o.status === "DESPACHADO");
+            } else if (currentFilter === 'REFUNDS') {
+                filtered = adminOrdersCache.filter(o => ["DEVUELTO", "DEVOLUCION_PARCIAL"].includes(o.status));
+            } else if (currentFilter === 'FAILED') {
+                filtered = adminOrdersCache.filter(o => ["CANCELADO", "RECHAZADO"].includes(o.status));
+            } else if (currentFilter === 'ALL') {
+                filtered = [...adminOrdersCache];
+            }
+
+            if (filtered.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="7" class="p-10 text-center text-xs text-brand-black font-bold uppercase">No hay pedidos en esta sección.</td></tr>`;
+                return;
+            }
+
+            // Lógica de separación de prioridades
+            if (currentFilter === 'ACTIONABLE') {
+                const cutoffTimeStr = globalConfig.cutoffTime || "14:00";
+                const now = new Date();
+                const [hours, minutes] = cutoffTimeStr.split(':').map(Number);
+                const cutoffDateToday = new Date(now);
+                cutoffDateToday.setHours(hours, minutes, 0, 0);
+
+                const todayOrders = [];
+                const tomorrowOrders = [];
+
+                filtered.forEach(o => {
+                    const orderDate = new Date(o.createdAt);
+                    const isToday = orderDate.toDateString() === now.toDateString();
+                    if (isToday && orderDate > cutoffDateToday) tomorrowOrders.push(o);
+                    else todayOrders.push(o);
+                });
+
+                if (todayOrders.length > 0) {
+                    tableBody.innerHTML += `<tr class="bg-green-50/50 border-b border-green-100 fade-in"><td colspan="7" class="py-4 px-8"><div class="flex items-center gap-3 text-green-700"><div class="p-1.5 bg-green-100 rounded-lg"><i class="fa-solid fa-truck-fast text-xs"></i></div><span class="text-[10px] font-black uppercase tracking-widest">Prioridad: Despachar Hoy (Antes de ${cutoffTimeStr})</span></div></td></tr>`;
+                    todayOrders.forEach(o => renderRow(o));
+                }
+                if (tomorrowOrders.length > 0) {
+                    tableBody.innerHTML += `<tr class="bg-blue-50/50 border-b border-blue-100 fade-in"><td colspan="7" class="py-4 px-8"><div class="flex items-center gap-3 text-blue-700"><div class="p-1.5 bg-blue-100 rounded-lg"><i class="fa-solid fa-clock text-xs"></i></div><span class="text-[10px] font-black uppercase tracking-widest">Despachar Mañana (Después de ${cutoffTimeStr})</span></div></td></tr>`;
+                    tomorrowOrders.forEach(o => renderRow(o));
+                }
+            } else {
+                filtered.forEach(o => renderRow(o));
+            }
+        }
+        
+
+        // --- BUSCADOR INSTANTÁNEO EN RAM ---
+        const searchInput = document.getElementById('search-input');
+
+        searchInput.addEventListener('input', function (e) {
+            const val = this.value.trim().toLowerCase();
+            const tableBody = document.getElementById('orders-table-body');
+
+            if (val.length === 0) {
+                renderOrdersFromMemory(); // Restaurar vista original
+                return;
+            }
+
+            // 🔥 NUEVO: Filtrar incluyendo el número de orden interno (internalOrderNumber)
+            const results = adminOrdersCache.filter(o => {
+                const idMatch = o.id.toLowerCase().includes(val);
+                const phoneMatch = (o.buyerInfo?.phone || o.phone || "").toLowerCase().includes(val);
+                const nameMatch = (o.buyerInfo?.name || o.userName || "").toLowerCase().includes(val);
+                const docMatch = (o.buyerInfo?.document || o.clientDoc || "").toLowerCase().includes(val);
+                const internalNumMatch = (o.internalOrderNumber || "").toString().includes(val);
+
+                return idMatch || phoneMatch || nameMatch || docMatch || internalNumMatch;
+            });
+
+            tableBody.innerHTML = "";
+
+            if (results.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="7" class="p-10 text-center text-xs text-red-500 font-bold uppercase">No se encontró coincidencia en caché local. Presiona ENTER para buscar a fondo.</td></tr>`;
+            } else {
+                tableBody.innerHTML += `<tr class="bg-brand-cyan/10 border-b border-brand-cyan/20"><td colspan="7" class="py-3 px-8 text-[10px] font-black uppercase text-brand-black tracking-widest"><i class="fa-solid fa-search text-brand-cyan mr-2"></i> Resultados de Búsqueda</td></tr>`;
+                results.forEach(o => renderRow(o));
+            }
+        });
+
+        // 🔥 NUEVO: Búsqueda forzada al servidor si presiona Enter (Busca en ID y en consecutivo)
+        searchInput.addEventListener('keyup', async function (e) {
+            if (e.key === 'Enter') {
+                const val = this.value.trim();
+                if (val.length < 3) return; // Evitar búsquedas muy cortas
+
+                const tableBody = document.getElementById('orders-table-body');
+                tableBody.innerHTML = `<tr><td colspan="7" class="p-8 text-center"><i class="fa-solid fa-cloud-arrow-down fa-bounce text-brand-cyan"></i> Buscando en el archivo del servidor...</td></tr>`;
+
+                try {
+                    const ordersRef = collection(db, "orders");
+                    let finalDocs = [];
+
+                    // 1. Buscar por ID de Firebase
+                    const docRef = doc(db, "orders", val);
+                    const docSnap = await getDoc(docRef);
+                    if (docSnap.exists()) {
+                        finalDocs.push({ id: docSnap.id, ...docSnap.data() });
+                    }
+
+                    // 2. Buscar por internalOrderNumber (Si el usuario escribió un número, ej: "1045")
+                    if (!isNaN(val)) {
+                        const qNum = query(ordersRef, where("internalOrderNumber", "==", parseInt(val)));
+                        const snapNum = await getDocs(qNum);
+                        snapNum.forEach(d => {
+                            // Evitar duplicados si por casualidad coincidió con el ID
+                            if (!finalDocs.find(x => x.id === d.id)) {
+                                finalDocs.push({ id: d.id, ...d.data() });
+                            }
+                        });
+                    }
+
+                    if (finalDocs.length > 0) {
+                        tableBody.innerHTML = `<tr class="bg-gray-800 text-white"><td colspan="7" class="py-3 px-8 text-[10px] font-black uppercase tracking-widest"><i class="fa-solid fa-cloud text-brand-cyan mr-2"></i> Resultado desde Servidor</td></tr>`;
+                        finalDocs.forEach(o => renderRow(o));
+                    } else {
+                        tableBody.innerHTML = `<tr><td colspan="7" class="p-10 text-center text-xs text-red-500 font-bold uppercase">Definitivamente no existe la orden con ID o Número: "${val}".</td></tr>`;
+                    }
+                } catch (e) {
+                    console.error("Error buscando en servidor:", e);
+                    renderOrdersFromMemory();
+                }
+            }
+        });
+
+        // --- RENDER DE FILA VISUAL ---
+        function renderRow(o) {
+            const isTienda = o.source === 'TIENDA' || o.source === 'TIENDA_WEB';
+            let sClass = 'bg-gray-100 text-gray-500 border-gray-200', sText = o.status;
+            
+            if (o.status === 'PENDIENTE') { sClass = 'bg-yellow-100 text-yellow-700 border-yellow-200'; sText = 'Por Atender'; }
+            else if (o.status === 'ALISTADO') { sClass = 'bg-blue-100 text-blue-700 border-blue-200'; sText = 'Alistado'; }
+            else if (o.status === 'PAGADO') { sClass = 'bg-red-100 text-red-600 border-red-200 animate-pulse'; sText = 'PAGADO (URGENTE)'; }
+            else if (o.status === 'DESPACHADO') { sClass = 'bg-green-100 text-green-700 border-green-200'; sText = 'Despachado'; }
+            else if (o.status === 'ENTREGADO') { sClass = 'bg-emerald-100 text-emerald-700 border-emerald-200'; sText = 'Entregado'; }
+            else if (['CANCELADO', 'RECHAZADO'].includes(o.status)) { sClass = 'bg-red-50 text-red-400 border-red-100'; sText = o.status; }
+            else if (o.status === 'DEVUELTO') { sClass = 'bg-purple-100 text-purple-700 border-purple-200'; sText = 'Devuelto'; }
+            else if (o.status === 'DEVOLUCION_PARCIAL') { sClass = 'bg-orange-100 text-orange-700 border-orange-200'; sText = 'Dev. Parcial'; }
+
+            // Cálculos Financieros Estrictos
+            const total = Number(o.total) || 0;
+            const paid = Number(o.amountPaid) || 0;
+            const refunded = Number(o.refundedAmount) || 0;
+            
+            let pendingBalance = total - paid - refunded;
+            if (pendingBalance < 0) pendingBalance = 0; 
+
+            const isFullyPaid = o.paymentStatus === 'PAID' || o.status === 'PAGADO' || pendingBalance === 0;
+
+            let pBadge = `<span class="text-[9px] font-black uppercase text-red-500 bg-red-50 px-2 py-1 rounded border border-red-100">Cartera</span>`;
+            if (isFullyPaid) {
+                pBadge = `<span class="text-[9px] font-black uppercase text-green-600 bg-green-50 px-2 py-1 rounded border border-green-100"><i class="fa-solid fa-check"></i> Pagado</span>`;
+            }
+
+            const dateObj = new Date(o.createdAt);
+            const dateStr = !isNaN(dateObj) ? dateObj.toLocaleDateString('es-CO', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'}) : '--';
+            
+            // Botones Acciones
+            const invoiceBtn = o.requiresInvoice 
+                ? `<span class="w-9 h-9 rounded-xl bg-blue-50 text-blue-500 border border-blue-100 flex items-center justify-center cursor-default" title="Factura Solicitada"><i class="fa-solid fa-check text-xs"></i></span>`
+                : `<button onclick="window.requestInvoice('${o.id}')" title="Solicitar Factura" class="w-9 h-9 rounded-xl bg-white border border-blue-200 text-blue-500 hover:bg-blue-500 hover:text-white transition shadow-sm flex items-center justify-center"><i class="fa-solid fa-file-invoice-dollar text-xs"></i></button>`;
+
+            // Lógica del Botón Pagar
+            let payActionBtn = '';
+            const isFinished = ['CANCELADO', 'RECHAZADO'].includes(o.status);
+            
+            if (pendingBalance > 0 && !isFinished && !isFullyPaid) {
+                payActionBtn = `
+                    <button onclick="window.openPaymentModal('${o.id}', ${pendingBalance})" 
+                            title="Registrar Pago Manual" 
+                            class="w-9 h-9 rounded-xl bg-green-50 border border-green-200 text-green-600 hover:bg-green-500 hover:text-white transition shadow-sm flex items-center justify-center">
+                        <i class="fa-solid fa-hand-holding-dollar text-xs"></i>
+                    </button>
+                `;
+            }
+
+            // Visualización Precio Neto
+            const netTotal = total - refunded;
+            let priceHtml = `<span class="font-black text-brand-black text-sm">$${total.toLocaleString('es-CO')}</span>`;
+            if (refunded > 0) {
+                priceHtml = `
+                    <div class="flex flex-col items-end leading-tight">
+                        <span class="text-[9px] text-gray-400 line-through decoration-red-300">$${total.toLocaleString('es-CO')}</span>
+                        <span class="text-sm font-black text-brand-black">$${netTotal.toLocaleString('es-CO')}</span>
+                        <span class="text-[8px] font-bold text-red-500 bg-red-50 px-1.5 py-0.5 rounded border border-red-100 mt-0.5">
+                            Dev: -$${refunded.toLocaleString('es-CO')}
+                        </span>
+                    </div>
+                `;
+            }
+
+            // 🔥 DISEÑO NUEVO: Consecutivo Gigante y el ID de Firebase chiquito 🔥
+            const internalNumDisplay = o.internalOrderNumber ? `#${o.internalOrderNumber}` : 'S/N';
+            const shortId = o.id.slice(0, 8);
+
+            const tableBody = document.getElementById('orders-table-body');
+            tableBody.innerHTML += `
+                <tr class="hover:bg-slate-50 transition border-b border-gray-50 group fade-in">
+                    <!-- NUEVO: Checkbox individual -->
+                    <td class="px-4 py-6 text-center">
+                        <input type="checkbox" class="order-cb cursor-pointer w-4 h-4 rounded text-brand-cyan focus:ring-brand-cyan border-gray-300" value="${o.id}">
+                    </td>
+                    <td class="px-8 py-6">
+                        <div class="flex items-center gap-2 mb-1">
+                            <div class="font-black text-base text-brand-cyan uppercase tracking-tighter">${internalNumDisplay}</div>
+                            <div class="font-mono text-[8px] text-gray-400 uppercase bg-gray-100 px-1.5 py-0.5 rounded" title="ID Firebase: ${o.id}">${shortId}</div>
+                        </div>
+                        <div class="text-[9px] font-bold text-brand-black mt-1">${dateStr}</div>
+                    </td>
+                    <td class="px-8 py-6">
+                        <div class="font-black text-brand-black uppercase text-xs">${o.buyerInfo?.name || o.userName || 'Cliente'}</div>
+                        <div class="text-[9px] text-brand-black font-bold">${o.buyerInfo?.phone || o.phone || ''}</div>
+                    </td>
+                    <td class="px-8 py-6 text-center">
+                        <span class="text-[8px] font-black px-2 py-0.5 rounded shadow-sm ${isTienda ? 'bg-brand-cyan text-brand-black' : 'bg-brand-black text-white'}">${isTienda ? 'WEB' : 'MANUAL'}</span>
+                    </td>
+                    <td class="px-8 py-6 text-center">${pBadge}</td>
+                    <td class="px-8 py-6 text-center">
+                        <span class="${sClass} px-3 py-1 rounded-full text-[9px] font-black uppercase border shadow-sm block w-fit mx-auto whitespace-nowrap">${sText}</span>
+                    </td>
+                    <td class="px-8 py-6 text-right align-middle">${priceHtml}</td>
+                    <td class="px-8 py-6 text-center">
+                        <div class="flex items-center justify-center gap-2">
+                            <button onclick="window.viewOrderDetail('${o.id}')" title="Ver Detalle" class="w-9 h-9 rounded-xl bg-white border border-gray-200 text-brand-black hover:bg-brand-black hover:text-white transition shadow-sm flex items-center justify-center"><i class="fa-solid fa-eye text-xs"></i></button>
+                            <button onclick="window.printRemission('${o.id}')" title="Imprimir Recibo" class="w-9 h-9 rounded-xl bg-white border border-red-200 text-red-500 hover:bg-red-500 hover:text-white transition shadow-sm flex items-center justify-center"><i class="fa-solid fa-file-pdf text-xs"></i></button>
+                            ${payActionBtn}
+                            ${invoiceBtn}
+                        </div>
+                    </td>
+                </tr>`;
+        }
+
+        // --- LÓGICA DE SELECCIÓN PARA RÓTULOS ---
+        window.toggleAllOrders = function(source) {
+            const checkboxes = document.querySelectorAll('.order-cb');
+            checkboxes.forEach(cb => cb.checked = source.checked);
+        };
+
+        window.printSelectedLabels = function() {
+            const checkboxes = document.querySelectorAll('.order-cb:checked');
+            if(checkboxes.length === 0) {
+                alert("⚠️ Por favor, selecciona al menos un pedido marcando las casillas de la tabla.");
+                return;
+            }
+            
+            // Extraer los IDs seleccionados
+            const selectedIds = Array.from(checkboxes).map(cb => cb.value);
+            
+            // Filtrar los objetos completos de la caché local para no gastar lecturas de Firebase
+            const selectedOrders = adminOrdersCache.filter(o => selectedIds.includes(o.id));
+            
+            // Llamar a la función generadora en order-actions.js
+            window.generateLabels(selectedOrders);
+        };
+    </script>
+    <script type="module" src="../js/admin-guard.js"></script>
+</body>
+
+</html>

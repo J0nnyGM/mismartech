@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#00AEC7">
+    <link rel="apple-touch-icon" href="/img/icons/icon-192x192.webp">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marcas - PixelTech Admin</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+    <style> 
+        .hidden { display: none; } 
+        html { scroll-behavior: auto; }
+    </style>
+</head>
+
+<body class="bg-gray-100 font-sans text-brand-black flex h-screen overflow-hidden" style="display: none;">
+    
+    <div id="admin-sidebar" ></div>
+
+    <main class="flex-grow overflow-y-auto p-8 bg-slate-50 w-full">
+        <h1 class="text-3xl font-black mb-2">Gestor de Marcas</h1>
+        <p class="text-gray-500 mb-8 text-sm">Administra los aliados comerciales y sus logotipos oficiales.</p>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <div class="lg:col-span-4 space-y-6">
+                
+                <div class="bg-white p-6 rounded-2xl shadow-xl border border-gray-100 relative sticky top-6">
+                    <button id="btn-cancel-edit" onclick="resetForm()" class="hidden absolute top-4 right-4 text-[10px] bg-red-50 text-red-500 px-3 py-1 rounded-full font-bold uppercase hover:bg-red-100 transition">
+                        Cancelar
+                    </button>
+
+                    <h3 class="font-black text-sm uppercase mb-6 text-brand-cyan" id="form-title">Nueva Marca</h3>
+                    <form id="brand-form" class="space-y-6">
+                        
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Nombre Comercial</label>
+                            <input type="text" id="brand-name" placeholder="Ej: Samsung" required 
+                                   class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-brand-cyan outline-none font-bold transition">
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Logotipo (PNG/JPG)</label>
+                            <label class="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-300 rounded-2xl cursor-pointer bg-gray-50 hover:bg-white hover:border-brand-cyan transition group relative overflow-hidden">
+                                
+                                <div class="flex flex-col items-center justify-center pt-5 pb-6 transition-opacity duration-300" id="upload-placeholder">
+                                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-gray-300 group-hover:text-brand-cyan mb-3 transition"></i>
+                                    <p class="text-[10px] text-gray-400 font-bold uppercase">Click para subir logo</p>
+                                </div>
+
+                                <img id="img-preview" class="absolute inset-0 w-full h-full object-contain p-4 hidden bg-white">
+                                
+                                <input type="file" id="brand-image" class="hidden" accept="image/*">
+                            </label>
+                            <p class="text-[9px] text-center text-gray-300" id="file-name-display">Recomendado: Fondo transparente</p>
+                        </div>
+
+                        <button type="submit" id="btn-save" class="w-full bg-brand-black text-white font-black py-4 rounded-xl hover:bg-brand-cyan hover:text-brand-black transition uppercase text-[10px] tracking-widest shadow-lg flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-floppy-disk"></i> <span id="save-text">Guardar Marca</span>
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+
+            <div class="lg:col-span-8">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="p-6 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                        <h3 class="font-black text-xs uppercase tracking-widest text-brand-black">Marcas Activas</h3>
+                        <span id="count-badge" class="bg-brand-cyan text-white text-[9px] font-bold px-2 py-1 rounded-md">0</span>
+                    </div>
+                    
+                    <div id="brands-list" class="p-6 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 max-h-[700px] overflow-y-auto custom-scroll">
+                        <div class="col-span-full py-10 text-center text-gray-400">
+                            <i class="fa-solid fa-circle-notch fa-spin"></i> Cargando...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+<script type="module">
+        import '../js/admin-guard.js'; 
+        import { loadAdminSidebar } from '../js/admin-ui.js?v=2.0.0';
+        import { db, storage, collection, addDoc, updateDoc, getDoc, getDocs, doc, deleteDoc, ref, uploadBytes, getDownloadURL, query, orderBy, limit } from '../js/firebase-init.js';
+
+        // 1. CARGAR SIDEBAR
+        loadAdminSidebar();
+
+        // --- ESTADO ---
+        let isEditing = false;
+        let editId = null;
+        let currentImageUrl = null;
+
+        // --- HELPER DE COMPRESIÓN ---
+        const compressImage = async (file) => {
+            if (!file.type.startsWith('image/')) return file;
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    img.src = e.target.result;
+                    img.onload = () => {
+                        // Configuración específica para Logos
+                        const maxWidth = 600; // Suficiente para logos
+                        const quality = 0.90; // Logos necesitan un pelín más de calidad para bordes nítidos
+                        
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > maxWidth) {
+                            height = Math.round((height * maxWidth) / width);
+                            width = maxWidth;
+                        }
+
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        canvas.toBlob((blob) => {
+                            if (!blob) { reject(new Error('Error compress')); return; }
+                            const newName = file.name.replace(/\.[^/.]+$/, "") + ".webp";
+                            resolve(new File([blob], newName, { type: 'image/webp', lastModified: Date.now() }));
+                        }, 'image/webp', quality);
+                    };
+                    img.onerror = (e) => reject(e);
+                };
+                reader.readAsDataURL(file);
+            });
+        };
+
+        // --- DOM ---
+        const form = document.getElementById('brand-form');
+        const nameInput = document.getElementById('brand-name');
+        const fileInput = document.getElementById('brand-image');
+        const imgPreview = document.getElementById('img-preview');
+        const placeholder = document.getElementById('upload-placeholder');
+        const fileNameDisplay = document.getElementById('file-name-display');
+        const btnSave = document.getElementById('btn-save');
+        const saveText = document.getElementById('save-text');
+        const btnCancel = document.getElementById('btn-cancel-edit');
+        const listContainer = document.getElementById('brands-list');
+        const countBadge = document.getElementById('count-badge');
+        const formTitle = document.getElementById('form-title');
+
+        // --- PREVIEW IMAGEN ---
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                fileNameDisplay.textContent = file.name;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imgPreview.src = e.target.result;
+                    imgPreview.classList.remove('hidden');
+                    placeholder.classList.add('opacity-0');
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // --- CARGAR MARCAS (OPTIMIZADO) ---
+        async function loadBrands() {
+            try {
+                const q = query(
+                    collection(db, "brands"), 
+                    orderBy("name", "asc"),
+                    limit(100)
+                );
+                
+                const snap = await getDocs(q);
+                
+                listContainer.innerHTML = "";
+                countBadge.textContent = snap.size;
+
+                if (snap.empty) {
+                    listContainer.innerHTML = `<div class="col-span-full py-10 text-center text-gray-300 text-xs uppercase font-bold">No hay marcas registradas</div>`;
+                    return;
+                }
+
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    const imageSrc = data.image || 'https://placehold.co/200x200?text=No+Logo';
+
+                    const card = document.createElement('div');
+                    card.className = "group relative bg-white border border-gray-100 rounded-2xl p-4 hover:shadow-xl hover:border-brand-cyan/30 transition-all duration-300 flex flex-col items-center gap-4";
+                    card.innerHTML = `
+                        <div class="h-24 w-full flex items-center justify-center p-2 bg-gray-50 rounded-xl overflow-hidden group-hover:bg-white transition">
+                            <img src="${imageSrc}" loading="lazy" class="max-w-full max-h-full object-contain filter grayscale group-hover:grayscale-0 transition duration-500">
+                        </div>
+                        
+                        <h4 class="font-black text-xs text-brand-black uppercase tracking-wide text-center truncate w-full">${data.name}</h4>
+                        
+                        <div class="flex gap-2 w-full mt-auto pt-2 border-t border-gray-50 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onclick="window.editBrand('${doc.id}')" class="flex-1 py-2 rounded-lg bg-blue-50 text-blue-500 hover:bg-blue-500 hover:text-white transition text-[10px] font-bold uppercase" title="Editar">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button onclick="window.deleteBrand('${doc.id}')" class="flex-1 py-2 rounded-lg bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition text-[10px] font-bold uppercase" title="Eliminar">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                    listContainer.appendChild(card);
+                });
+
+            } catch (error) {
+                console.error(error);
+                listContainer.innerHTML = `<div class="col-span-full text-center text-red-400">Error cargando datos. Revisa la consola.</div>`;
+            }
+        }
+
+        // --- GUARDAR / ACTUALIZAR (CON COMPRESIÓN) ---
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = nameInput.value.trim();
+            const file = fileInput.files[0];
+
+            if (!name) return alert("El nombre es obligatorio");
+            if (!isEditing && !file) return alert("Debes subir un logotipo para crear la marca");
+
+            try {
+                btnSave.disabled = true;
+                saveText.textContent = "Optimizando...";
+
+                let finalImageUrl = currentImageUrl;
+
+                // 1. Subir Imagen (si hay nueva)
+                if (file) {
+                    const compressedFile = await compressImage(file); // Optimización
+                    const storageRef = ref(storage, `brands/${Date.now()}_${compressedFile.name}`);
+                    await uploadBytes(storageRef, compressedFile);
+                    finalImageUrl = await getDownloadURL(storageRef);
+                }
+
+                // 2. Guardar Firestore
+                const brandData = {
+                    name: name,
+                    image: finalImageUrl || 'https://placehold.co/200?text=Logo',
+                    updatedAt: new Date()
+                };
+
+                if (isEditing) {
+                    await updateDoc(doc(db, "brands", editId), brandData);
+                    alert("✅ Marca actualizada");
+                } else {
+                    brandData.createdAt = new Date();
+                    await addDoc(collection(db, "brands"), brandData);
+                    alert("✅ Marca creada");
+                }
+
+                window.resetForm();
+                loadBrands();
+
+            } catch (error) {
+                console.error(error);
+                alert("Error: " + error.message);
+            } finally {
+                btnSave.disabled = false;
+                saveText.textContent = isEditing ? "Actualizar Marca" : "Guardar Marca";
+            }
+        });
+
+        // --- FUNCIONES GLOBALES ---
+        window.editBrand = async (id) => {
+            try {
+                const snap = await getDoc(doc(db, "brands", id));
+                if (!snap.exists()) return;
+                const data = snap.data();
+
+                isEditing = true;
+                editId = id;
+                currentImageUrl = data.image;
+
+                formTitle.textContent = `Editando: ${data.name}`;
+                formTitle.classList.remove('text-brand-cyan');
+                formTitle.classList.add('text-blue-500');
+                btnCancel.classList.remove('hidden');
+                saveText.textContent = "Actualizar Marca";
+
+                nameInput.value = data.name;
+                imgPreview.src = data.image;
+                imgPreview.classList.remove('hidden');
+                placeholder.classList.add('opacity-0');
+                fileNameDisplay.textContent = "Imagen actual cargada (Sube otra para cambiar)";
+
+                document.querySelector('main').scrollTo({ top: 0, behavior: 'smooth' });
+
+            } catch (e) { console.error(e); }
+        };
+
+        window.deleteBrand = async (id) => {
+            if (confirm("¿Estás seguro de eliminar esta marca?")) {
+                try {
+                    await deleteDoc(doc(db, "brands", id));
+                    if(isEditing && editId === id) window.resetForm();
+                    loadBrands();
+                } catch (e) { alert("Error al eliminar: " + e.message); }
+            }
+        };
+
+        window.resetForm = () => {
+            form.reset();
+            isEditing = false;
+            editId = null;
+            currentImageUrl = null;
+
+            formTitle.textContent = "Nueva Marca";
+            formTitle.classList.add('text-brand-cyan');
+            formTitle.classList.remove('text-blue-500');
+            btnCancel.classList.add('hidden');
+            saveText.textContent = "Guardar Marca";
+
+            imgPreview.classList.add('hidden');
+            placeholder.classList.remove('opacity-0');
+            fileNameDisplay.textContent = "Recomendado: Fondo transparente";
+        };
+
+        // Init
+        loadBrands();
+
+    </script>
+    <script type="module" src="../js/admin-guard.js"></script>
+</body>
+</html>

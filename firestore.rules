@@ -1,0 +1,120 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // --- FUNCIONES AUXILIARES ---
+    function isAdmin() {
+      return request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // --- REGLAS DE NEGOCIO ---
+
+    // 1. Usuarios
+    match /users/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+      
+      match /addresses/{addressId} {
+        allow read, write: if isOwner(userId) || isAdmin();
+      }
+    }
+
+    // 2. Productos (Catálogo)
+    match /products/{productId} {
+      allow read: if true;
+      allow create, delete: if isAdmin();
+      
+      // Opción A: El Admin puede cambiar TODO (incluyendo precios)
+      allow update: if isAdmin();
+
+      // Opción B: Usuarios autenticados (Sistema/Clientes)
+      // SOLO pueden tocar stock, combinaciones y updatedAt.
+      // Si intentan tocar 'price' u 'originalPrice', Firebase lo bloqueará.
+      allow update: if isAuthenticated() && 
+        request.resource.data.diff(resource.data).affectedKeys()
+        .hasOnly(['stock', 'combinations', 'updatedAt']);
+
+      match /history/{historyId} {
+        allow read, write: if isAdmin();
+      }
+    }
+
+    // 3. Categorías y 4. Marcas
+    match /categories/{catId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /brands/{brandId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 5. Pedidos (Orders)
+    match /orders/{orderId} {
+      // CORRECCIÓN: Validación mínima para evitar spam de documentos vacíos.
+      // Solo permite crear si el pedido tiene un total y una lista de items.
+      allow create: if request.resource.data.total > 0 && request.resource.data.items is list; 
+      
+      // Mantenemos tu lógica de lectura para GUEST_MP pero bajo autenticación o admin.
+      allow read: if isAdmin() || (request.auth != null && resource.data.userId == request.auth.uid) || resource.data.userId == 'GUEST_MP';
+      allow update, delete: if isAdmin();
+    }
+
+    // 6. Remisiones
+    match /remissions/{remissionId} {
+      // CORRECCIÓN: Solo el Admin debe crear remisiones. 
+      // Si el cliente las crea por error, generaría basura contable.
+      allow create: if isAdmin(); 
+      allow read, update, delete: if isAdmin();
+    }
+
+    // 7. Garantías
+    match /warranties/{warrantyId} {
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow update, delete: if isAdmin();
+    }
+
+    // 8 al 10. Gestión Interna
+    match /warranty_inventory/{itemId} { allow read, write: if isAdmin(); }
+    match /suppliers/{supplierId} { allow read, write: if isAdmin(); }
+    match /purchases/{purchaseId} { allow read, write: if isAdmin(); }
+
+    // 11. Carrito (Legacy)
+    match /carts/{cartItemId} {
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
+    // 12. Configuración
+    match /config/{configDoc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 13 al 15. Contabilidad y Cartera
+    match /expenses/{expenseId} { allow read, write: if isAdmin(); }
+    match /expenses_trash/{trashId} { allow read, write: if isAdmin(); }
+    match /accounts/{accountId} { allow read, write: if isAdmin(); }
+    match /payables/{payableId} { allow read, write: if isAdmin(); }
+
+    // 16. CHATS
+    match /chats/{chatId} {
+      allow read, write: if isAdmin();
+      match /messages/{messageId} {
+        allow read, write: if isAdmin();
+      }
+    }
+  }
+}

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#00AEC7">
+    <link rel="apple-touch-icon" href="/img/icons/icon-192x192.webp">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página no encontrada | PixelTech</title>
+    <link rel="canonical" href="https://pixeltechcol.com/404.html" />
+    
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+    
+    <style>
+        /* Animación suave de entrada */
+        .fade-in-up { animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; transform: translateY(20px); }
+        @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+        
+        /* Efecto Glitch sutil para el 404 */
+        .glitch-text { position: relative; }
+        .glitch-text::before, .glitch-text::after {
+            content: attr(data-text); position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.8;
+        }
+        .glitch-text::before { color: #00AEC7; z-index: -1; animation: glitch-anim-1 2.5s infinite linear alternate-reverse; }
+        .glitch-text::after { color: #ff0055; z-index: -2; animation: glitch-anim-2 3s infinite linear alternate-reverse; }
+        
+        @keyframes glitch-anim-1 { 0% { clip-path: inset(20% 0 80% 0); transform: translate(-2px,0); } 100% { clip-path: inset(60% 0 10% 0); transform: translate(2px,0); } }
+        @keyframes glitch-anim-2 { 0% { clip-path: inset(10% 0 60% 0); transform: translate(2px,0); } 100% { clip-path: inset(80% 0 5% 0); transform: translate(-2px,0); } }
+    </style>
+</head>
+
+<body class="bg-slate-50 font-sans text-brand-black antialiased flex flex-col min-h-screen">
+
+    <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php'; ?>
+
+    <main class="flex-grow flex items-center justify-center p-6 relative overflow-hidden">
+        
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-brand-cyan/5 rounded-full blur-[100px] pointer-events-none"></div>
+
+        <div class="max-w-2xl w-full text-center fade-in-up relative z-10">
+            
+            <div class="mb-6 relative inline-block">
+                <h1 class="text-9xl md:text-[12rem] font-black text-brand-black leading-none glitch-text" data-text="404">
+                    404
+                </h1>
+                <div class="absolute -bottom-4 -right-4 bg-brand-cyan text-white w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center text-3xl shadow-lg rotate-12">
+                    <i class="fa-solid fa-robot fa-bounce"></i>
+                </div>
+            </div>
+
+            <h2 class="text-2xl md:text-4xl font-black uppercase tracking-tighter mb-4 text-brand-black">
+                ¡Ups! Error en la <span class="text-brand-cyan">Matrix</span>
+            </h2>
+            
+            <p class="text-gray-500 font-medium text-sm md:text-base max-w-md mx-auto mb-10 leading-relaxed">
+                La página que buscas no existe, fue movida o quizás nunca estuvo aquí. No te preocupes, en PixelTech siempre hay un camino de regreso.
+            </p>
+
+            <div class="flex flex-col md:flex-row gap-4 justify-center">
+                <a href="/index.html" class="bg-brand-black text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-brand-cyan hover:text-brand-black transition-all shadow-xl hover:shadow-cyan-500/20 transform hover:-translate-y-1 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-house"></i> Ir al Inicio
+                </a>
+                
+                <a href="/shop/catalog.html" class="bg-white text-brand-black border-2 border-gray-100 px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:border-brand-black transition-all transform hover:-translate-y-1 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-store"></i> Ver Catálogo
+                </a>
+            </div>
+
+            <div class="mt-12 pt-8 border-t border-dashed border-gray-200">
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">¿Crees que es un error del sistema?</p>
+                <a href="https://wa.me/573009046450" target="_blank" class="inline-flex items-center gap-2 mt-2 text-xs font-black text-brand-black hover:text-green-600 transition">
+                    <i class="fa-brands fa-whatsapp text-lg text-green-500"></i> Reportar a Soporte
+                </a>
+            </div>
+
+        </div>
+    </main>
+
+    <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php'; ?>
+
+    <script type="module">
+        // Import dinámico con manejo de errores por si la ruta relativa falla
+        try {
+            const { loadGlobalHeader, loadGlobalFooter } = await import('/js/global-components.js?v=2.0?v=2.0');
+            loadGlobalHeader();
+            loadGlobalFooter();
+        } catch (e) {
+            console.warn("No se pudieron cargar los componentes globales en 404 (ruta o script no encontrado).", e);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#00AEC7">
+    <link rel="apple-touch-icon" href="/img/icons/icon-192x192.webp">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Banners | Panel Pro</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+    <style>
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans text-brand-black flex h-screen overflow-hidden" style="display: none;">
+    <div id="admin-sidebar" class="md:flex-shrink-0"></div>
+
+    <main class="flex-grow overflow-y-auto custom-scroll p-4 md:p-8">
+        <header class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <h1 class="text-3xl font-black text-brand-black uppercase tracking-tighter">Gestión de Vitrina</h1>
+                <p class="text-gray-400 text-xs font-bold uppercase tracking-widest mt-1">Configura el Hero de tu página principal</p>
+            </div>
+            
+            <div class="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+                <div class="flex items-center gap-3 bg-white border border-gray-200 px-4 py-3 rounded-2xl shadow-sm w-full md:w-auto relative group focus-within:border-brand-cyan transition-colors">
+                    <i class="fa-solid fa-search text-gray-400 group-focus-within:text-brand-cyan"></i>
+                    <input type="text" id="promo-search" placeholder="Buscar producto para activar..." class="bg-transparent outline-none text-xs font-bold w-full md:w-64 uppercase text-brand-black placeholder-gray-300">
+                    <i class="fa-solid fa-circle-notch fa-spin text-brand-cyan text-xs hidden" id="search-spinner"></i>
+                </div>
+
+                <a href="../index.html" target="_blank" class="bg-white border border-gray-200 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-50 transition shadow-sm flex items-center justify-center gap-2 whitespace-nowrap">
+                    Ver Tienda <i class="fa-solid fa-up-right-from-square text-brand-cyan"></i>
+                </a>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm flex items-start gap-4">
+                <div class="w-10 h-10 rounded-full bg-brand-red/10 text-brand-red flex items-center justify-center shrink-0"><i class="fa-solid fa-fire"></i></div>
+                <div>
+                    <h4 class="text-brand-black font-black text-xs uppercase mb-1">Slider Izquierdo (Promo)</h4>
+                    <p class="text-[11px] text-gray-500 leading-relaxed">Productos destacados en carrusel.</p>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm flex items-start gap-4">
+                <div class="w-10 h-10 rounded-full bg-brand-cyan/10 text-brand-cyan flex items-center justify-center shrink-0"><i class="fa-solid fa-star"></i></div>
+                <div>
+                    <h4 class="text-brand-black font-black text-xs uppercase mb-1">Banner Central (Lanzamiento)</h4>
+                    <p class="text-[11px] text-gray-500 leading-relaxed">Producto principal de cabecera.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-[2.5rem] shadow-xl border border-gray-100 overflow-hidden">
+            <div id="table-status-bar" class="bg-slate-50 px-6 py-3 border-b border-gray-100 text-[10px] font-black uppercase text-gray-400 tracking-widest flex justify-between items-center hidden">
+                <span id="table-status-text">Resultados de búsqueda</span>
+                <button onclick="window.clearSearch()" class="text-brand-red hover:underline cursor-pointer">Borrar búsqueda y ver activos</button>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-gray-50 border-b border-gray-100">
+                        <tr>
+                            <th class="p-6 text-[10px] font-black uppercase text-gray-400 tracking-widest">Producto</th>
+                            <th class="p-6 text-[10px] font-black uppercase text-gray-400 text-center tracking-widest">Slider (Promo)</th>
+                            <th class="p-6 text-[10px] font-black uppercase text-gray-400 text-center tracking-widest">Nuevo Lanzamiento</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-products-list" class="divide-y divide-gray-50">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div id="promo-config-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/90 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl animate-in zoom-in-95">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-black uppercase text-brand-black">Configurar <span class="text-brand-cyan">Visualización</span></h3>
+                <button onclick="closeConfigModal()" class="w-8 h-8 rounded-full bg-slate-50 text-gray-400 hover:text-red-500 transition flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <form id="promo-form" class="space-y-4">
+                <label class="flex items-start gap-4 p-4 border border-gray-200 rounded-2xl cursor-pointer hover:border-brand-cyan hover:bg-cyan-50/10 transition group">
+                    <input type="radio" name="bannerType" value="default" checked class="mt-1 w-4 h-4 text-brand-cyan focus:ring-brand-cyan">
+                    <div>
+                        <span class="block text-xs font-black uppercase text-brand-black group-hover:text-brand-cyan">Automático (Portada)</span>
+                        <span class="text-[10px] font-bold text-gray-400">Usa la imagen del producto y genera el texto automáticamente.</span>
+                    </div>
+                </label>
+
+                <label class="flex items-start gap-4 p-4 border border-gray-200 rounded-2xl cursor-pointer hover:border-brand-cyan hover:bg-cyan-50/10 transition group">
+                    <input type="radio" name="bannerType" value="custom" class="mt-1 w-4 h-4 text-brand-cyan focus:ring-brand-cyan">
+                    <div>
+                        <span class="block text-xs font-black uppercase text-brand-black group-hover:text-brand-cyan">Banner Personalizado</span>
+                        <span class="text-[10px] font-bold text-gray-400">Sube una imagen especial que reemplace todo el bloque.</span>
+                    </div>
+                </label>
+
+                <div id="custom-file-container" class="hidden pl-8">
+                    <input type="file" id="banner-file" accept="image/*" class="block w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:uppercase file:bg-brand-cyan/10 file:text-brand-cyan hover:file:bg-brand-cyan/20 cursor-pointer">
+                    <p class="text-[9px] text-gray-400 mt-2 italic">Sugerencia: 1080x1350px o 4:5 (slider) / 1080x1080px o 1:1 (Lanzamiento).</p>
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit" class="w-full bg-brand-black text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-brand-cyan hover:text-brand-black transition shadow-lg">
+                        Guardar y Activar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module" src="../js/admin-promotions.js"></script>
+    <script type="module" src="../js/admin-guard.js"></script>
+</body>
+</html>

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#00AEC7">
+    <link rel="apple-touch-icon" href="/img/icons/icon-192x192.webp">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle de Orden | PixelTech</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+    <style>
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .animate-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Timeline Connector */
+        .step-connector { @apply h-1 bg-gray-200 flex-grow rounded-full mx-2; }
+        .step-connector.active { @apply bg-brand-cyan; }
+    </style>
+    <link rel="modulepreload" href="js/firebase-init.js">
+    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js">
+    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js">
+    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js">
+    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js">
+    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js">
+</head>
+
+<body class="bg-slate-50 font-sans text-brand-black flex flex-col min-h-screen">
+
+    <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php'; ?>
+
+    <main class="flex-grow p-4 md:p-10 lg:p-14 max-w-7xl mx-auto w-full animate-in">
+        
+        <div class="mb-8">
+            <a href="/profile.html" class="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-black transition mb-6 group">
+                <div class="w-6 h-6 rounded-full bg-white border border-gray-200 flex items-center justify-center group-hover:border-brand-cyan transition"><i class="fa-solid fa-arrow-left"></i></div>
+                Volver al panel
+            </a>
+            
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 bg-white p-6 md:p-8 rounded-[2rem] border border-gray-100 shadow-sm relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-slate-50 rounded-full -translate-y-1/2 translate-x-1/2 z-0"></div>
+                
+                <div class="relative z-10">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="w-2 h-8 bg-brand-cyan rounded-full"></span>
+                        <h1 class="text-2xl md:text-4xl font-black tracking-tighter uppercase text-brand-black" id="order-id-display">CARGANDO...</h1>
+                    </div>
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest pl-5" id="order-date-display">...</p>
+                </div>
+                
+                <div class="relative z-10 flex flex-col items-end gap-2">
+                    <div id="order-status-badge"></div>
+                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Estado Actual</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-[2.5rem] p-8 md:p-12 border border-gray-100 shadow-sm mb-10 overflow-x-auto">
+            <div class="min-w-[600px] max-w-5xl mx-auto flex justify-between items-start pt-2" id="timeline-container">
+                    <div class="flex items-center justify-center w-full text-gray-300 py-4"><i class="fa-solid fa-circle-notch fa-spin"></i> Cargando línea de tiempo...</div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <div class="lg:col-span-8 space-y-8">
+                
+                <div class="bg-white rounded-[2.5rem] p-6 md:p-8 border border-gray-100 shadow-sm">
+                    <h3 class="text-lg font-black uppercase tracking-tighter mb-6 flex items-center gap-3 border-b border-gray-50 pb-4">
+                        <i class="fa-solid fa-box-open text-brand-cyan"></i> Contenido del Pedido
+                    </h3>
+                    <div id="order-items-list" class="space-y-4">
+                        <div class="text-center py-10">
+                            <i class="fa-solid fa-circle-notch fa-spin text-gray-300 text-2xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-[2.5rem] p-6 md:p-8 border border-gray-100 shadow-sm">
+                    <h3 class="text-lg font-black uppercase tracking-tighter mb-6 flex items-center gap-3 border-b border-gray-50 pb-4">
+                        <i class="fa-regular fa-credit-card text-brand-cyan"></i> Información de Pago
+                    </h3>
+                    <div class="flex flex-col md:flex-row gap-6" id="payment-info-container">
+                        <p class="text-sm text-gray-400">Cargando información de pago...</p>
+                    </div>
+                </div>
+
+            </div>
+
+<div class="lg:col-span-4 space-y-6">
+                
+                <div class="bg-slate-900 text-white rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 w-40 h-40 bg-brand-cyan blur-[80px] opacity-20 rounded-full pointer-events-none group-hover:opacity-30 transition duration-700"></div>
+                    
+                    <h3 class="text-lg font-black uppercase tracking-tighter mb-6 relative z-10">Resumen</h3>
+                    
+                    <div class="space-y-3 relative z-10">
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="font-medium text-gray-400">Subtotal (<span id="items-count">0</span>)</span>
+                            <span id="order-subtotal" class="font-bold">...</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="font-medium text-gray-400">Envío</span>
+                            <span id="order-shipping" class="font-bold text-brand-cyan">...</span>
+                        </div>
+                        <div class="pt-6 mt-4 border-t border-white/10 flex justify-between items-end">
+                            <div class="flex flex-col">
+                                <span class="font-black text-[10px] uppercase tracking-widest text-brand-cyan mb-1">Total Pagado</span>
+                                <span class="text-[9px] text-gray-500 uppercase">Incluye impuestos</span>
+                            </div>
+                            <span id="order-total" class="text-3xl font-black tracking-tighter">...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm">
+                    <h3 class="text-lg font-black uppercase tracking-tighter mb-6 flex items-center gap-2">
+                        Datos de <span class="text-brand-cyan">Entrega</span>
+                    </h3>
+                    
+                    <div class="space-y-6">
+                        
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center text-gray-400 shrink-0">
+                                <i class="fa-solid fa-map-location-dot"></i>
+                            </div>
+                            <div>
+                                <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Dirección de Envío</p>
+                                <p id="shipping-address" class="text-sm font-bold text-brand-black mt-1 leading-tight">...</p>
+                                <p id="shipping-city" class="text-xs font-black text-brand-cyan uppercase mt-1 flex items-center gap-1">
+                                    <i class="fa-solid fa-city text-[10px]"></i> ...
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center text-gray-400 shrink-0">
+                                <i class="fa-regular fa-user"></i>
+                            </div>
+                            <div>
+                                <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Recibe / Contacto</p>
+                                <p id="buyer-name" class="text-sm font-bold text-brand-black mt-1 uppercase">...</p>
+                                <p id="buyer-contact" class="text-xs font-medium text-gray-500">...</p>
+                            </div>
+                        </div>
+
+                        <div id="tracking-container" class="hidden flex flex-col pt-4 border-t border-dashed border-gray-100 gap-3">
+                            <div class="flex items-start gap-4">
+                                <div class="w-10 h-10 rounded-2xl bg-brand-cyan text-brand-black flex items-center justify-center shrink-0 shadow-lg shadow-cyan-500/30 animate-pulse">
+                                    <i class="fa-solid fa-truck-fast"></i>
+                                </div>
+                                <div class="flex-grow">
+                                    <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Rastreo Oficial</p>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <p id="shipping-guide" class="text-sm font-mono font-bold text-brand-black">...</p>
+                                        <button id="copy-guide-btn" class="w-6 h-6 flex items-center justify-center rounded-full bg-gray-50 text-gray-400 hover:text-brand-cyan hover:bg-white border border-transparent hover:border-gray-200 transition" title="Copiar código">
+                                            <i class="fa-regular fa-copy text-xs"></i>
+                                        </button>
+                                    </div>
+                                    <a id="tracking-link" href="#" target="_blank" class="text-[10px] font-black text-brand-cyan hover:underline mt-1 block uppercase tracking-wide">
+                                        Ver en Transportadora <i class="fa-solid fa-arrow-up-right-from-square ml-1"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="billing-info-container" class="hidden pt-6 mt-2 border-t border-gray-100">
+                            <div class="flex items-center gap-2 mb-3">
+                                <i class="fa-solid fa-file-invoice-dollar text-brand-cyan"></i>
+                                <h4 class="text-xs font-black uppercase text-brand-black tracking-widest">Datos Facturación</h4>
+                            </div>
+                            <div class="bg-slate-50 rounded-2xl p-4 space-y-2 border border-gray-100">
+                                <div class="flex justify-between items-center border-b border-gray-200 pb-2">
+                                    <span class="text-[9px] text-gray-400 font-bold uppercase">Razón Social</span>
+                                    <span id="bill-name" class="text-[10px] font-bold text-brand-black text-right uppercase">...</span>
+                                </div>
+                                <div class="flex justify-between items-center border-b border-gray-200 pb-2">
+                                    <span class="text-[9px] text-gray-400 font-bold uppercase">NIT / CC</span>
+                                    <span id="bill-taxid" class="text-[10px] font-bold text-brand-black text-right font-mono">...</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-[9px] text-gray-400 font-bold uppercase">Email Elec.</span>
+                                    <span id="bill-email" class="text-[10px] font-bold text-brand-black text-right truncate max-w-[140px]">...</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="text-center pt-2">
+                    <a href="https://wa.me/573009046450" target="_blank" class="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-cyan transition bg-white px-5 py-3 rounded-full border border-gray-100 hover:border-brand-cyan shadow-sm hover:shadow-md">
+                        <i class="fa-brands fa-whatsapp text-lg text-emerald-500"></i> ¿Necesitas ayuda con este pedido?
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <div id="warranty-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-lg rounded-[2.5rem] p-8 md:p-10 shadow-2xl animate-in relative max-h-[90vh] overflow-y-auto custom-scroll">
+            <div class="flex justify-between items-start mb-6">
+                <div>
+                    <h3 class="text-2xl font-black uppercase tracking-tighter text-brand-black">Solicitar <span class="text-brand-cyan">Garantía</span></h3>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Producto: <span id="modal-product-name" class="text-brand-black">...</span></p>
+                </div>
+                <button onclick="window.closeWarrantyModal()" class="w-10 h-10 rounded-full bg-slate-50 text-gray-400 hover:text-brand-black hover:bg-slate-100 transition flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="warranty-form" class="space-y-5">
+                <input type="hidden" id="w-product-id">
+                
+                <div>
+                    <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">Serial Number (SN) / IMEI *</label>
+                    <input type="text" id="w-sn" required placeholder="Verifica la caja o etiqueta del equipo" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-4 text-sm font-mono font-bold outline-none focus:border-brand-cyan transition">
+                </div>
+
+                <div>
+                    <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">Motivo de la Garantía *</label>
+                    <textarea id="w-reason" required rows="3" placeholder="Describe detalladamente la falla..." class="w-full bg-slate-50 border border-gray-200 rounded-xl p-4 text-sm font-medium outline-none focus:border-brand-cyan transition resize-none"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">Evidencia (Fotos/Video)</label>
+                    <label class="flex flex-col items-center justify-center w-full h-24 bg-slate-50 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-brand-cyan hover:bg-cyan-50/20 transition group">
+                        <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                            <i class="fa-solid fa-cloud-arrow-up text-gray-300 group-hover:text-brand-cyan mb-1 transition"></i>
+                            <p class="text-[9px] text-gray-400 uppercase font-bold group-hover:text-brand-cyan">Clic para subir archivos</p>
+                        </div>
+                        <input id="w-images" type="file" multiple accept="image/*,video/*" class="hidden" />
+                    </label>
+                    <div id="file-preview" class="mt-2 text-[9px] font-bold text-brand-cyan text-center"></div>
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit" class="w-full bg-brand-black text-white py-5 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-brand-cyan hover:text-brand-black transition-all shadow-xl hover:shadow-cyan-500/20 transform hover:-translate-y-1">
+                        Enviar Solicitud
+                    </button>
+                    <p class="text-[8px] text-gray-400 text-center mt-3 font-medium">Al enviar, aceptas nuestros términos y condiciones de garantía.</p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="warranty-status-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-lg rounded-[2.5rem] p-8 md:p-10 shadow-2xl animate-in">
+            <div class="flex justify-between items-start mb-6">
+                <div>
+                    <h3 class="text-2xl font-black uppercase tracking-tighter text-brand-black">Estado del <span class="text-brand-cyan">Caso</span></h3>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1" id="st-date">Radicado: --/--/----</p>
+                </div>
+                <button onclick="document.getElementById('warranty-status-modal').classList.add('hidden')" class="w-10 h-10 rounded-full bg-slate-50 text-gray-400 hover:text-brand-black hover:bg-slate-100 transition flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="mb-8 text-center p-6 bg-slate-50 rounded-3xl border border-gray-100">
+                <span id="st-badge" class="inline-block px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest mb-2">...</span>
+                <p class="text-[10px] text-gray-400 font-bold uppercase">Estado Actual</p>
+            </div>
+
+            <div class="space-y-6">
+                <div>
+                    <h4 class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                        <i class="fa-regular fa-user"></i> Tu Reporte
+                    </h4>
+                    <div class="bg-white border border-gray-100 p-4 rounded-2xl">
+                        <p id="st-reason" class="text-xs font-medium text-gray-600 italic">...</p>
+                    </div>
+                </div>
+
+                <div id="st-admin-response-box" class="hidden">
+                    <h4 class="text-[9px] font-black text-brand-cyan uppercase tracking-widest mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-headset"></i> Respuesta Soporte
+                    </h4>
+                    <div class="bg-brand-cyan/5 border border-brand-cyan/10 p-4 rounded-2xl">
+                        <p id="st-admin-response" class="text-xs font-bold text-brand-black">...</p>
+                        
+                        <a id="st-tech-report-btn" href="#" target="_blank" class="hidden mt-4 flex items-center gap-3 bg-white border border-gray-200 p-3 rounded-xl hover:border-brand-cyan hover:shadow-md transition group">
+                            <div class="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center group-hover:bg-red-500 group-hover:text-white transition">
+                                <i class="fa-solid fa-file-pdf"></i>
+                            </div>
+                            <div>
+                                <p class="text-[9px] font-black uppercase text-gray-400">Documento Adjunto</p>
+                                <p class="text-xs font-bold text-brand-black group-hover:text-brand-cyan">Descargar Informe Técnico</p>
+                            </div>
+                        </a>
+                        <p id="st-resolved-date" class="text-[9px] text-gray-400 font-bold mt-2 text-right">...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 text-center">
+                <p class="text-[9px] text-gray-300 font-bold uppercase">Ticket ID: <span id="st-id" class="font-mono text-gray-400">...</span></p>
+            </div>
+        </div>
+    </div>
+
+        <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php'; ?>
+
+
+    <script type="module">
+        import { loadGlobalHeader, loadGlobalFooter } from '../js/global-components.js?v=2.0';        loadGlobalHeader();
+        loadGlobalFooter();
+    </script>
+    <script type="module" src="../js/order-detail.js"></script>
+</body>
+</html>

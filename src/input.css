@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+@theme {
+  /* TU PALETA PIXEL TECH */
+  
+  /* Cian/Turquesa (Principal/Marca) */
+  --color-brand-cyan: #00AEC7;
+  
+  /* Rojo (Ofertas/Categorías/Precios) */
+  --color-brand-red: #E63946;
+  
+  /* Negro Carbón (Fondos oscuros suaves) */
+  --color-brand-black: #1A1A1A;
+  
+  /* Gris Oscuro (Para textos secundarios sobre negro) */
+  --color-brand-dark-gray: #333333;
+  
+  /* Blanco (Fondo base) */
+  --color-brand-bg: #FFFFFF;
+}
+
+/* Ajustes globales */
+body {
+    background-color: var(--color-brand-bg);
+    color: var(--color-brand-black);
+}
+
+/* ==========================================================================
+   FIX PARA IPHONE: PREVENIR ZOOM AUTOMÁTICO EN INPUTS
+   ========================================================================== */
+/* La regla @supports (-webkit-touch-callout: none) apunta exclusivamente a iOS */
+@supports (-webkit-touch-callout: none) {
+  input, 
+  textarea, 
+  select {
+    font-size: 16px !important; /* Fuerza los 16px mínimos que exige Apple */
+  }
+}

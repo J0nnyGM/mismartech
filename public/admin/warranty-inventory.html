@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#00AEC7">
+    <link rel="apple-touch-icon" href="/img/icons/icon-192x192.webp">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario RMA | PixelTech Admin</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+    <style>
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .tab-btn.active {
+            background-color: #00AEC7;
+            color: #111827;
+            border-color: transparent;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 font-sans text-brand-black flex h-screen overflow-hidden" style="display: none;">
+
+    <div id="admin-sidebar"></div>
+
+    <main class="flex-grow overflow-y-auto custom-scroll relative">
+        <header class="bg-white/90 backdrop-blur-xl border-b border-gray-100 px-10 py-6 sticky top-0 z-30 shadow-sm">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="font-black text-[10px] uppercase tracking-[0.3em] text-gray-400 mb-1">Logística Inversa
+                    </h2>
+                    <h1 class="text-3xl font-black text-brand-black tracking-tighter uppercase">Inventario de <span
+                            class="text-brand-cyan">Garantías</span></h1>
+                </div>
+                <div class="flex items-center gap-4 bg-slate-50 px-4 py-2 rounded-xl border border-gray-200">
+                    <i class="fa-solid fa-filter text-gray-400"></i>
+                    <input type="text" id="rma-search" placeholder="Buscar producto o SN..."
+                        class="bg-transparent text-xs font-bold outline-none w-64">
+                </div>
+            </div>
+
+            <div class="flex gap-4">
+                <button id="tab-active"
+                    class="tab-btn active px-6 py-3 rounded-t-xl border-b-2 border-transparent font-black text-xs uppercase tracking-widest text-gray-400 hover:text-brand-cyan transition">
+                    Inventario Activo
+                </button>
+                <button id="tab-history"
+                    class="tab-btn px-6 py-3 rounded-t-xl border-b-2 border-transparent font-black text-xs uppercase tracking-widest text-gray-400 hover:text-brand-cyan transition">
+                    Historial de Salidas
+                </button>
+            </div>
+        </header>
+
+        <div class="p-10 max-w-7xl mx-auto pb-24">
+            <div id="rma-container" class="space-y-6"></div>
+
+            <div id="load-more-container" class="py-8 text-center hidden">
+                <button onclick="window.loadMoreInventory()" class="text-xs font-bold text-gray-400 hover:text-brand-cyan transition uppercase tracking-widest flex items-center justify-center gap-2 mx-auto">
+                    <i class="fa-solid fa-circle-plus"></i> Cargar siguientes 50
+                </button>
+            </div>
+
+        </div> 
+    </main>
+
+    <div id="status-modal"
+        class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/90 backdrop-blur-sm">
+        <div
+            class="bg-white w-full max-w-lg rounded-[2.5rem] p-8 shadow-2xl animate-in zoom-in-95 max-h-[90vh] overflow-y-auto custom-scroll">
+
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-black uppercase tracking-tighter">Gestionar <span
+                        class="text-brand-cyan">Unidad</span></h3>
+                <button onclick="closeStatusModal()"
+                    class="w-10 h-10 rounded-full bg-slate-50 text-gray-400 hover:text-brand-red transition flex items-center justify-center"><i
+                        class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="bg-slate-50 p-4 rounded-2xl mb-6 border border-gray-100">
+                <p id="m-prod-name" class="font-black text-sm uppercase text-brand-black">...</p>
+                <p id="m-sn" class="font-mono text-xs text-brand-cyan font-bold mt-1">SN: ...</p>
+            </div>
+
+            <div class="mb-8">
+                <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">Actualizar
+                    Estado Técnico</label>
+                <div class="flex gap-2">
+                    <select id="m-new-status"
+                        class="flex-grow bg-white border border-gray-200 rounded-xl p-3 text-xs font-bold outline-none focus:border-brand-cyan">
+                        <option value="EN_REVISION_TECNICA">En Revisión Técnica</option>
+                        <option value="EN_ESPERA_REPUESTO">En Espera de Repuesto</option>
+                        <option value="REPARADO">Reparado / Listo</option>
+                        <option value="EN_STOCK_REPUESTOS">En Stock (Pieza/Repuesto)</option>
+                        <option value="IRREPARABLE">Irreparable</option>
+                    </select>
+                    <button onclick="updateStatus()"
+                        class="bg-brand-black text-white px-4 rounded-xl text-xs font-black uppercase hover:bg-brand-cyan hover:text-brand-black transition">
+                        Guardar
+                    </button>
+                </div>
+            </div>
+
+            <hr class="border-gray-100 mb-8">
+
+            <div>
+                <h4
+                    class="text-[10px] font-black text-brand-red uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-door-open"></i> Dar Salida / Entregar
+                </h4>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-[9px] font-bold text-gray-400 uppercase mb-1">Destino Final</label>
+                        <select id="m-exit-destination"
+                            class="w-full bg-red-50 border border-red-100 rounded-xl p-3 text-xs font-bold text-brand-black outline-none focus:border-brand-red">
+                            <option value="">Seleccione destino...</option>
+                            <option value="ENTREGADO_CLIENTE">Entregado al Cliente</option>
+                            <option value="DESGUACE">Desguace Total</option>
+                            <option value="BODEGA_PRINCIPAL">Regreso a Bodega</option>
+                            <option value="DEVOLUCION_PROVEEDOR">Devolución a Proveedor</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-[9px] font-bold text-gray-400 uppercase mb-1">Notas de Salida</label>
+                        <textarea id="m-exit-notes" rows="2" placeholder="Detalles de la entrega..."
+                            class="w-full bg-white border border-gray-200 rounded-xl p-3 text-xs font-medium outline-none"></textarea>
+                    </div>
+
+                    <div class="bg-indigo-50 p-4 rounded-2xl border border-indigo-100">
+                        <div class="flex items-center justify-between">
+                            <label class="text-[9px] font-black text-indigo-800 uppercase flex items-center gap-2">
+                                <i class="fa-solid fa-recycle"></i> ¿Quedó algo en inventario?
+                            </label>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="m-keep-parts" class="sr-only peer"
+                                    onchange="togglePartsInput()">
+                                <div
+                                    class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600">
+                                </div>
+                            </label>
+                        </div>
+
+                        <div id="parts-input-container" class="hidden mt-3 space-y-3 animate-in slide-in-from-top-2">
+                            <div>
+                                <label class="block text-[8px] font-bold text-indigo-400 uppercase mb-1">Nombre del
+                                    Repuesto/Pieza</label>
+                                <input type="text" id="m-part-name"
+                                    placeholder="Ej: Pantalla Original, Batería al 80%..."
+                                    class="w-full bg-white border border-indigo-200 rounded-lg p-2 text-xs font-bold text-indigo-900 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[8px] font-bold text-indigo-400 uppercase mb-1">Condición /
+                                    Notas</label>
+                                <input type="text" id="m-part-notes" placeholder="Ej: Funcional, tiene un rayón..."
+                                    class="w-full bg-white border border-indigo-200 rounded-lg p-2 text-xs text-indigo-800 outline-none">
+                            </div>
+                            <p class="text-[8px] text-indigo-400 italic">Esto creará un nuevo ítem en el inventario
+                                activo.</p>
+                        </div>
+                    </div>
+
+                    <button onclick="finalizeExit()"
+                        class="w-full bg-brand-red text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-red-600 transition shadow-lg shadow-red-500/20">
+                        Confirmar Salida y Guardar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="../js/admin-warranty-inventory.js"></script>
+    <script type="module" src="../js/admin-guard.js"></script>
+</body>
+
+</html>

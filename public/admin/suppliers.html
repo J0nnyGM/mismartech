@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#00AEC7">
+    <link rel="apple-touch-icon" href="/img/icons/icon-192x192.webp">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Aliados | PixelTech Admin</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+    <style>
+        .hidden { display: none !important; }
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 10px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #00AEC7; }
+        
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; opacity: 0; transform: translateY(10px); }
+        @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+
+<body class="bg-slate-50 font-sans text-brand-black flex h-screen overflow-hidden selection:bg-brand-cyan selection:text-white" style="display: none;">
+
+    <div id="admin-sidebar"></div>
+
+    <main class="flex-grow overflow-y-auto relative custom-scroll">
+        <header class="bg-white/90 backdrop-blur-xl border-b border-gray-100 px-8 py-4 flex justify-between items-center sticky top-0 z-30 shadow-sm">
+            <h2 class="font-black text-gray-400 text-[9px] uppercase tracking-[0.4em]">Ecosistema de Proveedores</h2>
+            <div class="flex items-center gap-4">
+                <button onclick="openSupplierModal()" class="bg-brand-cyan text-brand-black px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-black hover:text-white hover:shadow-lg transition-all duration-300 flex items-center gap-2 transform active:scale-95">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Nuevo Aliado</span>
+                </button>
+                <div class="w-10 h-10 bg-brand-black text-white rounded-xl flex items-center justify-center shadow-lg">
+                    <i class="fa-solid fa-handshake"></i>
+                </div>
+            </div>
+        </header>
+
+        <div class="p-8 max-w-7xl mx-auto pb-20">
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-10 gap-8">
+                <div>
+                    <h1 class="text-4xl lg:text-5xl font-black text-brand-black tracking-tighter uppercase leading-none mb-2">Gestión de <br><span class="text-brand-cyan">Aliados</span></h1>
+                    <p class="text-gray-400 text-xs font-bold tracking-wide">Base de datos centralizada de proveedores y compras.</p>
+                </div>
+                
+                <div class="bg-white p-1.5 rounded-[1.5rem] border border-gray-200 shadow-sm inline-flex gap-1">
+                    <button class="tab-btn px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all duration-300 bg-brand-black text-white shadow-md" data-tab="directory">
+                        <i class="fa-solid fa-list mr-2"></i> Directorio
+                    </button>
+                    <button class="tab-btn px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all duration-300 text-gray-400 hover:bg-slate-50 hover:text-brand-black" data-tab="purchases">
+                        <i class="fa-solid fa-clock-rotate-left mr-2"></i> Historial Global
+                    </button>
+                </div>
+            </div>
+
+            <div id="search-container" class="mb-8 fade-in">
+                <div class="relative max-w-md group">
+                    <input type="text" id="search-input" placeholder="Buscar por nombre, NIT o contacto..." 
+                        class="w-full bg-white border border-gray-200 p-4 pl-12 rounded-2xl text-sm font-bold outline-none focus:border-brand-cyan focus:ring-4 focus:ring-cyan-500/10 transition-all shadow-sm group-hover:shadow-md">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-hover:text-brand-cyan transition-colors"></i>
+                </div>
+            </div>
+
+            <div id="section-directory" class="tab-content">
+                <div class="bg-white rounded-[2.5rem] shadow-xl border border-gray-100 overflow-hidden fade-in">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-50 text-[9px] uppercase font-black text-gray-400 tracking-widest border-b border-gray-100">
+                                <tr>
+                                    <th class="px-8 py-5">Empresa / NIT</th>
+                                    <th class="px-8 py-5">Contacto</th>
+                                    <th class="px-8 py-5">Comunicación</th>
+                                    <th class="px-8 py-5 text-right">Inversión Total</th>
+                                    <th class="px-8 py-5 text-center">Órdenes</th>
+                                    <th class="px-8 py-5 text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="suppliers-table-body" class="divide-y divide-gray-50 text-sm">
+                                </tbody>
+                        </table>
+
+                        <div id="load-more-suppliers" class="py-6 text-center hidden border-t border-gray-100">
+                            <button onclick="window.loadMoreSuppliers()" class="text-xs font-bold text-gray-400 hover:text-brand-cyan transition uppercase tracking-widest flex items-center justify-center gap-2 mx-auto">
+                                <i class="fa-solid fa-circle-plus"></i> Cargar siguientes 50
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div id="section-purchases" class="tab-content hidden">
+                <div class="bg-white rounded-[2.5rem] shadow-xl border border-gray-100 overflow-hidden fade-in">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-50 text-[9px] uppercase font-black text-gray-400 tracking-widest border-b border-gray-100">
+                                <tr>
+                                    <th class="px-8 py-5">Fecha</th>
+                                    <th class="px-8 py-5">Proveedor</th>
+                                    <th class="px-8 py-5">Resumen Compra</th>
+                                    <th class="px-8 py-5 text-right">Total</th>
+                                    <th class="px-8 py-5 text-center">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="purchases-table-body" class="divide-y divide-gray-50 text-sm"></tbody>
+                        </table>
+                        <div id="load-more-purchases" class="py-6 text-center hidden border-t border-gray-100">
+                            <button onclick="window.loadMorePurchases()" class="text-xs font-bold text-gray-400 hover:text-brand-cyan transition uppercase tracking-widest flex items-center justify-center gap-2 mx-auto">
+                                <i class="fa-solid fa-circle-plus"></i> Cargar siguientes 50
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="loading-state" class="p-20 text-center hidden">
+                <i class="fa-solid fa-circle-notch fa-spin text-4xl text-brand-cyan"></i>
+                <p class="text-[10px] font-black uppercase text-gray-300 mt-4 tracking-widest">Cargando datos...</p>
+            </div>
+        </div>
+    </main>
+
+    <div id="supplier-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onclick="closeModal()"></div>
+        <div class="relative bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-fadeIn">
+            <div class="p-8 border-b border-gray-50 flex justify-between items-center bg-slate-50/50">
+                <h3 class="text-xl font-black tracking-tighter uppercase" id="modal-title">Ficha de <span class="text-brand-cyan">Aliado</span></h3>
+                <button onclick="closeModal()" class="w-10 h-10 rounded-full bg-white border border-gray-200 text-gray-400 hover:bg-brand-red hover:text-white hover:border-transparent transition flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="overflow-y-auto p-10 custom-scroll">
+                <form id="supplier-form" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <input type="hidden" id="s-id-field">
+                    <div class="md:col-span-2 space-y-2">
+                        <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Razón Social / Empresa</label>
+                        <input type="text" id="s-name" required class="w-full bg-slate-50 border border-gray-200 p-4 rounded-xl text-sm font-bold outline-none focus:border-brand-cyan transition-all" placeholder="Ej: Tech Distribution SAS">
+                    </div>
+                                        <div class="space-y-2">
+                        <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">NIT / ID</label>
+                        <input type="text" id="s-nit" required class="w-full bg-slate-50 border border-gray-200 p-4 rounded-xl text-sm font-bold outline-none focus:border-brand-cyan transition-all" placeholder="900.123.456-1">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Contacto Directo</label>
+                        <input type="text" id="s-contact" class="w-full bg-slate-50 border border-gray-200 p-4 rounded-xl text-sm font-bold outline-none focus:border-brand-cyan transition-all" placeholder="Nombre Asesor">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">WhatsApp / Teléfono</label>
+                        <input type="text" id="s-phone" required class="w-full bg-slate-50 border border-gray-200 p-4 rounded-xl text-sm font-bold outline-none focus:border-brand-cyan transition-all">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Email Corporativo</label>
+                        <input type="email" id="s-email" class="w-full bg-slate-50 border border-gray-200 p-4 rounded-xl text-sm font-bold outline-none focus:border-brand-cyan transition-all">
+                    </div>
+                    <div class="md:col-span-2 pt-6 border-t border-gray-100 mt-2">
+                        <span class="text-[9px] font-black uppercase tracking-widest text-brand-black bg-gray-100 px-3 py-1 rounded-md">Datos de Pago</span>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Banco</label>
+                        <input type="text" id="s-bank" class="w-full bg-slate-50 border border-gray-200 p-4 rounded-xl text-sm font-bold outline-none focus:border-brand-cyan transition-all">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Tipo de Cuenta</label>
+                        <select id="s-acc-type" class="w-full bg-slate-50 border border-gray-200 p-4 rounded-xl text-sm font-bold outline-none focus:border-brand-cyan transition-all cursor-pointer">
+                            <option value="Ahorros">Ahorros</option>
+                            <option value="Corriente">Corriente</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-2 space-y-2">
+                        <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Número de Cuenta</label>
+                        <input type="text" id="s-acc-num" class="w-full bg-slate-50 border border-gray-200 p-4 rounded-xl text-sm font-bold outline-none focus:border-brand-cyan transition-all">
+                    </div>
+                    <button type="submit" class="md:col-span-2 mt-4 bg-brand-black text-white py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-brand-cyan hover:shadow-cyan-500/30 hover:-translate-y-1 transition-all duration-300">
+                        Guardar Información
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+<script type="module">
+        import { db, collection, getDocs, getDoc, addDoc, updateDoc, doc, deleteDoc, orderBy, query, limit, startAfter, onSnapshot } from '../js/firebase-init.js';
+        import { loadAdminSidebar } from '../js/admin-ui.js?v=2.0.0';
+
+        loadAdminSidebar();
+
+        // DOM Elements
+        const tableBody = document.getElementById('suppliers-table-body');
+        const purchasesTable = document.getElementById('purchases-table-body');
+        const loading = document.getElementById('loading-state');
+        const supplierModal = document.getElementById('supplier-modal');
+        const supplierForm = document.getElementById('supplier-form');
+        const searchInput = document.getElementById('search-input');
+        
+        const loadMoreSuppliersBtn = document.getElementById('load-more-suppliers');
+        const loadMorePurchasesBtn = document.getElementById('load-more-purchases');
+
+        // Estado Global
+        let lastPurchaseDoc = null;
+        let isPurchasesLoading = false;
+        const DOCS_PER_PAGE = 50;
+
+        // Caché Real-time para Proveedores
+        let adminSuppliersCache = []; 
+        let unsubscribeSuppliers = null;
+
+        // ====================================================================
+        // 1. SMART REAL-TIME CACHE: PROVEEDORES
+        // ====================================================================
+        function initSmartSuppliersList() {
+            const STORAGE_KEY = 'pixeltech_admin_suppliers_cache';
+            let lastSyncTime = 0;
+            let runtimeMap = {};
+
+            // A. Carga Instantánea del Caché
+            const cachedRaw = localStorage.getItem(STORAGE_KEY);
+            if (cachedRaw) {
+                try {
+                    const parsed = JSON.parse(cachedRaw);
+                    if (parsed.map && parsed.lastSync) {
+                        runtimeMap = parsed.map;
+                        lastSyncTime = parsed.lastSync;
+                        
+                        updateSuppliersArray(runtimeMap);
+                        if (adminSuppliersCache.length > 0) {
+                            renderSuppliersFromMemory();
+                        }
+                    }
+                } catch (e) {
+                    localStorage.removeItem(STORAGE_KEY);
+                }
+            }
+
+            if (adminSuppliersCache.length === 0) {
+                loading.classList.remove('hidden');
+            }
+
+            // B. Conexión a Firebase (Solo Deltas)
+            if (unsubscribeSuppliers) unsubscribeSuppliers();
+
+            const colRef = collection(db, "suppliers");
+            let q;
+
+            if (lastSyncTime === 0 || Object.keys(runtimeMap).length === 0) {
+                // Primera vez, nos traemos todo el directorio (suelen ser < 100 docs, es muy barato)
+                q = query(colRef); 
+            } else {
+                // Solo traemos los que fueron editados recientemente
+                q = query(colRef, where("updatedAt", ">", new Date(lastSyncTime)));
+            }
+
+            unsubscribeSuppliers = onSnapshot(q, (snapshot) => {
+                if (snapshot.empty) {
+                    loading.classList.add('hidden');
+                    if(adminSuppliersCache.length === 0) {
+                        tableBody.innerHTML = `<tr><td colspan="6" class="p-12 text-center opacity-50"><i class="fa-solid fa-folder-open text-4xl mb-4 text-gray-300"></i><p class="font-bold text-gray-400">No hay proveedores registrados.</p></td></tr>`;
+                    }
+                    return;
+                }
+
+                let hasChanges = false;
+
+                snapshot.docChanges().forEach(change => {
+                    const data = change.doc.data();
+                    const id = change.doc.id;
+                    
+                    // Aseguramos campo de búsqueda limpio en memoria
+                    data.searchStr = `${data.name} ${data.nit || ''} ${data.contactName || ''}`.toLowerCase();
+                    if (!data.updatedAt) data.updatedAt = data.createdAt || new Date();
+
+                    if (change.type === 'added' || change.type === 'modified') {
+                        runtimeMap[id] = { id, ...data };
+                        hasChanges = true;
+                    } else if (change.type === 'removed') {
+                        if (runtimeMap[id]) {
+                            delete runtimeMap[id];
+                            hasChanges = true;
+                        }
+                    }
+                });
+
+                if (hasChanges) {
+                    updateSuppliersArray(runtimeMap);
+                    
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                        map: runtimeMap,
+                        lastSync: Date.now()
+                    }));
+
+                    renderSuppliersFromMemory();
+                    loading.classList.add('hidden');
+                }
+            });
+        }
+
+        function updateSuppliersArray(map) {
+            // Ordenamos alfabéticamente por nombre
+            adminSuppliersCache = Object.values(map).sort((a, b) => a.name.localeCompare(b.name));
+        }
+
+        function renderSuppliersFromMemory() {
+            // Si el usuario está buscando algo, no interrumpimos su vista
+            if (searchInput.value.trim() !== '') {
+                executeSearch(searchInput.value.trim());
+                return;
+            }
+
+            tableBody.innerHTML = "";
+            loadMoreSuppliersBtn.classList.add('hidden'); // Como tenemos todo en RAM, no hace falta paginar si son pocos
+
+            if (adminSuppliersCache.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="6" class="p-12 text-center opacity-50"><i class="fa-solid fa-folder-open text-4xl mb-4 text-gray-300"></i><p class="font-bold text-gray-400">No hay proveedores registrados.</p></td></tr>`;
+                return;
+            }
+
+            adminSuppliersCache.forEach(s => renderSupplierRow(s));
+        }
+
+        // ====================================================================
+        // 2. BUSCADOR INTELIGENTE EN RAM (0 LECTURAS)
+        // ====================================================================
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.trim();
+            executeSearch(term);
+        });
+
+        function executeSearch(term) {
+            const lowerTerm = term.toLowerCase();
+
+            if (lowerTerm.length === 0) {
+                renderSuppliersFromMemory();
+                return;
+            }
+
+            const filtered = adminSuppliersCache.filter(s => s.searchStr && s.searchStr.includes(lowerTerm));
+
+            tableBody.innerHTML = "";
+            if (filtered.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="6" class="p-12 text-center opacity-50"><p class="font-bold text-gray-400">No encontrado en el directorio.</p></td></tr>`;
+            } else {
+                filtered.forEach(s => renderSupplierRow(s));
+            }
+        }
+
+        // ====================================================================
+        // 3. RENDERIZADO FILA
+        // ====================================================================
+        function renderSupplierRow(s) {
+            tableBody.innerHTML += `
+                <tr class="hover:bg-slate-50 transition-colors border-b border-gray-50 last:border-0 group cursor-pointer fade-in" 
+                    onclick="window.location.href = 'supplier-detail.html?id=${s.id}'">
+                    
+                    <td class="px-8 py-5">
+                        <p class="font-black text-brand-black text-sm uppercase tracking-tight group-hover:text-brand-cyan transition-colors">${s.name}</p>
+                        <span class="text-[9px] font-bold text-gray-400 bg-gray-50 px-2 py-0.5 rounded uppercase tracking-wider inline-block mt-1">NIT: ${s.nit || '---'}</span>
+                    </td>
+                    
+                    <td class="px-8 py-5">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-gray-400 text-xs shrink-0 border border-slate-200">
+                                <i class="fa-solid fa-user"></i>
+                            </div>
+                            <span class="font-bold text-gray-600 text-xs">${s.contactName || '---'}</span>
+                        </div>
+                    </td>
+                    
+                    <td class="px-8 py-5">
+                        <div class="flex flex-col gap-1">
+                            <span class="text-xs font-bold text-gray-600 flex items-center gap-2"><i class="fa-brands fa-whatsapp text-green-500"></i> ${s.phone}</span>
+                            ${s.email ? `<span class="text-[10px] font-bold text-gray-400 flex items-center gap-2"><i class="fa-regular fa-envelope"></i> ${s.email}</span>` : ''}
+                        </div>
+                    </td>
+                    
+                    <td class="px-8 py-5 text-right">
+                        <span class="font-black text-brand-black text-sm block group-hover:scale-105 transition-transform origin-right">$${(s.totalInvested || 0).toLocaleString('es-CO')}</span>
+                    </td>
+                    
+                    <td class="px-8 py-5 text-center">
+                        <span class="bg-brand-cyan/10 text-brand-cyan px-3 py-1 rounded-lg text-xs font-black border border-brand-cyan/20">${s.ordersCount || 0}</span>
+                    </td>
+                    
+                    <td class="px-8 py-5 text-center">
+                        <div class="flex items-center justify-center gap-2" onclick="event.stopPropagation()">
+                            <button onclick="openSupplierModal('${s.id}')" class="w-9 h-9 rounded-xl border border-gray-200 text-gray-400 hover:bg-brand-cyan hover:text-brand-black hover:border-transparent transition flex items-center justify-center shadow-sm">
+                                <i class="fa-solid fa-pen text-xs"></i>
+                            </button>
+                            <button onclick="deleteSupplier('${s.id}')" class="w-9 h-9 rounded-xl border border-gray-200 text-gray-400 hover:bg-brand-red hover:text-white hover:border-transparent transition flex items-center justify-center shadow-sm">
+                                <i class="fa-solid fa-trash text-xs"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+
+        // ====================================================================
+        // 4. CARGA OPTIMIZADA DE COMPRAS (HISTORIAL)
+        // Esta vista sigue usando paginación porque pueden ser miles de registros
+        // ====================================================================
+        async function fetchPurchases(isNextPage = false) {
+            if (isPurchasesLoading) return;
+            isPurchasesLoading = true;
+
+            if (!isNextPage) {
+                purchasesTable.innerHTML = "";
+                loading.classList.remove('hidden'); 
+                loadMorePurchasesBtn.classList.add('hidden');
+            } else {
+                loadMorePurchasesBtn.querySelector('button').innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Cargando...`;
+            }
+
+            try {
+                const coll = collection(db, "purchases");
+                let q = query(coll, orderBy("createdAt", "desc"), limit(DOCS_PER_PAGE));
+
+                if (isNextPage && lastPurchaseDoc) {
+                    q = query(coll, orderBy("createdAt", "desc"), startAfter(lastPurchaseDoc), limit(DOCS_PER_PAGE));
+                }
+
+                const snap = await getDocs(q);
+                
+                if (!isNextPage) loading.classList.add('hidden');
+
+                if (snap.empty) {
+                    if(!isNextPage) purchasesTable.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-400 font-bold uppercase text-xs">No hay historial de compras.</td></tr>`;
+                    loadMorePurchasesBtn.classList.add('hidden');
+                    isPurchasesLoading = false;
+                    return;
+                }
+
+                lastPurchaseDoc = snap.docs[snap.docs.length - 1];
+
+                if (snap.docs.length === DOCS_PER_PAGE) {
+                    loadMorePurchasesBtn.classList.remove('hidden');
+                    loadMorePurchasesBtn.querySelector('button').innerHTML = `<i class="fa-solid fa-circle-plus"></i> Cargar siguientes 50`;
+                } else {
+                    loadMorePurchasesBtn.classList.add('hidden');
+                }
+
+                snap.forEach(d => {
+                    const p = d.data();
+                    let itemsSummary = p.items.slice(0, 2).map(i => `${i.quantity}x ${i.name}`).join(', ');
+                    if(p.items.length > 2) itemsSummary += ` (+${p.items.length - 2} más)`;
+
+                    purchasesTable.innerHTML += `
+                        <tr class="hover:bg-slate-50 transition-colors border-b border-gray-50 group cursor-default fade-in">
+                            <td class="px-8 py-6">
+                                <p class="font-bold text-brand-black text-xs">${p.createdAt?.toDate().toLocaleDateString()}</p>
+                                <p class="font-mono text-[9px] text-gray-400 uppercase">ID: ${d.id.slice(0,6)}</p>
+                            </td>
+                            <td class="px-8 py-6 font-black text-brand-black text-xs uppercase tracking-wide group-hover:text-brand-cyan transition-colors">${p.supplierName}</td>
+                            <td class="px-8 py-6 text-[10px] text-gray-500 font-bold uppercase truncate max-w-[200px]">${itemsSummary}</td>
+                            <td class="px-8 py-6 text-right font-black text-brand-black text-sm">$${(p.totalCost || 0).toLocaleString('es-CO')}</td>
+                            <td class="px-8 py-6 text-center">
+                                <a href="supplier-detail.html?id=${p.supplierId}" class="inline-flex w-8 h-8 rounded-lg border border-gray-200 text-gray-400 hover:bg-brand-black hover:text-white hover:border-brand-black transition-all items-center justify-center shadow-sm">
+                                    <i class="fa-solid fa-arrow-right text-xs"></i>
+                                </a>
+                            </td>
+                        </tr>`;
+                });
+
+            } catch (e) { 
+                console.error(e); 
+                isPurchasesLoading = false;
+            }
+        }
+
+        window.loadMorePurchases = () => fetchPurchases(true);
+
+        // ====================================================================
+        // 5. LOGICA DE TABS
+        // ====================================================================
+        const activeClasses = ["bg-brand-black", "text-white", "shadow-md"];
+        const inactiveClasses = ["text-gray-400", "hover:bg-slate-50", "hover:text-brand-black"];
+
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.onclick = (e) => {
+                const targetBtn = e.currentTarget;
+                const tabId = targetBtn.dataset.tab;
+
+                document.querySelectorAll('.tab-btn').forEach(b => {
+                    b.classList.remove(...activeClasses);
+                    b.classList.add(...inactiveClasses);
+                });
+
+                targetBtn.classList.remove(...inactiveClasses);
+                targetBtn.classList.add(...activeClasses);
+
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+                document.getElementById(`section-${tabId}`).classList.remove('hidden');
+                
+                const searchContainer = document.getElementById('search-container');
+                if (tabId === 'purchases') {
+                    searchContainer.classList.add('hidden');
+                    if(purchasesTable.children.length === 0) fetchPurchases();
+                } else {
+                    searchContainer.classList.remove('hidden');
+                    // Como el directorio está en vivo por onSnapshot, ya está renderizado
+                }
+            };
+        });
+
+        // ====================================================================
+        // 6. MODALES Y ACCIONES
+        // ====================================================================
+        window.openSupplierModal = async (id = null) => {
+            supplierForm.reset();
+            document.getElementById('s-id-field').value = id || "";
+            document.getElementById('modal-title').innerHTML = id ? `Editar <span class="text-brand-cyan">Aliado</span>` : `Nuevo <span class="text-brand-cyan">Aliado</span>`;
+            
+            if (id) {
+                // Leemos del caché en RAM (0 lecturas, instantáneo)
+                const s = adminSuppliersCache.find(supp => supp.id === id);
+                if (s) {
+                    document.getElementById('s-name').value = s.name;
+                    document.getElementById('s-nit').value = s.nit || "";
+                    document.getElementById('s-contact').value = s.contactName || "";
+                    document.getElementById('s-phone').value = s.phone;
+                    document.getElementById('s-email').value = s.email || "";
+                    document.getElementById('s-bank').value = s.bankName || "";
+                    document.getElementById('s-acc-num').value = s.accNum || "";
+                    document.getElementById('s-acc-type').value = s.accType || "Ahorros";
+                }
+            }
+            supplierModal.classList.remove('hidden');
+        };
+
+        supplierForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = supplierForm.querySelector('button[type="submit"]');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Procesando...';
+
+            const id = document.getElementById('s-id-field').value;
+            const data = {
+                name: document.getElementById('s-name').value,
+                nit: document.getElementById('s-nit').value,
+                contactName: document.getElementById('s-contact').value,
+                phone: document.getElementById('s-phone').value,
+                email: document.getElementById('s-email').value,
+                bankName: document.getElementById('s-bank').value,
+                accNum: document.getElementById('s-acc-num').value,
+                accType: document.getElementById('s-acc-type').value,
+                updatedAt: new Date()
+            };
+
+            try {
+                if (id) {
+                    await updateDoc(doc(db, "suppliers", id), data);
+                } else {
+                    await addDoc(collection(db, "suppliers"), { 
+                        ...data, 
+                        totalInvested: 0, 
+                        ordersCount: 0, 
+                        createdAt: new Date() 
+                    });
+                }
+                closeModal();
+                // El onSnapshot se encargará de actualizar la tabla y el caché automáticamente
+            } catch (err) {
+                alert("Error: " + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        };
+
+        window.deleteSupplier = async (id) => { 
+            if(confirm("¿Eliminar este aliado?")) { 
+                try {
+                    await deleteDoc(doc(db, "suppliers", id)); 
+                    // El onSnapshot lo quitará de la vista y del caché automáticamente
+                } catch(e) { alert("Error: " + e.message); }
+            } 
+        };
+
+        window.closeModal = () => { supplierModal.classList.add('hidden'); };
+
+        // Init
+        initSmartSuppliersList();
+    </script>
+    <script type="module" src="../js/admin-guard.js"></script>
+</body>
+</html>

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#00AEC7">
+    <link rel="apple-touch-icon" href="/img/icons/icon-192x192.webp">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Gastos | PixelTech Admin</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+    <style> 
+        .hidden { display: none !important; } 
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; opacity: 0; transform: translateY(10px); }
+        @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+
+<body class="bg-gray-100 font-sans text-brand-black flex h-screen overflow-hidden" style="display: none;">
+
+    <div id="admin-sidebar"></div>
+
+    <main class="flex-grow overflow-y-auto p-8 bg-slate-50 w-full custom-scroll">
+        
+        <div class="flex flex-col xl:flex-row justify-between items-start xl:items-end mb-8 gap-6">
+            <div>
+                <h1 class="text-3xl font-black mb-1">Control de Gastos</h1>
+                <p class="text-gray-500 text-sm">Gestiona egresos operativos.</p>
+            </div>
+            
+            <div class="flex flex-col sm:flex-row gap-4 w-full xl:w-auto">
+                <div class="bg-white p-1 rounded-xl border border-gray-200 flex items-center shadow-sm">
+                    <input type="month" id="filter-month" class="outline-none text-xs font-bold text-gray-600 bg-transparent px-3 py-2 cursor-pointer uppercase">
+                    <button id="btn-clear-date" class="px-3 text-gray-400 hover:text-brand-black text-xs" title="Ver todo el historial">
+                        <i class="fa-solid fa-calendar-xmark"></i>
+                    </button>
+                </div>
+
+                <button onclick="window.openTrashModal()" class="bg-white text-gray-500 border border-gray-200 px-4 py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:text-brand-red hover:border-brand-red transition shadow-sm flex items-center gap-2">
+                    <i class="fa-solid fa-trash-can-arrow-up"></i> Papelera / Logs
+                </button>
+
+                <button onclick="window.openModal()" class="bg-brand-black text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-cyan hover:text-brand-black transition shadow-lg flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Registrar Gasto
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-red-50 text-red-500 flex items-center justify-center text-xl"><i class="fa-solid fa-filter-circle-dollar"></i></div>
+                <div>
+                    <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest" id="lbl-period-total">Total Periodo</p>
+                    <h3 class="text-2xl font-black text-brand-black" id="stats-total">$0</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-[2.5rem] border border-gray-200 shadow-sm overflow-hidden">
+            <div class="p-6 border-b border-gray-100 bg-gray-50/50 flex flex-col md:flex-row justify-between items-center gap-4">
+                <h3 class="font-black text-xs uppercase tracking-widest text-brand-black flex items-center gap-2">
+                    <i class="fa-solid fa-list-ul text-gray-400"></i> Listado de Gastos
+                </h3>
+                <div class="relative w-full md:w-64">
+                    <input type="text" id="search-input" placeholder="Buscar proveedor o concepto..." class="w-full bg-white border border-gray-200 pl-10 pr-4 py-2 rounded-xl text-xs font-bold focus:border-brand-cyan outline-none">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-gray-50 text-[9px] uppercase font-black text-gray-400 tracking-widest">
+                        <tr>
+                            <th class="px-6 py-4">Fecha</th>
+                            <th class="px-6 py-4">Proveedor</th>
+                            <th class="px-6 py-4">Concepto</th>
+                            <th class="px-6 py-4">Categoría</th>
+                            <th class="px-6 py-4">Cuenta</th>
+                            <th class="px-6 py-4 text-right">Valor</th>
+                            <th class="px-6 py-4 text-center"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="expenses-list" class="divide-y divide-gray-100 text-sm font-medium text-gray-600"></tbody>
+                </table>
+            </div>
+
+            <div id="load-more-container" class="py-6 text-center hidden border-t border-gray-100">
+                <button onclick="window.loadMoreExpenses()" class="text-xs font-bold text-gray-400 hover:text-brand-cyan transition uppercase tracking-widest flex items-center justify-center gap-2 mx-auto">
+                    <i class="fa-solid fa-circle-plus"></i> Cargar siguientes 50
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <div id="expense-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-brand-black/80 backdrop-blur-sm p-4">
+        <div class="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden relative animate-in fade-in zoom-in-95 duration-200" onclick="event.stopPropagation()">
+            <div class="p-8 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h3 class="text-xl font-black uppercase tracking-tighter" id="modal-title">Nuevo Gasto</h3>
+                <button onclick="window.closeModal()" class="w-8 h-8 rounded-full bg-white text-gray-400 hover:text-brand-red hover:bg-red-50 flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <form id="expense-form" class="p-8 space-y-5">
+                <div class="relative">
+                    <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Proveedor / Beneficiario *</label>
+                    <input type="text" id="supplier-search" placeholder="Escribe para buscar..." autocomplete="off" class="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl font-bold text-sm focus:border-brand-cyan outline-none transition-all placeholder-gray-400">
+                    <input type="hidden" id="selected-supplier-id">
+                    <div id="supplier-dropdown" class="hidden absolute z-50 w-full bg-white border border-gray-200 rounded-xl shadow-xl mt-1 max-h-48 overflow-y-auto custom-scroll"></div>
+                </div>
+
+                <div>
+                    <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Descripción *</label>
+                    <input type="text" id="desc" required placeholder="Ej: Pago de Internet" class="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl font-bold text-sm focus:border-brand-cyan outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Valor (COP) *</label>
+                        <input type="text" id="amount-display" required placeholder="$0" class="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl font-bold text-sm focus:border-brand-cyan outline-none tracking-wide">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Fecha *</label>
+                        <input type="date" id="date" required class="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl font-bold text-sm focus:border-brand-cyan outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-1">
+                        <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Categoría</label>
+                        <select id="category" class="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl font-bold text-sm focus:border-brand-cyan outline-none cursor-pointer">
+                            <option value="Operativo">Operativo</option>
+                            <option value="Nómina">Nómina</option>
+                            <option value="Servicios">Servicios</option>
+                            <option value="Arriendo">Arriendo</option>
+                            <option value="Marketing">Marketing</option>
+                            <option value="Logística">Logística</option>
+                            <option value="Impuestos">Impuestos</option>
+                            <option value="Inventario">Inventario</option>
+                            <option value="Otros">Otros</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-span-1">
+                        <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Cuenta Origen *</label>
+                        <select id="account-select" required class="w-full bg-slate-100 border border-slate-200 p-3 rounded-xl font-bold text-sm focus:border-brand-cyan outline-none cursor-pointer">
+                            <option value="">Cargando...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="tax-alert" class="hidden bg-yellow-50 border border-yellow-100 p-3 rounded-xl flex items-center gap-3">
+                    <i class="fa-solid fa-triangle-exclamation text-yellow-600"></i>
+                    <div>
+                        <p class="text-[9px] font-black uppercase text-yellow-700">Aplica 4x1000</p>
+                        <p class="text-xs font-bold text-brand-black">Gasto adicional: <span id="tax-val">$0</span></p>
+                    </div>
+                </div>
+
+                <button type="submit" id="btn-save" class="w-full bg-brand-black text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-cyan hover:text-brand-black transition shadow-lg mt-4">
+                    Registrar Gasto
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div id="trash-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-brand-black/90 backdrop-blur-sm p-4">
+        <div class="bg-white w-full max-w-4xl rounded-[2.5rem] shadow-2xl overflow-hidden relative animate-in fade-in zoom-in-95 flex flex-col max-h-[90vh]">
+            <div class="p-8 border-b border-gray-100 flex justify-between items-center bg-red-50">
+                <div>
+                    <h3 class="text-xl font-black uppercase tracking-tighter text-brand-red">Papelera de Reciclaje</h3>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Historial de gastos eliminados (Seguridad)</p>
+                </div>
+                <button onclick="document.getElementById('trash-modal').classList.add('hidden')" class="w-8 h-8 rounded-full bg-white text-gray-400 hover:text-brand-red flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <div class="flex-grow overflow-auto custom-scroll p-8">
+                <table class="w-full text-left">
+                    <thead class="text-[9px] uppercase font-black text-gray-400 tracking-widest border-b border-gray-100">
+                        <tr>
+                            <th class="pb-3">Fecha Eliminación</th>
+                            <th class="pb-3">Usuario Responsable</th>
+                            <th class="pb-3">Detalles del Gasto</th>
+                            <th class="pb-3 text-right">Valor Original</th>
+                        </tr>
+                    </thead>
+                    <tbody id="trash-list" class="divide-y divide-gray-50 text-xs font-medium text-gray-600">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script type="module" src="../js/admin-guard.js"></script>
+    <script type="module" src="../js/admin-expenses.js"></script>
+</body>
+</html>

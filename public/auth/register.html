@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#00AEC7">
+    <link rel="apple-touch-icon" href="/img/icons/icon-192x192.webp">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Cuenta - PixelTech</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+    <style>
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #00AEC7; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-white font-sans text-brand-black flex flex-col min-h-screen">
+
+    <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php'; ?>
+
+    <main class="flex-grow container mx-auto px-6 py-16">
+        <div class="max-w-6xl mx-auto">
+            <h1 class="text-3xl font-black uppercase tracking-tighter mb-10 text-center md:text-left">Crear Cuenta</h1>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-16">
+<div>
+                    <h2 class="text-xs font-black uppercase tracking-widest text-gray-400 mb-6 border-b border-gray-100 pb-2">Información Personal</h2>
+                    
+                    <div id="auth-message" class="hidden mb-6 p-4 bg-red-50 text-red-500 text-xs font-bold rounded-lg border border-red-100"></div>
+
+                    <form id="register-form" class="space-y-6">
+                        <div>
+                            <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Nombre Completo <span class="text-red-500">*</span></label>
+                            <input type="text" id="reg-name" required class="w-full bg-gray-50 border border-gray-200 text-brand-black text-sm p-4 outline-none focus:border-brand-cyan focus:ring-1 focus:ring-brand-cyan transition-all placeholder-gray-400 font-medium" placeholder="Ej: Juan Pérez">
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Correo Electrónico <span class="text-red-500">*</span></label>
+                            <input type="email" id="reg-email" required class="w-full bg-gray-50 border border-gray-200 text-brand-black text-sm p-4 outline-none focus:border-brand-cyan focus:ring-1 focus:ring-brand-cyan transition-all placeholder-gray-400 font-medium" placeholder="tu@email.com">
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Contraseña <span class="text-red-500">*</span></label>
+                            <input type="password" id="reg-password" required minlength="6" class="w-full bg-gray-50 border border-gray-200 text-brand-black text-sm p-4 outline-none focus:border-brand-cyan focus:ring-1 focus:ring-brand-cyan transition-all placeholder-gray-400 font-medium" placeholder="Mínimo 6 caracteres">
+                        </div>
+
+                        <div class="pt-4 flex flex-col gap-4">
+                            <button type="submit" class="bg-brand-black text-white px-10 py-4 font-black text-xs uppercase tracking-[0.2em] hover:bg-brand-cyan hover:text-brand-black transition-all duration-300 shadow-lg hover:shadow-cyan-500/20 w-full text-center">
+                                Registrarse
+                            </button>
+
+                            <div class="relative flex py-2 items-center">
+                                <div class="flex-grow border-t border-gray-100"></div>
+                                <span class="flex-shrink-0 mx-4 text-[9px] font-black text-gray-300 uppercase tracking-widest">O regístrate con</span>
+                                <div class="flex-grow border-t border-gray-100"></div>
+                            </div>
+
+                            <button type="button" id="btn-google" class="bg-white border border-gray-200 text-gray-700 px-10 py-4 font-bold text-xs uppercase tracking-widest hover:bg-gray-50 transition-all flex items-center justify-center gap-3 w-full md:w-auto">
+                                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-4 h-4" alt="Google">
+                                Continuar con Google
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <p class="mt-8 text-xs text-gray-500 text-center md:text-left">
+                        ¿Ya tienes una cuenta? <a href="/auth/login.html" class="text-brand-cyan font-bold hover:underline">Inicia sesión aquí</a>
+                    </p>
+                </div>
+
+                <div class="md:pl-10 md:border-l border-gray-100">
+                    <h2 class="text-xs font-black uppercase tracking-widest text-gray-400 mb-6 border-b border-gray-100 pb-2">Beneficios de la Cuenta</h2>
+                    
+                    <div class="prose prose-sm text-gray-500">
+                        <p class="mb-6 leading-relaxed font-medium">
+                            Registrarse en este sitio le permite acceder al estado e historial de su pedido. Simplemente complete los campos a continuación y configuraremos una nueva cuenta para usted en un abrir y cerrar de ojos. Solo te pediremos la información necesaria para que el proceso de compra sea más rápido y sencillo.
+                        </p>
+                        
+                        <ul class="space-y-4 list-none pl-0 mt-8">
+                            <li class="flex items-center gap-3">
+                                <i class="fa-solid fa-bolt text-brand-cyan"></i>
+                                <span class="text-xs font-bold text-gray-700">Proceso de pago más rápido</span>
+                            </li>
+                            <li class="flex items-center gap-3">
+                                <i class="fa-solid fa-box-open text-brand-cyan"></i>
+                                <span class="text-xs font-bold text-gray-700">Rastreo de pedidos en tiempo real</span>
+                            </li>
+                            <li class="flex items-center gap-3">
+                                <i class="fa-solid fa-clock-rotate-left text-brand-cyan"></i>
+                                <span class="text-xs font-bold text-gray-700">Historial de compras completo</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php'; ?>
+
+    <script type="module">
+        import { loadGlobalHeader, loadGlobalFooter } from '../js/global-components.js?v=2.0';        loadGlobalHeader();
+        loadGlobalFooter();
+    </script>
+    <script type="module" src="../js/auth-logic.js"></script>
+</body>
+</html>
