@@ -47,7 +47,7 @@
                     <h2 class="font-black text-[10px] uppercase tracking-[0.3em] text-gray-400 mb-1">Logística Inversa
                     </h2>
                     <h1 class="text-3xl font-black text-brand-black tracking-tighter uppercase">Inventario de <span
-                            class="text-brand-cyan">Garantías</span></h1>
+                            class="text-brand-orange">Garantías</span></h1>
                 </div>
                 <div class="flex items-center gap-4 bg-slate-50 px-4 py-2 rounded-xl border border-gray-200">
                     <i class="fa-solid fa-filter text-gray-400"></i>
@@ -58,11 +58,11 @@
 
             <div class="flex gap-4">
                 <button id="tab-active"
-                    class="tab-btn active px-6 py-3 rounded-t-xl border-b-2 border-transparent font-black text-xs uppercase tracking-widest text-gray-400 hover:text-brand-cyan transition">
+                    class="tab-btn active px-6 py-3 rounded-t-xl border-b-2 border-transparent font-black text-xs uppercase tracking-widest text-gray-400 hover:text-brand-orange transition">
                     Inventario Activo
                 </button>
                 <button id="tab-history"
-                    class="tab-btn px-6 py-3 rounded-t-xl border-b-2 border-transparent font-black text-xs uppercase tracking-widest text-gray-400 hover:text-brand-cyan transition">
+                    class="tab-btn px-6 py-3 rounded-t-xl border-b-2 border-transparent font-black text-xs uppercase tracking-widest text-gray-400 hover:text-brand-orange transition">
                     Historial de Salidas
                 </button>
             </div>
@@ -72,7 +72,7 @@
             <div id="rma-container" class="space-y-6"></div>
 
             <div id="load-more-container" class="py-8 text-center hidden">
-                <button onclick="window.loadMoreInventory()" class="text-xs font-bold text-gray-400 hover:text-brand-cyan transition uppercase tracking-widest flex items-center justify-center gap-2 mx-auto">
+                <button onclick="window.loadMoreInventory()" class="text-xs font-bold text-gray-400 hover:text-brand-orange transition uppercase tracking-widest flex items-center justify-center gap-2 mx-auto">
                     <i class="fa-solid fa-circle-plus"></i> Cargar siguientes 50
                 </button>
             </div>
@@ -87,7 +87,7 @@
 
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-xl font-black uppercase tracking-tighter">Gestionar <span
-                        class="text-brand-cyan">Unidad</span></h3>
+                        class="text-brand-orange">Unidad</span></h3>
                 <button onclick="closeStatusModal()"
                     class="w-10 h-10 rounded-full bg-slate-50 text-gray-400 hover:text-brand-red transition flex items-center justify-center"><i
                         class="fa-solid fa-xmark"></i></button>
@@ -95,7 +95,7 @@
 
             <div class="bg-slate-50 p-4 rounded-2xl mb-6 border border-gray-100">
                 <p id="m-prod-name" class="font-black text-sm uppercase text-brand-black">...</p>
-                <p id="m-sn" class="font-mono text-xs text-brand-cyan font-bold mt-1">SN: ...</p>
+                <p id="m-sn" class="font-mono text-xs text-brand-orange font-bold mt-1">SN: ...</p>
             </div>
 
             <div class="mb-8">
@@ -103,7 +103,7 @@
                     Estado Técnico</label>
                 <div class="flex gap-2">
                     <select id="m-new-status"
-                        class="flex-grow bg-white border border-gray-200 rounded-xl p-3 text-xs font-bold outline-none focus:border-brand-cyan">
+                        class="flex-grow bg-white border border-gray-200 rounded-xl p-3 text-xs font-bold outline-none focus:border-brand-orange">
                         <option value="EN_REVISION_TECNICA">En Revisión Técnica</option>
                         <option value="EN_ESPERA_REPUESTO">En Espera de Repuesto</option>
                         <option value="REPARADO">Reparado / Listo</option>
@@ -111,7 +111,7 @@
                         <option value="IRREPARABLE">Irreparable</option>
                     </select>
                     <button onclick="updateStatus()"
-                        class="bg-brand-black text-white px-4 rounded-xl text-xs font-black uppercase hover:bg-brand-cyan hover:text-brand-black transition">
+                        class="bg-brand-black text-white px-4 rounded-xl text-xs font-black uppercase hover:bg-brand-orange hover:text-brand-black transition">
                         Guardar
                     </button>
                 </div>
@@ -186,8 +186,8 @@
         </div>
     </div>
 
-    <script type="module" src="../js/admin-warranty-inventory.js"></script>
-    <script type="module" src="../js/admin-guard.js"></script>
+    <script type="module" src="../js/admin/admin-warranty-inventory.js"></script>
+    <script type="module" src="../js/admin/admin-guard.js"></script>
 </body>
 
 </html>

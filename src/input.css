@@ -1,22 +1,25 @@
 @import "tailwindcss";
 
 @theme {
-  /* TU PALETA PIXEL TECH */
+  /* TU NUEVA PALETA SMARTECH */
   
-  /* Cian/Turquesa (Principal/Marca) */
-  --color-brand-cyan: #00AEC7;
+  /* Naranja (Principal/Marca - Extraído de la letra M y el panda) */
+  --color-brand-orange: #F05A28;
   
-  /* Rojo (Ofertas/Categorías/Precios) */
-  --color-brand-red: #E63946;
+  /* Naranja Oscuro (Ideal para hovers en botones o detalles de énfasis) */
+  --color-brand-orange-dark: #C8471D;
   
-  /* Negro Carbón (Fondos oscuros suaves) */
-  --color-brand-black: #1A1A1A;
+  /* Negro Intenso (Texto principal y detalles oscuros del logo) */
+  --color-brand-black: #0F0F0F;
   
-  /* Gris Oscuro (Para textos secundarios sobre negro) */
-  --color-brand-dark-gray: #333333;
+  /* Gris Claro (Útil para fondos secundarios) */
+  --color-brand-light-gray: #E6E6E6;
   
   /* Blanco (Fondo base) */
   --color-brand-bg: #FFFFFF;
+
+  /* COLORES FUNCIONALES (Recomendado mantenerlos para la tienda) */
+  --color-brand-red: #E63946; /* Para etiquetas de descuento y agotado */
 }
 
 /* Ajustes globales */
@@ -28,11 +31,10 @@ body {
 /* ==========================================================================
    FIX PARA IPHONE: PREVENIR ZOOM AUTOMÁTICO EN INPUTS
    ========================================================================== */
-/* La regla @supports (-webkit-touch-callout: none) apunta exclusivamente a iOS */
 @supports (-webkit-touch-callout: none) {
   input, 
   textarea, 
   select {
-    font-size: 16px !important; /* Fuerza los 16px mínimos que exige Apple */
+    font-size: 16px !important;
   }
 }

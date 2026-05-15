@@ -38,7 +38,7 @@
         <div class="p-8 max-w-7xl mx-auto">
             <div class="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
                 <div>
-                    <h1 class="text-4xl font-black text-brand-black tracking-tighter uppercase mb-2">Solicitudes de <span class="text-brand-cyan">Garantía</span></h1>
+                    <h1 class="text-4xl font-black text-brand-black tracking-tighter uppercase mb-2">Solicitudes de <span class="text-brand-orange">Garantía</span></h1>
                     <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">Gestión de reclamos y soporte</p>
                 </div>
                 
@@ -50,7 +50,7 @@
             </div>
 
             <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
-                <button onclick="window.filterTab('PENDING')" id="tab-pending" class="tab-btn active px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest bg-brand-cyan text-white shadow-lg shadow-cyan-500/30 transition-all border border-transparent whitespace-nowrap">
+                <button onclick="window.filterTab('PENDING')" id="tab-pending" class="tab-btn active px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest bg-brand-orange text-white shadow-lg shadow-cyan-500/30 transition-all border border-transparent whitespace-nowrap">
                     <i class="fa-regular fa-clock mr-2"></i> Pendientes
                 </button>
                 <button onclick="window.filterTab('APPROVED')" id="tab-approved" class="tab-btn px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white text-gray-400 border border-gray-200 hover:text-green-600 hover:border-green-200 transition-all whitespace-nowrap">
@@ -83,7 +83,7 @@
             </div>
 
             <div id="load-more-container" class="py-8 text-center hidden">
-                <button onclick="window.loadMoreWarranties()" class="text-xs font-bold text-gray-400 hover:text-brand-cyan transition uppercase tracking-widest flex items-center justify-center gap-2 mx-auto">
+                <button onclick="window.loadMoreWarranties()" class="text-xs font-bold text-gray-400 hover:text-brand-orange transition uppercase tracking-widest flex items-center justify-center gap-2 mx-auto">
                     <i class="fa-solid fa-circle-plus"></i> Cargar siguientes 50
                 </button>
             </div>
@@ -97,7 +97,7 @@
             <div class="p-8 border-b border-gray-100 flex justify-between items-center bg-slate-50">
                 <div>
                     <h3 class="text-2xl font-black uppercase tracking-tighter text-brand-black">Gestionar <span
-                            class="text-brand-cyan">Garantía</span></h3>
+                            class="text-brand-orange">Garantía</span></h3>
                     <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">ID Solicitud: <span
                             id="m-id">...</span></p>
                 </div>
@@ -120,7 +120,7 @@
                                 <h4 id="m-prod-name" class="font-bold text-sm text-brand-black leading-tight mb-1">...
                                 </h4>
                                 <p
-                                    class="text-xs font-mono font-bold text-brand-cyan bg-brand-cyan/10 px-2 py-0.5 rounded inline-block">
+                                    class="text-xs font-mono font-bold text-brand-orange bg-brand-orange/10 px-2 py-0.5 rounded inline-block">
                                     SN: <span id="m-sn">...</span></p>
                             </div>
                         </div>
@@ -146,7 +146,7 @@
                             </div>
 
                             <p id="m-order-id"
-                                class="text-[10px] text-brand-cyan font-bold mt-1 uppercase border-t border-gray-50 pt-2">
+                                class="text-[10px] text-brand-orange font-bold mt-1 uppercase border-t border-gray-50 pt-2">
                                 Orden: ...</p>
                         </div>
                         <div>
@@ -163,7 +163,7 @@
                         <div>
                             <p
                                 class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                                <i class="fa-solid fa-images text-brand-cyan"></i> Evidencia del Usuario
+                                <i class="fa-solid fa-images text-brand-orange"></i> Evidencia del Usuario
                             </p>
                             <div id="m-evidence-container"
                                 class="grid grid-cols-3 gap-2 bg-slate-50 p-4 rounded-2xl border border-gray-100 min-h-[100px]">
@@ -180,7 +180,7 @@
                                     <label class="block text-[9px] font-bold text-gray-400 uppercase mb-1">Componentes
                                         Recibidos (Solo para Aprobar)</label>
                                     <input type="text" id="m-received" placeholder="Ej: Equipo, Caja, Cargador..."
-                                        class="w-full bg-white border border-gray-200 rounded-xl p-3 text-xs font-bold outline-none focus:border-brand-cyan">
+                                        class="w-full bg-white border border-gray-200 rounded-xl p-3 text-xs font-bold outline-none focus:border-brand-orange">
                                 </div>
 
                                 <div>
@@ -188,15 +188,15 @@
                                         Respuesta al Cliente</label>
                                     <textarea id="m-admin-notes" rows="3"
                                         placeholder="Razón del rechazo o instrucciones..."
-                                        class="w-full bg-white border border-gray-200 rounded-xl p-3 text-xs font-medium outline-none focus:border-brand-cyan"></textarea>
+                                        class="w-full bg-white border border-gray-200 rounded-xl p-3 text-xs font-medium outline-none focus:border-brand-orange"></textarea>
                                 </div>
 
                                 <div>
-                                    <label class="block text-[9px] font-bold text-brand-cyan uppercase mb-1">
+                                    <label class="block text-[9px] font-bold text-brand-orange uppercase mb-1">
                                         <i class="fa-solid fa-file-pdf mr-1"></i> Informe Técnico (PDF)
                                     </label>
                                     <input type="file" id="m-tech-report" accept="application/pdf"
-                                        class="block w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:uppercase file:bg-brand-cyan/10 file:text-brand-cyan hover:file:bg-brand-cyan/20 cursor-pointer">
+                                        class="block w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:uppercase file:bg-brand-orange/10 file:text-brand-orange hover:file:bg-brand-orange/20 cursor-pointer">
                                     <p class="text-[8px] text-gray-400 mt-1 italic">Adjunte el dictamen técnico que
                                         justifica la aprobación o rechazo.</p>
                                 </div>
@@ -224,7 +224,7 @@
         <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl animate-in zoom-in-95">
 
             <h3 class="text-xl font-black uppercase text-brand-black mb-6 flex items-center gap-2">
-                <i class="fa-solid fa-handshake-simple text-brand-cyan"></i> Resolución del Caso
+                <i class="fa-solid fa-handshake-simple text-brand-orange"></i> Resolución del Caso
             </h3>
 
             <p class="text-xs text-gray-500 mb-6 leading-relaxed font-medium">
@@ -234,36 +234,36 @@
 
             <div class="space-y-3">
                 <label
-                    class="flex items-center gap-4 p-4 border border-gray-200 rounded-2xl cursor-pointer hover:border-brand-cyan hover:bg-cyan-50/30 transition group">
+                    class="flex items-center gap-4 p-4 border border-gray-200 rounded-2xl cursor-pointer hover:border-brand-orange hover:bg-cyan-50/30 transition group">
                     <input type="radio" name="res-type" value="REPLACEMENT"
-                        class="w-5 h-5 text-brand-cyan focus:ring-brand-cyan" checked>
+                        class="w-5 h-5 text-brand-orange focus:ring-brand-orange" checked>
                     <div>
                         <span
-                            class="block text-xs font-black uppercase text-brand-black group-hover:text-brand-cyan">Reemplazo
+                            class="block text-xs font-black uppercase text-brand-black group-hover:text-brand-orange">Reemplazo
                             de Producto</span>
                         <span class="text-[9px] font-bold text-gray-400">Descuenta 1 unidad del stock</span>
                     </div>
                 </label>
 
                 <label
-                    class="flex items-center gap-4 p-4 border border-gray-200 rounded-2xl cursor-pointer hover:border-brand-cyan hover:bg-cyan-50/30 transition group">
+                    class="flex items-center gap-4 p-4 border border-gray-200 rounded-2xl cursor-pointer hover:border-brand-orange hover:bg-cyan-50/30 transition group">
                     <input type="radio" name="res-type" value="REFUND"
-                        class="w-5 h-5 text-brand-cyan focus:ring-brand-cyan">
+                        class="w-5 h-5 text-brand-orange focus:ring-brand-orange">
                     <div>
                         <span
-                            class="block text-xs font-black uppercase text-brand-black group-hover:text-brand-cyan">Devolución
+                            class="block text-xs font-black uppercase text-brand-black group-hover:text-brand-orange">Devolución
                             de Dinero</span>
                         <span class="text-[9px] font-bold text-gray-400">No afecta inventario físico</span>
                     </div>
                 </label>
 
                 <label
-                    class="flex items-center gap-4 p-4 border border-gray-200 rounded-2xl cursor-pointer hover:border-brand-cyan hover:bg-cyan-50/30 transition group">
+                    class="flex items-center gap-4 p-4 border border-gray-200 rounded-2xl cursor-pointer hover:border-brand-orange hover:bg-cyan-50/30 transition group">
                     <input type="radio" name="res-type" value="CUSTOM"
-                        class="w-5 h-5 text-brand-cyan focus:ring-brand-cyan">
+                        class="w-5 h-5 text-brand-orange focus:ring-brand-orange">
                     <div>
                         <span
-                            class="block text-xs font-black uppercase text-brand-black group-hover:text-brand-cyan">Otra
+                            class="block text-xs font-black uppercase text-brand-black group-hover:text-brand-orange">Otra
                             Solución</span>
                         <span class="text-[9px] font-bold text-gray-400">Nota de crédito, reparación, etc.</span>
                     </div>
@@ -274,12 +274,12 @@
                 <button onclick="document.getElementById('resolution-modal').classList.add('hidden')"
                     class="flex-1 bg-slate-100 text-gray-500 py-3 rounded-xl font-black text-[10px] uppercase">Cancelar</button>
                 <button onclick="confirmResolution()"
-                    class="flex-1 bg-brand-black text-white py-3 rounded-xl font-black text-[10px] uppercase hover:bg-brand-cyan hover:text-brand-black transition shadow-lg">Confirmar</button>
+                    class="flex-1 bg-brand-black text-white py-3 rounded-xl font-black text-[10px] uppercase hover:bg-brand-orange hover:text-brand-black transition shadow-lg">Confirmar</button>
             </div>
         </div>
     </div>
-    <script type="module" src="../js/admin-warranties.js"></script>
-    <script type="module" src="../js/admin-guard.js"></script>
+    <script type="module" src="../js/admin/admin-warranties.js"></script>
+    <script type="module" src="../js/admin/admin-guard.js"></script>
 </body>
 
 </html>

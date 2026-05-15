@@ -33,21 +33,21 @@
                         Cancelar
                     </button>
 
-                    <h3 class="font-black text-sm uppercase mb-6 text-brand-cyan" id="form-title">Nueva Marca</h3>
+                    <h3 class="font-black text-sm uppercase mb-6 text-brand-orange" id="form-title">Nueva Marca</h3>
                     <form id="brand-form" class="space-y-6">
                         
                         <div class="space-y-2">
                             <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Nombre Comercial</label>
                             <input type="text" id="brand-name" placeholder="Ej: Samsung" required 
-                                   class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-brand-cyan outline-none font-bold transition">
+                                   class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-brand-orange outline-none font-bold transition">
                         </div>
                         
                         <div class="space-y-2">
                             <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Logotipo (PNG/JPG)</label>
-                            <label class="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-300 rounded-2xl cursor-pointer bg-gray-50 hover:bg-white hover:border-brand-cyan transition group relative overflow-hidden">
+                            <label class="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-300 rounded-2xl cursor-pointer bg-gray-50 hover:bg-white hover:border-brand-orange transition group relative overflow-hidden">
                                 
                                 <div class="flex flex-col items-center justify-center pt-5 pb-6 transition-opacity duration-300" id="upload-placeholder">
-                                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-gray-300 group-hover:text-brand-cyan mb-3 transition"></i>
+                                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-gray-300 group-hover:text-brand-orange mb-3 transition"></i>
                                     <p class="text-[10px] text-gray-400 font-bold uppercase">Click para subir logo</p>
                                 </div>
 
@@ -58,7 +58,7 @@
                             <p class="text-[9px] text-center text-gray-300" id="file-name-display">Recomendado: Fondo transparente</p>
                         </div>
 
-                        <button type="submit" id="btn-save" class="w-full bg-brand-black text-white font-black py-4 rounded-xl hover:bg-brand-cyan hover:text-brand-black transition uppercase text-[10px] tracking-widest shadow-lg flex items-center justify-center gap-2">
+                        <button type="submit" id="btn-save" class="w-full bg-brand-black text-white font-black py-4 rounded-xl hover:bg-brand-orange hover:text-brand-black transition uppercase text-[10px] tracking-widest shadow-lg flex items-center justify-center gap-2">
                             <i class="fa-solid fa-floppy-disk"></i> <span id="save-text">Guardar Marca</span>
                         </button>
                     </form>
@@ -70,7 +70,7 @@
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
                     <div class="p-6 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
                         <h3 class="font-black text-xs uppercase tracking-widest text-brand-black">Marcas Activas</h3>
-                        <span id="count-badge" class="bg-brand-cyan text-white text-[9px] font-bold px-2 py-1 rounded-md">0</span>
+                        <span id="count-badge" class="bg-brand-orange text-white text-[9px] font-bold px-2 py-1 rounded-md">0</span>
                     </div>
                     
                     <div id="brands-list" class="p-6 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 max-h-[700px] overflow-y-auto custom-scroll">
@@ -84,8 +84,8 @@
     </main>
 
 <script type="module">
-        import '../js/admin-guard.js'; 
-        import { loadAdminSidebar } from '../js/admin-ui.js?v=2.0.0';
+        import '../js/admin/admin-guard.js'; 
+        import { loadAdminSidebar } from '../js/admin/admin-ui.js';
         import { db, storage, collection, addDoc, updateDoc, getDoc, getDocs, doc, deleteDoc, ref, uploadBytes, getDownloadURL, query, orderBy, limit } from '../js/firebase-init.js';
 
         // 1. CARGAR SIDEBAR
@@ -188,7 +188,7 @@
                     const imageSrc = data.image || 'https://placehold.co/200x200?text=No+Logo';
 
                     const card = document.createElement('div');
-                    card.className = "group relative bg-white border border-gray-100 rounded-2xl p-4 hover:shadow-xl hover:border-brand-cyan/30 transition-all duration-300 flex flex-col items-center gap-4";
+                    card.className = "group relative bg-white border border-gray-100 rounded-2xl p-4 hover:shadow-xl hover:border-brand-orange/30 transition-all duration-300 flex flex-col items-center gap-4";
                     card.innerHTML = `
                         <div class="h-24 w-full flex items-center justify-center p-2 bg-gray-50 rounded-xl overflow-hidden group-hover:bg-white transition">
                             <img src="${imageSrc}" loading="lazy" class="max-w-full max-h-full object-contain filter grayscale group-hover:grayscale-0 transition duration-500">
@@ -278,7 +278,7 @@
                 currentImageUrl = data.image;
 
                 formTitle.textContent = `Editando: ${data.name}`;
-                formTitle.classList.remove('text-brand-cyan');
+                formTitle.classList.remove('text-brand-orange');
                 formTitle.classList.add('text-blue-500');
                 btnCancel.classList.remove('hidden');
                 saveText.textContent = "Actualizar Marca";
@@ -311,7 +311,7 @@
             currentImageUrl = null;
 
             formTitle.textContent = "Nueva Marca";
-            formTitle.classList.add('text-brand-cyan');
+            formTitle.classList.add('text-brand-orange');
             formTitle.classList.remove('text-blue-500');
             btnCancel.classList.add('hidden');
             saveText.textContent = "Guardar Marca";
@@ -325,6 +325,6 @@
         loadBrands();
 
     </script>
-    <script type="module" src="../js/admin-guard.js"></script>
+    <script type="module" src="../js/admin/admin-guard.js"></script>
 </body>
 </html>

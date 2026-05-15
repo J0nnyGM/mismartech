@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pixeltech-shell-v9.7'; // 🔥 Subimos la versión
+const CACHE_NAME = 'pixeltech-shell-v0.1'; // 🔥 Subimos la versión
 
 // Archivos vitales para que la app arranque sin internet
 const urlsToCache = [
@@ -60,8 +60,8 @@ self.addEventListener('fetch', (event) => {
   ];
 
   const alwaysFetchFiles = [
-    'admin-ui.js',
-    'admin-guard.js',
+    'admin/admin-ui.js',
+    'admin/admin-guard.js',
     'index.html' // Evita que el dashboard principal se quede atascado
   ];
 
@@ -128,7 +128,7 @@ self.addEventListener('fetch', (event) => {
 
 // --- ESCUCHAR LA ORDEN DE ACTUALIZACIÓN MANUAL ---
 self.addEventListener('message', (event) => {
-  // 🔥 AQUÍ SÍ SE EJECUTA: Solo cuando el admin-ui.js manda el mensaje al hacer clic en el botón
+  // 🔥 AQUÍ SÍ SE EJECUTA: Solo cuando el admin/admin-ui.js manda el mensaje al hacer clic en el botón
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }

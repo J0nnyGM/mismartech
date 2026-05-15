@@ -22,7 +22,7 @@
     </style>
 </head>
 
-<body class="bg-slate-50 font-sans text-brand-black flex h-screen overflow-hidden selection:bg-brand-cyan selection:text-white" style="display: none;">
+<body class="bg-slate-50 font-sans text-brand-black flex h-screen overflow-hidden selection:bg-brand-orange selection:text-white" style="display: none;">
 
     <div id="admin-sidebar"></div>
 
@@ -30,7 +30,7 @@
         <header class="bg-white/90 backdrop-blur-xl border-b border-gray-100 px-8 py-4 flex justify-between items-center sticky top-0 z-30 shadow-sm">
             <h2 class="font-black text-gray-400 text-[9px] uppercase tracking-[0.4em]">Ecosistema de Proveedores</h2>
             <div class="flex items-center gap-4">
-                <button onclick="openSupplierModal()" class="bg-brand-cyan text-brand-black px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-black hover:text-white hover:shadow-lg transition-all duration-300 flex items-center gap-2 transform active:scale-95">
+                <button onclick="openSupplierModal()" class="bg-brand-orange text-brand-black px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-black hover:text-white hover:shadow-lg transition-all duration-300 flex items-center gap-2 transform active:scale-95">
                     <i class="fa-solid fa-plus"></i>
                     <span>Nuevo Aliado</span>
                 </button>
@@ -43,7 +43,7 @@
         <div class="p-8 max-w-7xl mx-auto pb-20">
             <div class="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-10 gap-8">
                 <div>
-                    <h1 class="text-4xl lg:text-5xl font-black text-brand-black tracking-tighter uppercase leading-none mb-2">Gestión de <br><span class="text-brand-cyan">Aliados</span></h1>
+                    <h1 class="text-4xl lg:text-5xl font-black text-brand-black tracking-tighter uppercase leading-none mb-2">Gestión de <br><span class="text-brand-orange">Aliados</span></h1>
                     <p class="text-gray-400 text-xs font-bold tracking-wide">Base de datos centralizada de proveedores y compras.</p>
                 </div>
                 
@@ -60,8 +60,8 @@
             <div id="search-container" class="mb-8 fade-in">
                 <div class="relative max-w-md group">
                     <input type="text" id="search-input" placeholder="Buscar por nombre, NIT o contacto..." 
-                        class="w-full bg-white border border-gray-200 p-4 pl-12 rounded-2xl text-sm font-bold outline-none focus:border-brand-cyan focus:ring-4 focus:ring-cyan-500/10 transition-all shadow-sm group-hover:shadow-md">
-                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-hover:text-brand-cyan transition-colors"></i>
+                        class="w-full bg-white border border-gray-200 p-4 pl-12 rounded-2xl text-sm font-bold outline-none focus:border-brand-orange focus:ring-4 focus:ring-cyan-500/10 transition-all shadow-sm group-hover:shadow-md">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-hover:text-brand-orange transition-colors"></i>
                 </div>
             </div>
 
@@ -84,7 +84,7 @@
                         </table>
 
                         <div id="load-more-suppliers" class="py-6 text-center hidden border-t border-gray-100">
-                            <button onclick="window.loadMoreSuppliers()" class="text-xs font-bold text-gray-400 hover:text-brand-cyan transition uppercase tracking-widest flex items-center justify-center gap-2 mx-auto">
+                            <button onclick="window.loadMoreSuppliers()" class="text-xs font-bold text-gray-400 hover:text-brand-orange transition uppercase tracking-widest flex items-center justify-center gap-2 mx-auto">
                                 <i class="fa-solid fa-circle-plus"></i> Cargar siguientes 50
                             </button>
                         </div>
@@ -109,7 +109,7 @@
                             <tbody id="purchases-table-body" class="divide-y divide-gray-50 text-sm"></tbody>
                         </table>
                         <div id="load-more-purchases" class="py-6 text-center hidden border-t border-gray-100">
-                            <button onclick="window.loadMorePurchases()" class="text-xs font-bold text-gray-400 hover:text-brand-cyan transition uppercase tracking-widest flex items-center justify-center gap-2 mx-auto">
+                            <button onclick="window.loadMorePurchases()" class="text-xs font-bold text-gray-400 hover:text-brand-orange transition uppercase tracking-widest flex items-center justify-center gap-2 mx-auto">
                                 <i class="fa-solid fa-circle-plus"></i> Cargar siguientes 50
                             </button>
                         </div>
@@ -118,7 +118,7 @@
             </div>
 
             <div id="loading-state" class="p-20 text-center hidden">
-                <i class="fa-solid fa-circle-notch fa-spin text-4xl text-brand-cyan"></i>
+                <i class="fa-solid fa-circle-notch fa-spin text-4xl text-brand-orange"></i>
                 <p class="text-[10px] font-black uppercase text-gray-300 mt-4 tracking-widest">Cargando datos...</p>
             </div>
         </div>
@@ -128,7 +128,7 @@
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onclick="closeModal()"></div>
         <div class="relative bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-fadeIn">
             <div class="p-8 border-b border-gray-50 flex justify-between items-center bg-slate-50/50">
-                <h3 class="text-xl font-black tracking-tighter uppercase" id="modal-title">Ficha de <span class="text-brand-cyan">Aliado</span></h3>
+                <h3 class="text-xl font-black tracking-tighter uppercase" id="modal-title">Ficha de <span class="text-brand-orange">Aliado</span></h3>
                 <button onclick="closeModal()" class="w-10 h-10 rounded-full bg-white border border-gray-200 text-gray-400 hover:bg-brand-red hover:text-white hover:border-transparent transition flex items-center justify-center">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
@@ -138,43 +138,43 @@
                     <input type="hidden" id="s-id-field">
                     <div class="md:col-span-2 space-y-2">
                         <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Razón Social / Empresa</label>
-                        <input type="text" id="s-name" required class="w-full bg-slate-50 border border-gray-200 p-4 rounded-xl text-sm font-bold outline-none focus:border-brand-cyan transition-all" placeholder="Ej: Tech Distribution SAS">
+                        <input type="text" id="s-name" required class="w-full bg-slate-50 border border-gray-200 p-4 rounded-xl text-sm font-bold outline-none focus:border-brand-orange transition-all" placeholder="Ej: Tech Distribution SAS">
                     </div>
                                         <div class="space-y-2">
                         <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">NIT / ID</label>
-                        <input type="text" id="s-nit" required class="w-full bg-slate-50 border border-gray-200 p-4 rounded-xl text-sm font-bold outline-none focus:border-brand-cyan transition-all" placeholder="900.123.456-1">
+                        <input type="text" id="s-nit" required class="w-full bg-slate-50 border border-gray-200 p-4 rounded-xl text-sm font-bold outline-none focus:border-brand-orange transition-all" placeholder="900.123.456-1">
                     </div>
                     <div class="space-y-2">
                         <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Contacto Directo</label>
-                        <input type="text" id="s-contact" class="w-full bg-slate-50 border border-gray-200 p-4 rounded-xl text-sm font-bold outline-none focus:border-brand-cyan transition-all" placeholder="Nombre Asesor">
+                        <input type="text" id="s-contact" class="w-full bg-slate-50 border border-gray-200 p-4 rounded-xl text-sm font-bold outline-none focus:border-brand-orange transition-all" placeholder="Nombre Asesor">
                     </div>
                     <div class="space-y-2">
                         <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">WhatsApp / Teléfono</label>
-                        <input type="text" id="s-phone" required class="w-full bg-slate-50 border border-gray-200 p-4 rounded-xl text-sm font-bold outline-none focus:border-brand-cyan transition-all">
+                        <input type="text" id="s-phone" required class="w-full bg-slate-50 border border-gray-200 p-4 rounded-xl text-sm font-bold outline-none focus:border-brand-orange transition-all">
                     </div>
                     <div class="space-y-2">
                         <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Email Corporativo</label>
-                        <input type="email" id="s-email" class="w-full bg-slate-50 border border-gray-200 p-4 rounded-xl text-sm font-bold outline-none focus:border-brand-cyan transition-all">
+                        <input type="email" id="s-email" class="w-full bg-slate-50 border border-gray-200 p-4 rounded-xl text-sm font-bold outline-none focus:border-brand-orange transition-all">
                     </div>
                     <div class="md:col-span-2 pt-6 border-t border-gray-100 mt-2">
                         <span class="text-[9px] font-black uppercase tracking-widest text-brand-black bg-gray-100 px-3 py-1 rounded-md">Datos de Pago</span>
                     </div>
                     <div class="space-y-2">
                         <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Banco</label>
-                        <input type="text" id="s-bank" class="w-full bg-slate-50 border border-gray-200 p-4 rounded-xl text-sm font-bold outline-none focus:border-brand-cyan transition-all">
+                        <input type="text" id="s-bank" class="w-full bg-slate-50 border border-gray-200 p-4 rounded-xl text-sm font-bold outline-none focus:border-brand-orange transition-all">
                     </div>
                     <div class="space-y-2">
                         <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Tipo de Cuenta</label>
-                        <select id="s-acc-type" class="w-full bg-slate-50 border border-gray-200 p-4 rounded-xl text-sm font-bold outline-none focus:border-brand-cyan transition-all cursor-pointer">
+                        <select id="s-acc-type" class="w-full bg-slate-50 border border-gray-200 p-4 rounded-xl text-sm font-bold outline-none focus:border-brand-orange transition-all cursor-pointer">
                             <option value="Ahorros">Ahorros</option>
                             <option value="Corriente">Corriente</option>
                         </select>
                     </div>
                     <div class="md:col-span-2 space-y-2">
                         <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Número de Cuenta</label>
-                        <input type="text" id="s-acc-num" class="w-full bg-slate-50 border border-gray-200 p-4 rounded-xl text-sm font-bold outline-none focus:border-brand-cyan transition-all">
+                        <input type="text" id="s-acc-num" class="w-full bg-slate-50 border border-gray-200 p-4 rounded-xl text-sm font-bold outline-none focus:border-brand-orange transition-all">
                     </div>
-                    <button type="submit" class="md:col-span-2 mt-4 bg-brand-black text-white py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-brand-cyan hover:shadow-cyan-500/30 hover:-translate-y-1 transition-all duration-300">
+                    <button type="submit" class="md:col-span-2 mt-4 bg-brand-black text-white py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-brand-orange hover:shadow-cyan-500/30 hover:-translate-y-1 transition-all duration-300">
                         Guardar Información
                     </button>
                 </form>
@@ -184,7 +184,7 @@
 
 <script type="module">
         import { db, collection, getDocs, getDoc, addDoc, updateDoc, doc, deleteDoc, orderBy, query, limit, startAfter, onSnapshot } from '../js/firebase-init.js';
-        import { loadAdminSidebar } from '../js/admin-ui.js?v=2.0.0';
+        import { loadAdminSidebar } from '../js/admin/admin-ui.js';
 
         loadAdminSidebar();
 
@@ -355,7 +355,7 @@
                     onclick="window.location.href = 'supplier-detail.html?id=${s.id}'">
                     
                     <td class="px-8 py-5">
-                        <p class="font-black text-brand-black text-sm uppercase tracking-tight group-hover:text-brand-cyan transition-colors">${s.name}</p>
+                        <p class="font-black text-brand-black text-sm uppercase tracking-tight group-hover:text-brand-orange transition-colors">${s.name}</p>
                         <span class="text-[9px] font-bold text-gray-400 bg-gray-50 px-2 py-0.5 rounded uppercase tracking-wider inline-block mt-1">NIT: ${s.nit || '---'}</span>
                     </td>
                     
@@ -380,12 +380,12 @@
                     </td>
                     
                     <td class="px-8 py-5 text-center">
-                        <span class="bg-brand-cyan/10 text-brand-cyan px-3 py-1 rounded-lg text-xs font-black border border-brand-cyan/20">${s.ordersCount || 0}</span>
+                        <span class="bg-brand-orange/10 text-brand-orange px-3 py-1 rounded-lg text-xs font-black border border-brand-orange/20">${s.ordersCount || 0}</span>
                     </td>
                     
                     <td class="px-8 py-5 text-center">
                         <div class="flex items-center justify-center gap-2" onclick="event.stopPropagation()">
-                            <button onclick="openSupplierModal('${s.id}')" class="w-9 h-9 rounded-xl border border-gray-200 text-gray-400 hover:bg-brand-cyan hover:text-brand-black hover:border-transparent transition flex items-center justify-center shadow-sm">
+                            <button onclick="openSupplierModal('${s.id}')" class="w-9 h-9 rounded-xl border border-gray-200 text-gray-400 hover:bg-brand-orange hover:text-brand-black hover:border-transparent transition flex items-center justify-center shadow-sm">
                                 <i class="fa-solid fa-pen text-xs"></i>
                             </button>
                             <button onclick="deleteSupplier('${s.id}')" class="w-9 h-9 rounded-xl border border-gray-200 text-gray-400 hover:bg-brand-red hover:text-white hover:border-transparent transition flex items-center justify-center shadow-sm">
@@ -452,7 +452,7 @@
                                 <p class="font-bold text-brand-black text-xs">${p.createdAt?.toDate().toLocaleDateString()}</p>
                                 <p class="font-mono text-[9px] text-gray-400 uppercase">ID: ${d.id.slice(0,6)}</p>
                             </td>
-                            <td class="px-8 py-6 font-black text-brand-black text-xs uppercase tracking-wide group-hover:text-brand-cyan transition-colors">${p.supplierName}</td>
+                            <td class="px-8 py-6 font-black text-brand-black text-xs uppercase tracking-wide group-hover:text-brand-orange transition-colors">${p.supplierName}</td>
                             <td class="px-8 py-6 text-[10px] text-gray-500 font-bold uppercase truncate max-w-[200px]">${itemsSummary}</td>
                             <td class="px-8 py-6 text-right font-black text-brand-black text-sm">$${(p.totalCost || 0).toLocaleString('es-CO')}</td>
                             <td class="px-8 py-6 text-center">
@@ -510,7 +510,7 @@
         window.openSupplierModal = async (id = null) => {
             supplierForm.reset();
             document.getElementById('s-id-field').value = id || "";
-            document.getElementById('modal-title').innerHTML = id ? `Editar <span class="text-brand-cyan">Aliado</span>` : `Nuevo <span class="text-brand-cyan">Aliado</span>`;
+            document.getElementById('modal-title').innerHTML = id ? `Editar <span class="text-brand-orange">Aliado</span>` : `Nuevo <span class="text-brand-orange">Aliado</span>`;
             
             if (id) {
                 // Leemos del caché en RAM (0 lecturas, instantáneo)
@@ -584,6 +584,6 @@
         // Init
         initSmartSuppliersList();
     </script>
-    <script type="module" src="../js/admin-guard.js"></script>
+    <script type="module" src="../js/admin/admin-guard.js"></script>
 </body>
 </html>

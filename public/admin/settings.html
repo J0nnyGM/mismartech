@@ -95,7 +95,7 @@
 
     <script type="module">
         import { auth, onAuthStateChanged } from '../js/firebase-init.js';
-        import { loadAdminSidebar } from '../js/admin-ui.js?v=2.0.0';
+        import { loadAdminSidebar } from '../js/admin/admin-ui.js';
 
         document.addEventListener('DOMContentLoaded', () => loadAdminSidebar());
 
@@ -103,6 +103,6 @@
             if (!user) window.location.href = '/auth/login.html';
         });
     </script>
-    <script type="module" src="../js/admin-guard.js"></script>
+    <script type="module" src="../js/admin/admin-guard.js"></script>
 </body>
 </html>

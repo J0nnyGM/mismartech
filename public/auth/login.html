@@ -29,18 +29,18 @@
                     <form id="login-form" class="space-y-6">
                         <div>
                             <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Correo Electrónico <span class="text-red-500">*</span></label>
-                            <input type="email" id="email" required class="w-full bg-gray-50 border border-gray-200 text-brand-black text-sm p-4 outline-none focus:border-brand-cyan focus:ring-1 focus:ring-brand-cyan transition-all placeholder-gray-400 font-medium">
+                            <input type="email" id="email" required class="w-full bg-gray-50 border border-gray-200 text-brand-black text-sm p-4 outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition-all placeholder-gray-400 font-medium">
                         </div>
 
                         <div>
                             <div class="flex justify-between items-center mb-2">
                                 <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Contraseña <span class="text-red-500">*</span></label>
-                                <a href="#" id="forgot-password" class="text-[10px] font-bold text-gray-400 hover:text-brand-cyan transition">¿Olvidaste tu contraseña?</a>                            </div>
-                            <input type="password" id="password" required class="w-full bg-gray-50 border border-gray-200 text-brand-black text-sm p-4 outline-none focus:border-brand-cyan focus:ring-1 focus:ring-brand-cyan transition-all placeholder-gray-400 font-medium">
+                                <a href="#" id="forgot-password" class="text-[10px] font-bold text-gray-400 hover:text-brand-orange transition">¿Olvidaste tu contraseña?</a>                            </div>
+                            <input type="password" id="password" required class="w-full bg-gray-50 border border-gray-200 text-brand-black text-sm p-4 outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition-all placeholder-gray-400 font-medium">
                         </div>
 
                         <div class="flex flex-col gap-4 pt-2">
-                            <button type="submit" class="bg-brand-black text-white px-10 py-4 font-black text-xs uppercase tracking-[0.2em] hover:bg-brand-cyan hover:text-brand-black transition-all duration-300 shadow-lg hover:shadow-cyan-500/20 w-full md:w-auto text-center">
+                            <button type="submit" class="bg-brand-black text-white px-10 py-4 font-black text-xs uppercase tracking-[0.2em] hover:bg-brand-orange hover:text-brand-black transition-all duration-300 shadow-lg hover:shadow-cyan-500/20 w-full md:w-auto text-center">
                                 Iniciar Sesión
                             </button>
                             
@@ -57,7 +57,7 @@
                     <p class="text-sm text-gray-500 mb-6 leading-relaxed">
                         Crear una cuenta tiene muchos beneficios: pago más rápido, guardar más de una dirección, seguimiento de pedidos y más.
                     </p>
-                    <a href="/auth/register.html" class="inline-block bg-brand-cyan text-brand-black px-10 py-4 font-black text-xs uppercase tracking-[0.2em] hover:bg-black hover:text-white transition-all duration-300 shadow-lg hover:shadow-xl">
+                    <a href="/auth/register.html" class="inline-block bg-brand-orange text-brand-black px-10 py-4 font-black text-xs uppercase tracking-[0.2em] hover:bg-black hover:text-white transition-all duration-300 shadow-lg hover:shadow-xl">
                         Crear una Cuenta
                     </a>
                 </div>
@@ -68,9 +68,9 @@
     <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php'; ?>
 
     <script type="module">
-        import { loadGlobalHeader, loadGlobalFooter } from '../js/global-components.js?v=2.0';        loadGlobalHeader();
+        import { loadGlobalHeader, loadGlobalFooter } from '../js/global-components.js';        loadGlobalHeader();
         loadGlobalFooter();
     </script>
-    <script type="module" src="../js/auth-logic.js"></script>
+    <script type="module" src="../js/shop/auth-logic.js"></script>
 </body>
 </html>

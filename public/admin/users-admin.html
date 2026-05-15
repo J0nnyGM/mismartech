@@ -14,15 +14,15 @@
     <main class="flex-grow overflow-y-auto custom-scroll relative">
         <header class="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center sticky top-0 z-10 shadow-sm">
             <div>
-                <h1 class="text-2xl font-black uppercase tracking-tighter">Personal de <span class="text-brand-cyan">PixelTech</span></h1>
+                <h1 class="text-2xl font-black uppercase tracking-tighter">Personal de <span class="text-brand-orange">PixelTech</span></h1>
                 <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Super Administrador</p>
             </div>
             <div class="flex items-center gap-4">
                 <div class="relative">
-                    <input type="text" id="search-staff" placeholder="Buscar empleado..." class="w-64 bg-slate-50 border border-gray-200 py-2.5 pl-10 pr-4 rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-brand-cyan transition">
+                    <input type="text" id="search-staff" placeholder="Buscar empleado..." class="w-64 bg-slate-50 border border-gray-200 py-2.5 pl-10 pr-4 rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-brand-orange transition">
                     <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
                 </div>
-                <button id="btn-open-add-modal" class="bg-brand-black text-white px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-cyan hover:text-brand-black transition shadow-lg flex items-center gap-2">
+                <button id="btn-open-add-modal" class="bg-brand-black text-white px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-orange hover:text-brand-black transition shadow-lg flex items-center gap-2">
                     <i class="fa-solid fa-user-plus"></i> Añadir Empleado
                 </button>
             </div>
@@ -41,7 +41,7 @@
                         </tr>
                     </thead>
                     <tbody id="staff-table-body" class="divide-y divide-gray-50 text-sm">
-                        <tr><td colspan="5" class="p-10 text-center"><i class="fa-solid fa-circle-notch fa-spin text-brand-cyan text-2xl"></i></td></tr>
+                        <tr><td colspan="5" class="p-10 text-center"><i class="fa-solid fa-circle-notch fa-spin text-brand-orange text-2xl"></i></td></tr>
                     </tbody>
                 </table>
             </div>
@@ -52,7 +52,7 @@
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onclick="document.getElementById('add-staff-modal').classList.add('hidden')"></div>
         <div class="relative bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300 max-h-[90vh] flex flex-col">
             <div class="p-8 border-b border-gray-50 flex justify-between items-center bg-slate-50/50 shrink-0">
-                <h3 class="font-black text-xl uppercase tracking-tighter">Seleccionar <span class="text-brand-cyan">Usuario</span></h3>
+                <h3 class="font-black text-xl uppercase tracking-tighter">Seleccionar <span class="text-brand-orange">Usuario</span></h3>
                 <button onclick="document.getElementById('add-staff-modal').classList.add('hidden')" class="w-10 h-10 rounded-full bg-white border border-gray-200 text-gray-400 hover:text-brand-red transition flex items-center justify-center"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             
@@ -63,7 +63,7 @@
                 </div>
 
                 <div class="relative mb-4 shrink-0">
-                    <input type="text" id="search-all-users" placeholder="Escribe el nombre o correo del cliente a ascender..." class="w-full bg-white border border-gray-200 py-4 pl-12 pr-4 rounded-2xl text-xs font-bold outline-none focus:ring-2 focus:ring-brand-cyan/20 transition">
+                    <input type="text" id="search-all-users" placeholder="Escribe el nombre o correo del cliente a ascender..." class="w-full bg-white border border-gray-200 py-4 pl-12 pr-4 rounded-2xl text-xs font-bold outline-none focus:ring-2 focus:ring-brand-orange/20 transition">
                     <i class="fa-solid fa-magnifying-glass absolute left-5 top-1/2 -translate-y-1/2 text-gray-400"></i>
                 </div>
 
@@ -77,10 +77,10 @@
     </div>
 
     <script type="module">
-        import { loadAdminSidebar } from '../js/admin-ui.js?v=2.0.0';
+        import { loadAdminSidebar } from '../js/admin/admin-ui.js';
         loadAdminSidebar();
     </script>
-    <script type="module" src="../js/admin-guard.js"></script>
-    <script type="module" src="../js/users-admin.js"></script>
+    <script type="module" src="../js/admin/admin-guard.js"></script>
+    <script type="module" src="../js/admin/users-admin.js"></script>
 </body>
 </html>

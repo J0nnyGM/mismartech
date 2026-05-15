@@ -39,7 +39,7 @@
             border-color: #fee2e2; /* borde rojizo suave */
         }
     </style>
-    <link rel="modulepreload" href="js/firebase-init.js">
+    <link rel="modulepreload" href="../js/firebase-init.js">
     <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js">
     <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js">
     <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js">
@@ -54,11 +54,11 @@
     <main class="container mx-auto px-6 py-12 min-h-[70vh]">
         
         <div class="flex items-center justify-between mb-16">
-            <a href="/index.html" class="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-brand-cyan transition">
+            <a href="/index.html" class="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-brand-orange transition">
                 <i class="fa-solid fa-arrow-left-long"></i> Seguir Explorando
             </a>
             <div class="hidden md:flex items-center gap-6">
-                <span class="text-[10px] font-black text-brand-black uppercase tracking-widest underline decoration-brand-cyan decoration-2 underline-offset-8">01 Carrito</span>
+                <span class="text-[10px] font-black text-brand-black uppercase tracking-widest underline decoration-brand-orange decoration-2 underline-offset-8">01 Carrito</span>
                 <div class="w-8 h-px bg-gray-300"></div>
                 <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">02 Envío</span>
                 <div class="w-8 h-px bg-gray-300"></div>
@@ -99,7 +99,7 @@
                         <div id="shipping-row" class="flex flex-col gap-1">
                             <div class="flex justify-between text-gray-600 font-bold text-[11px] uppercase tracking-wide">
                                 <span>Envío Estimado</span>
-                                <span id="shipping-cost-display" class="text-brand-cyan bg-cyan-50 px-2 py-0.5 rounded text-[10px]">Por Confirmar</span>
+                                <span id="shipping-cost-display" class="text-brand-orange bg-cyan-50 px-2 py-0.5 rounded text-[10px]">Por Confirmar</span>
                             </div>
                             <div id="shipping-address-feedback" class="text-right"></div>
                             
@@ -112,10 +112,10 @@
                             <p id="free-shipping-msg" class="text-[10px] font-bold text-gray-500 uppercase tracking-wide">
                                 Faltan <span class="text-brand-black font-black">$50.000</span> para envío gratis
                             </p>
-                            <i class="fa-solid fa-truck-fast text-brand-cyan text-sm animate-bounce"></i>
+                            <i class="fa-solid fa-truck-fast text-brand-orange text-sm animate-bounce"></i>
                         </div>
                         <div class="w-full bg-gray-100 rounded-full h-3 overflow-hidden border border-gray-200">
-                            <div id="free-shipping-bar" class="h-full bg-brand-cyan progress-striped transition-all duration-700 ease-out w-0"></div>
+                            <div id="free-shipping-bar" class="h-full bg-brand-orange progress-striped transition-all duration-700 ease-out w-0"></div>
                         </div>
                     </div>
                     <div class="flex flex-col items-end mb-10 border-t-2 border-dashed border-gray-200 pt-8">
@@ -124,7 +124,7 @@
                         <p class="text-[9px] font-bold text-gray-400 mt-2 uppercase tracking-wide">Impuestos incluidos</p>
                     </div>
 
-                    <button id="btn-checkout" class="w-full bg-brand-black text-white font-black py-5 rounded-2xl shadow-xl hover:bg-brand-cyan hover:text-brand-black transition-all duration-300 transform hover:-translate-y-1 uppercase text-xs tracking-[0.25em] flex items-center justify-center gap-4 group">
+                    <button id="btn-checkout" class="w-full bg-brand-black text-white font-black py-5 rounded-2xl shadow-xl hover:bg-brand-orange hover:text-brand-black transition-all duration-300 transform hover:-translate-y-1 uppercase text-xs tracking-[0.25em] flex items-center justify-center gap-4 group">
                         Proceder al Pago 
                         <div class="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center group-hover:bg-brand-black group-hover:text-white transition">
                             <i class="fa-solid fa-chevron-right text-[10px]"></i>
@@ -150,7 +150,7 @@
                 <i class="fa-solid fa-cart-shopping text-4xl"></i>
             </div>
             <h3 class="font-black text-sm uppercase tracking-widest text-gray-500 mb-8">Tu carrito está vacío</h3>
-            <a href="/catalog.html" class="inline-block bg-brand-black text-white px-12 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-brand-cyan hover:text-brand-black transition-all shadow-xl">
+            <a href="/catalog.html" class="inline-block bg-brand-black text-white px-12 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-brand-orange hover:text-brand-black transition-all shadow-xl">
                 Ir al Catálogo
             </a>
         </div>
@@ -160,9 +160,9 @@
     <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php'; ?>
 
 <script type="module">
-    import { getCart, updateQuantity, removeFromCart, getCartTotal, updateCartCount } from '../js/cart.js';
+    import { getCart, updateQuantity, removeFromCart, getCartTotal, updateCartCount } from '../js/shop/cart.js';
     import { auth, db, doc, getDoc, onAuthStateChanged, collection, query, where, documentId, getDocs } from '../js/firebase-init.js'; 
-    import { loadGlobalHeader, loadGlobalFooter } from '../js/global-components.js?v=2.0';
+    import { loadGlobalHeader, loadGlobalFooter } from '../js/global-components.js';
 
     // Cargar componentes globales
     loadGlobalHeader();
@@ -366,10 +366,10 @@
         if (remaining > 0) {
             shippingMsg.innerHTML = `Faltan <span class="text-brand-black font-black">$${remaining.toLocaleString('es-CO')}</span> para envío gratis`;
             shippingBar.classList.remove('bg-emerald-500');
-            shippingBar.classList.add('bg-brand-cyan', 'progress-striped');
+            shippingBar.classList.add('bg-brand-orange', 'progress-striped');
         } else {
             shippingMsg.innerHTML = `<span class="text-emerald-600 font-black flex items-center gap-2"><i class="fa-solid fa-check-circle"></i> ¡Tienes Envío Gratis!</span>`;
-            shippingBar.classList.remove('bg-brand-cyan', 'progress-striped');
+            shippingBar.classList.remove('bg-brand-orange', 'progress-striped');
             shippingBar.classList.add('bg-emerald-500'); 
         }
     }
@@ -420,7 +420,7 @@
             } else {
                 shippingDisplay.textContent = `$${cost.toLocaleString('es-CO')}`;
             }
-            addressFeedback.innerHTML = `<p class="text-[9px] font-bold text-gray-500 mt-1"><i class="fa-solid fa-location-dot text-brand-cyan mr-1"></i> ${userAddr.address}, ${userAddr.city}</p>`;
+            addressFeedback.innerHTML = `<p class="text-[9px] font-bold text-gray-500 mt-1"><i class="fa-solid fa-location-dot text-brand-orange mr-1"></i> ${userAddr.address}, ${userAddr.city}</p>`;
             updateTotalUI();
 
         } catch (e) { console.error("Error estimando envío:", e); }
@@ -458,12 +458,12 @@
                         }
                     </div>
                     <div class="min-w-0 flex-grow">
-                        <h3 class="font-black text-sm text-brand-black uppercase tracking-tight mb-2 leading-tight cursor-pointer hover:text-brand-cyan transition truncate" onclick="${isOutOfStock ? '' : `window.location.href='/shop/product.html?id=${item.id}'`}">
+                        <h3 class="font-black text-sm text-brand-black uppercase tracking-tight mb-2 leading-tight cursor-pointer hover:text-brand-orange transition truncate" onclick="${isOutOfStock ? '' : `window.location.href='/shop/product.html?id=${item.id}'`}">
                             ${item.name}
                         </h3>
                         <div class="flex flex-wrap gap-2 mb-3">
                             ${item.color ? `<span class="text-[9px] font-bold text-gray-600 bg-gray-100 px-2 py-1 rounded-lg uppercase border border-gray-200">${item.color}</span>` : ''}
-                            ${item.capacity ? `<span class="text-[9px] font-bold text-brand-cyan bg-cyan-50 px-2 py-1 rounded-lg uppercase border border-cyan-100">${item.capacity}</span>` : ''}
+                            ${item.capacity ? `<span class="text-[9px] font-bold text-brand-orange bg-cyan-50 px-2 py-1 rounded-lg uppercase border border-cyan-100">${item.capacity}</span>` : ''}
                         </div>
                         <button onclick="window.removeItem('${item.cartId}')" class="relative z-30 group flex items-center gap-2 text-[9px] font-bold text-red-400 hover:text-red-600 transition uppercase tracking-wider cursor-pointer">
                             <div class="w-6 h-6 rounded-full bg-red-50 group-hover:bg-red-100 flex items-center justify-center transition"><i class="fa-solid fa-trash-can"></i></div>

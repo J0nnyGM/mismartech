@@ -33,15 +33,15 @@
                         Cancelar
                     </button>
 
-                    <h3 class="font-black text-sm uppercase mb-4 text-brand-cyan" id="form-title">1. Categoría Principal</h3>
+                    <h3 class="font-black text-sm uppercase mb-4 text-brand-orange" id="form-title">1. Categoría Principal</h3>
                     <form id="cat-form" class="space-y-4">
                         <input type="text" id="cat-name" placeholder="Nombre Principal (Ej: Computación)" required 
-                               class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-cyan outline-none font-bold">
+                               class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-orange outline-none font-bold">
                         
                         <label class="flex items-center gap-4 cursor-pointer group">
-                            <div class="w-20 h-20 bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center group-hover:border-brand-cyan transition overflow-hidden relative">
+                            <div class="w-20 h-20 bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center group-hover:border-brand-orange transition overflow-hidden relative">
                                 <img id="main-preview" class="absolute inset-0 w-full h-full object-cover hidden">
-                                <i class="fa-solid fa-image text-gray-400 group-hover:text-brand-cyan z-10"></i>
+                                <i class="fa-solid fa-image text-gray-400 group-hover:text-brand-orange z-10"></i>
                             </div>
                             <div class="flex-1">
                                 <span class="text-xs font-bold text-gray-500 block uppercase">Portada Principal</span>
@@ -57,15 +57,15 @@
                         Editando Item
                     </div>
 
-                    <h3 class="font-black text-sm uppercase mb-4 text-brand-cyan">2. Gestionar Subcategorías</h3>
+                    <h3 class="font-black text-sm uppercase mb-4 text-brand-orange">2. Gestionar Subcategorías</h3>
                     <div class="space-y-4">
                         <input type="text" id="sub-name" placeholder="Nombre Subcategoría (Ej: Portátiles)" 
-                               class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-cyan outline-none">
+                               class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-orange outline-none">
                         
                         <label class="flex items-center gap-4 cursor-pointer group">
-                            <div class="w-16 h-16 bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center group-hover:border-brand-cyan transition overflow-hidden relative">
+                            <div class="w-16 h-16 bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center group-hover:border-brand-orange transition overflow-hidden relative">
                                 <img id="sub-preview" class="absolute inset-0 w-full h-full object-cover hidden">
-                                <i class="fa-solid fa-plus text-gray-400 group-hover:text-brand-cyan z-10"></i>
+                                <i class="fa-solid fa-plus text-gray-400 group-hover:text-brand-orange z-10"></i>
                             </div>
                             <div class="flex-1">
                                 <span class="text-xs font-bold text-gray-500 block uppercase">Foto Subcategoría</span>
@@ -85,7 +85,7 @@
                     </div>
                 </div>
 
-                <button onclick="saveFullCategory()" id="btn-save-all" class="w-full bg-brand-black text-white font-black py-4 rounded-xl hover:bg-brand-cyan hover:text-brand-black transition uppercase text-[10px] tracking-widest shadow-lg flex items-center justify-center gap-2">
+                <button onclick="saveFullCategory()" id="btn-save-all" class="w-full bg-brand-black text-white font-black py-4 rounded-xl hover:bg-brand-orange hover:text-brand-black transition uppercase text-[10px] tracking-widest shadow-lg flex items-center justify-center gap-2">
                     <i class="fa-solid fa-cloud-arrow-up"></i> <span id="save-btn-text">Guardar Categoría Completa</span>
                 </button>
 
@@ -115,8 +115,8 @@
     </main>
 
 <script type="module">
-    import '../js/admin-guard.js'; 
-    import { loadAdminSidebar } from '../js/admin-ui.js?v=2.0.0';
+    import '../js/admin/admin-guard.js'; 
+    import { loadAdminSidebar } from '../js/admin/admin-ui.js';
     import { db, storage, collection, addDoc, updateDoc, getDoc, getDocs, doc, deleteDoc, ref, uploadBytes, getDownloadURL, query, orderBy, limit } from '../js/firebase-init.js';
 
     loadAdminSidebar();
@@ -421,7 +421,7 @@
             currentMainImageUrl = data.image;
 
             formTitle.textContent = `Editando: ${data.name}`;
-            formTitle.classList.remove('text-brand-cyan');
+            formTitle.classList.remove('text-brand-orange');
             formTitle.classList.add('text-blue-500');
             
             btnCancel.classList.remove('hidden');
@@ -459,7 +459,7 @@
         document.getElementById('cat-form').reset();
         
         formTitle.textContent = "1. Categoría Principal";
-        formTitle.classList.add('text-brand-cyan');
+        formTitle.classList.add('text-brand-orange');
         formTitle.classList.remove('text-blue-500');
         
         btnCancel.classList.add('hidden');
@@ -486,7 +486,7 @@
 </script>
 
 
-<script type="module" src="../js/admin-guard.js"></script>
+<script type="module" src="../js/admin/admin-guard.js"></script>
 
 </body>
 </html>

@@ -100,14 +100,14 @@
     <main class="container mx-auto px-6 py-12">
         <div class="flex items-center justify-between mb-12">
             <a href="cart.html"
-                class="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-cyan transition">
+                class="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-orange transition">
                 <i class="fa-solid fa-arrow-left-long"></i> Volver al Carrito
             </a>
             <div class="hidden md:flex items-center gap-4">
                 <span class="text-[10px] font-black text-gray-300 uppercase tracking-widest">01 Carrito</span>
                 <div class="w-8 h-px bg-gray-200"></div>
                 <span
-                    class="text-[10px] font-black text-brand-black uppercase tracking-widest underline decoration-brand-cyan decoration-2 underline-offset-8">02
+                    class="text-[10px] font-black text-brand-black uppercase tracking-widest underline decoration-brand-orange decoration-2 underline-offset-8">02
                     Datos de Envío</span>
                 <div class="w-8 h-px bg-gray-200"></div>
                 <span class="text-[10px] font-black text-gray-300 uppercase tracking-widest">03 Confirmación</span>
@@ -129,18 +129,18 @@
                     <div
                         class="space-y-6 bg-slate-50 p-6 rounded-[2rem] border border-gray-100 relative overflow-hidden">
                         <div
-                            class="absolute top-0 right-0 w-32 h-32 bg-brand-cyan/5 rounded-bl-[100%] -z-0 pointer-events-none">
+                            class="absolute top-0 right-0 w-32 h-32 bg-brand-orange/5 rounded-bl-[100%] -z-0 pointer-events-none">
                         </div>
 
                         <div
                             class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4 relative z-10">
                             <div class="flex items-center gap-2">
-                                <i class="fa-solid fa-map-location-dot text-brand-cyan"></i>
+                                <i class="fa-solid fa-map-location-dot text-brand-orange"></i>
                                 <span class="text-[10px] font-black uppercase tracking-widest text-gray-400">Datos de
                                     Envío</span>
                             </div>
                             <select id="saved-addresses-select"
-                                class="w-full md:w-auto text-[9px] font-black uppercase bg-white border border-gray-200 px-3 py-2 rounded-xl text-brand-cyan outline-none cursor-pointer hover:border-brand-cyan transition shadow-sm">
+                                class="w-full md:w-auto text-[9px] font-black uppercase bg-white border border-gray-200 px-3 py-2 rounded-xl text-brand-orange outline-none cursor-pointer hover:border-brand-orange transition shadow-sm">
                                 <option value="">-- Mis Direcciones Guardadas --</option>
                             </select>
                         </div>
@@ -203,7 +203,7 @@
                                 <i class="fa-solid fa-check text-white text-xs opacity-0 peer-checked:opacity-100"></i>
                             </div>
                             <span
-                                class="text-[10px] font-black uppercase tracking-widest text-gray-400 peer-checked:text-brand-cyan transition">Guardar
+                                class="text-[10px] font-black uppercase tracking-widest text-gray-400 peer-checked:text-brand-orange transition">Guardar
                                 esta dirección para futuros pedidos</span>
                         </label>
                     </div>
@@ -216,7 +216,7 @@
                                 <i class="fa-solid fa-check text-white text-xs opacity-0 peer-checked:opacity-100"></i>
                             </div>
                             <span
-                                class="text-[10px] font-black uppercase tracking-widest text-gray-500 group-hover:text-brand-cyan transition">¿Necesitas
+                                class="text-[10px] font-black uppercase tracking-widest text-gray-500 group-hover:text-brand-orange transition">¿Necesitas
                                 Factura Electrónica a Empresa?</span>
                         </label>
 
@@ -300,7 +300,7 @@
                                                             237-000046-12</p>
                                                         <button type="button"
                                                             onclick="copyToClipboard('23700004612', this)"
-                                                            class="bg-brand-black text-white px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase hover:bg-brand-cyan transition shadow-sm flex items-center gap-1">
+                                                            class="bg-brand-black text-white px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase hover:bg-brand-orange transition shadow-sm flex items-center gap-1">
                                                             <i class="fa-regular fa-copy"></i> Copiar
                                                         </button>
                                                     </div>
@@ -321,7 +321,7 @@
                                                             3003729020</p>
                                                         <button type="button"
                                                             onclick="copyToClipboard('3003729020', this)"
-                                                            class="bg-brand-black text-white px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase hover:bg-brand-cyan transition shadow-sm flex items-center gap-1">
+                                                            class="bg-brand-black text-white px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase hover:bg-brand-orange transition shadow-sm flex items-center gap-1">
                                                             <i class="fa-regular fa-copy"></i> Copiar
                                                         </button>
                                                     </div>
@@ -510,7 +510,7 @@
                         <div class="flex justify-between items-center">
                             <span class="text-xs font-bold text-gray-500 uppercase tracking-wide">Costo de Envío</span>
                             <span id="check-shipping"
-                                class="text-lg font-black text-brand-cyan uppercase tracking-tight">--</span>
+                                class="text-lg font-black text-brand-orange uppercase tracking-tight">--</span>
                         </div>
 
                         <div id="dispatch-time-msg"
@@ -586,10 +586,10 @@
     </script>
 
     <script type="module">
-        import { loadGlobalHeader, loadGlobalFooter } from '../js/global-components.js?v=2.0';        loadGlobalHeader();
+        import { loadGlobalHeader, loadGlobalFooter } from '../js/global-components.js';        loadGlobalHeader();
         loadGlobalFooter();
     </script>
-    <script type="module" src="../js/checkout.js"></script>
+    <script type="module" src="../js/shop/checkout.js"></script>
 </body>
 
 </html>

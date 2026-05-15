@@ -191,19 +191,137 @@
     <div id="order-modal" class="fixed inset-0 z-[70] hidden flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onclick="document.getElementById('order-modal').classList.add('hidden')"></div>
         <div class="relative bg-white w-full max-w-5xl rounded-[2.5rem] shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-fadeIn">
-            <div class="p-10 text-center"><i class="fa-solid fa-spinner fa-spin text-2xl text-brand-cyan"></i></div>
+            
+            <div class="p-6 md:p-8 border-b border-gray-50 flex justify-between items-center bg-slate-50/50 shrink-0">
+                <div class="flex items-center gap-4 md:gap-6">
+                    <div id="modal-source-icon" class="w-12 h-12 md:w-16 md:h-16 bg-white rounded-2xl flex items-center justify-center text-xl md:text-2xl shadow-sm border border-gray-100"></div>
+                    <div>
+                        <div class="flex items-center gap-3">
+                            <h3 class="text-xl md:text-3xl font-black tracking-tighter uppercase text-brand-black" id="modal-order-id">#ORDEN</h3>
+                            <span id="modal-order-status-badge">...</span>
+                        </div>
+                        <p id="modal-order-date" class="text-[9px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">...</p>
+                    </div>
+                </div>
+                <button class="w-10 h-10 rounded-full bg-white border border-gray-200 text-brand-black hover:bg-brand-red hover:text-white transition flex items-center justify-center shrink-0" onclick="document.getElementById('order-modal').classList.add('hidden')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="p-6 md:p-8 overflow-y-auto custom-scroll space-y-8 bg-white flex-grow">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    
+                    <div class="lg:col-span-1 space-y-6">
+                        <div id="modal-payment-info" class="hidden bg-white border border-gray-100 p-6 rounded-[2rem] shadow-sm animate-fadeIn"></div>
+
+                        <div class="bg-white border border-gray-100 p-6 rounded-[2rem] shadow-sm">
+                            <h4 class="text-[9px] font-black uppercase tracking-[0.2em] text-brand-black mb-4 flex items-center gap-2"><i class="fa-solid fa-user-tag text-brand-cyan"></i> Cliente</h4>
+                            <p id="modal-client-name" class="font-black text-brand-black uppercase text-sm mb-1">...</p>
+                            <p id="modal-client-doc" class="text-[10px] font-bold text-gray-500 uppercase mb-1">...</p>
+                            <p id="modal-client-contact" class="text-xs text-brand-black font-bold break-all">...</p>
+                        </div>
+                        
+                        <div class="bg-white border border-gray-100 p-6 rounded-[2rem] shadow-sm">
+                            <h4 class="text-[9px] font-black uppercase tracking-[0.2em] text-brand-black mb-4 flex items-center gap-2"><i class="fa-solid fa-map-location-dot text-brand-cyan"></i> Envío</h4>
+                            <p id="modal-delivery-address" class="text-xs font-bold text-brand-black mb-1">...</p>
+                            <p id="modal-delivery-city" class="text-[10px] text-gray-500 font-black uppercase">...</p>
+                            
+                            <div id="modal-tracking-info" class="mt-4 p-4 bg-brand-cyan/5 rounded-xl border border-brand-cyan/20 hidden animate-fadeIn">
+                                <p class="text-[9px] font-black text-brand-cyan uppercase tracking-widest mb-1">Datos de Despacho</p>
+                                <p class="text-xs font-bold text-brand-black uppercase"><i class="fa-solid fa-truck-fast mr-1 text-gray-400"></i> <span id="modal-carrier"></span></p>
+                                <p class="text-[10px] font-mono font-bold text-gray-500 mt-1">Guía: <span id="modal-tracking-number" class="select-all text-brand-black"></span></p>
+                            </div>
+
+                            <div id="modal-order-notes" class="mt-4 p-4 bg-yellow-50 rounded-xl text-[10px] text-yellow-900 font-bold border border-yellow-100 hidden"><i class="fa-regular fa-note-sticky mr-1"></i> <span id="note-text"></span></div>
+                        </div>
+
+                        <div id="modal-billing-section" class="hidden bg-brand-cyan/5 border border-brand-cyan/10 p-6 rounded-[2rem]">
+                            <h4 class="text-[9px] font-black uppercase tracking-[0.2em] text-brand-cyan mb-4 flex items-center gap-2"><i class="fa-solid fa-file-invoice-dollar"></i> Facturación</h4>
+                            <div class="space-y-2 text-xs font-bold text-brand-black">
+                                <p id="bill-modal-name">--</p>
+                                <p id="bill-modal-id">--</p>
+                                <p id="bill-modal-email" class="break-all text-[10px]">--</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="lg:col-span-2">
+                        <h4 class="text-[9px] font-black uppercase tracking-[0.2em] text-brand-black mb-4 flex items-center gap-2"><i class="fa-solid fa-boxes-packing text-brand-cyan"></i> Picking List & Seriales</h4>
+                        <div class="bg-slate-50 rounded-[2rem] border border-gray-100 overflow-hidden" id="modal-items-list-responsive"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-6 md:p-8 bg-slate-50 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-6 shrink-0">
+                <div class="flex gap-4 md:gap-10 text-right md:text-left w-full md:w-auto justify-between md:justify-start">
+                    <div>
+                        <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Subtotal</p>
+                        <p id="modal-order-subtotal" class="text-sm font-bold text-brand-black">---</p>
+                    </div>
+                    <div>
+                        <p class="text-[9px] font-black text-brand-cyan uppercase tracking-widest">Envío</p>
+                        <p id="modal-order-shipping" class="text-sm font-bold text-brand-cyan">---</p>
+                    </div>
+                    <div id="modal-total-container" class="pl-4 md:pl-8 border-l border-gray-200 min-w-[120px] md:min-w-[150px] text-right">
+                        <p class="text-[9px] font-black text-brand-black uppercase tracking-widest">Total Neto</p>
+                        <h4 id="modal-order-total" class="text-2xl md:text-3xl font-black text-brand-black leading-none">---</h4>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-4 w-full md:w-auto justify-end">
+                    <div id="modal-footer-msg" class="text-xs font-bold uppercase tracking-widest hidden"></div>
+                    <div id="modal-footer-actions" class="flex flex-col md:flex-row gap-3 w-full md:w-auto hidden">
+                        <button id="btn-save-alistado" onclick="window.saveAlistamiento(() => window.location.reload())" class="flex-1 md:flex-none bg-brand-black text-white px-8 py-4 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-brand-cyan hover:text-brand-black transition-all shadow-xl hidden">Guardar Alistamiento</button>
+                        <button id="btn-set-despachado" onclick="window.openDispatchModal()" class="flex-1 md:flex-none bg-green-500 text-white px-8 py-4 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-green-600 transition-all shadow-xl hidden"><i class="fa-solid fa-truck-fast mr-2"></i> Marcar Despachado</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    <div id="dispatch-modal" class="fixed inset-0 z-[80] hidden flex items-center justify-center p-4"></div>
-    <div id="payment-modal" class="fixed inset-0 z-[80] hidden flex items-center justify-center p-4"></div>
+
+    <div id="dispatch-modal" class="fixed inset-0 z-[80] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/70 backdrop-blur-sm" onclick="document.getElementById('dispatch-modal').classList.add('hidden')"></div>
+        <div class="relative bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl text-center">
+            <h3 class="text-xl font-black text-brand-black uppercase mb-6">Confirmar Envío</h3>
+            <div class="space-y-4 mb-8 text-left">
+                <select id="dispatch-carrier" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-3 text-sm font-bold outline-none text-brand-black"><option value="">Transportadora...</option><option value="Servientrega">Servientrega</option><option value="Interrapidisimo">Interrapidísimo</option><option value="Envía">Envía</option><option value="Coordinadora">Coordinadora</option><option value="DespachoBogota">Despacho Bogota</option></select>
+                <input type="text" id="dispatch-tracking" placeholder="Número de Guía" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-3 text-sm font-mono font-bold outline-none text-brand-black">
+            </div>
+            <button id="btn-confirm-dispatch" onclick="window.confirmDispatch(() => window.location.reload())" class="w-full bg-green-500 text-white font-black py-4 rounded-xl shadow-lg uppercase text-xs tracking-widest hover:bg-green-600 transition">Confirmar y Enviar</button>
+        </div>
+    </div>
+
+    <div id="payment-modal" class="fixed inset-0 z-[80] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/70 backdrop-blur-sm" onclick="document.getElementById('payment-modal').classList.add('hidden')"></div>
+        <div class="relative bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl text-center animate-in zoom-in duration-200">
+            <h3 class="text-xl font-black text-brand-black uppercase mb-2">Registrar Pago</h3>
+            <p id="pay-modal-order-id" class="text-xs font-bold text-gray-400 mb-6">...</p>
+            
+            <form id="payment-form" class="text-left space-y-4">
+                <input type="hidden" id="pay-target-id">
+                
+                <div>
+                    <label class="text-[9px] font-black uppercase text-gray-500 tracking-widest mb-1 block">Cuenta de Destino</label>
+                    <select id="pay-account-select" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-3 text-sm font-bold outline-none text-brand-black" required>
+                        <option value="">Cargando...</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="text-[9px] font-black uppercase text-gray-500 tracking-widest mb-1 block">Monto a Registrar</label>
+                    <input type="text" id="pay-amount" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-3 text-xl font-black text-brand-cyan outline-none" required>
+                </div>
+                
+                <button type="submit" class="w-full bg-brand-black text-white font-black py-4 mt-4 rounded-xl shadow-lg uppercase text-xs tracking-widest hover:bg-brand-cyan hover:text-brand-black transition">Confirmar Pago</button>
+            </form>
+        </div>
+    </div>
 
     <script type="module">
-        import '../js/admin-guard.js';
+        import '../js/admin/admin-guard.js';
         import { db, collection, getDocs, orderBy, query, limit, auth, doc, getDoc, where, getAggregateFromServer, sum, onSnapshot } from '../js/firebase-init.js';
-        import { loadAdminSidebar } from '../js/admin-ui.js?v=2.0.0';
-        import { initManualSale, openManualSaleModal } from '../js/manual-sale.js';
-        import { AdminStore } from '../js/admin-store.js'; // 🔥 EL CEREBRO
-        import '../js/order-actions.js';
+        import { loadAdminSidebar } from '../js/admin/admin-ui.js?v=2.0.0';
+        import { initManualSale, openManualSaleModal } from '../js/admin/manual-sale.js';
+        import { AdminStore } from '../js/admin/admin-store.js'; // 🔥 EL CEREBRO
+        import '../js/admin/order-actions.js';
 
         loadAdminSidebar();
         initManualSale();

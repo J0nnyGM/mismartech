@@ -134,6 +134,7 @@ exports.createAddiCheckout = async (data, context) => {
     await newOrderRef.set({
         source: 'TIENDA_WEB', 
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(), // 🔥 NUEVO: Para el Delta Sync
         userId: uid, 
         userEmail: email,
         
@@ -151,7 +152,7 @@ exports.createAddiCheckout = async (data, context) => {
         total: totalAmount, 
         
         status: 'PENDIENTE_PAGO',
-        paymentMethod: paymentMethod, // 🔥 2. NUEVO: Asignamos la variable en lugar del texto fijo
+        paymentMethod: paymentMethod, 
         paymentStatus: 'PENDING', 
         isStockDeducted: false,
         buyerInfo: buyerInfo
@@ -317,7 +318,7 @@ exports.webhook = async (req, res) => {
                         if (!defQ.empty) accDoc = defQ.docs[0];
                     }
 
-                    // 4. Leer Remisión (MovidO AQUÍ ARRIBA)
+                    // 4. Leer Remisión
                     const remSnap = await t.get(remRef); // LECTURA FINAL
 
                     // ==========================================
@@ -329,7 +330,10 @@ exports.webhook = async (req, res) => {
                     if (accDoc) {
                         accId = accDoc.id;
                         accName = accDoc.data().name;
-                        t.update(accDoc.ref, { balance: (Number(accDoc.data().balance) || 0) + (Number(oData.total) || 0) });
+                        t.update(accDoc.ref, { 
+                            balance: (Number(accDoc.data().balance) || 0) + (Number(oData.total) || 0),
+                            updatedAt: admin.firestore.FieldValue.serverTimestamp() // 🔥 NUEVO
+                        });
 
                         const incRef = db.collection('expenses').doc();
                         t.set(incRef, {
@@ -339,13 +343,18 @@ exports.webhook = async (req, res) => {
                             paymentMethod: accName,
                             date: admin.firestore.FieldValue.serverTimestamp(),
                             createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                            updatedAt: admin.firestore.FieldValue.serverTimestamp(), // 🔥 NUEVO
                             type: 'INCOME', orderId: orderId, supplierName: oData.userName
                         });
                     }
 
                     // B. Escribir Inventario
                     for (const p of prodReads) {
-                        t.update(p.ref, { stock: p.stock, combinations: p.combos });
+                        t.update(p.ref, { 
+                            stock: p.stock, 
+                            combinations: p.combos,
+                            updatedAt: admin.firestore.FieldValue.serverTimestamp() // 🔥 NUEVO
+                        });
                     }
 
                     // C. Escribir Remisión
@@ -355,11 +364,12 @@ exports.webhook = async (req, res) => {
                             clientName: oData.userName, clientPhone: oData.phone, clientDoc: oData.clientDoc,
                             clientAddress: `${oData.shippingData?.address}, ${oData.shippingData?.city}`,
                             total: oData.total, status: 'PENDIENTE_ALISTAMIENTO', type: 'VENTA_WEB',
-                            createdAt: admin.firestore.FieldValue.serverTimestamp()
+                            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                            updatedAt: admin.firestore.FieldValue.serverTimestamp() // 🔥 NUEVO
                         });
                     }
 
-                    // D. Actualizar Orden a PAGADO
+                    // D. Actualizar Orden a PAGADO (El updatedAt ya lo tenías, ¡súper bien!)
                     t.update(orderRef, {
                         status: 'PAGADO',
                         paymentStatus: 'PAID',
@@ -376,7 +386,8 @@ exports.webhook = async (req, res) => {
                 if (docCheck.exists && docCheck.data().paymentStatus !== 'PAID') {
                     await orderRef.update({
                         status: 'RECHAZADO',
-                        statusDetail: status
+                        statusDetail: status,
+                        updatedAt: admin.firestore.FieldValue.serverTimestamp() // 🔥 NUEVO
                     });
                     console.log("❌ Orden Rechazada por ADDI");
                 }

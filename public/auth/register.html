@@ -32,21 +32,21 @@
                     <form id="register-form" class="space-y-6">
                         <div>
                             <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Nombre Completo <span class="text-red-500">*</span></label>
-                            <input type="text" id="reg-name" required class="w-full bg-gray-50 border border-gray-200 text-brand-black text-sm p-4 outline-none focus:border-brand-cyan focus:ring-1 focus:ring-brand-cyan transition-all placeholder-gray-400 font-medium" placeholder="Ej: Juan Pérez">
+                            <input type="text" id="reg-name" required class="w-full bg-gray-50 border border-gray-200 text-brand-black text-sm p-4 outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition-all placeholder-gray-400 font-medium" placeholder="Ej: Juan Pérez">
                         </div>
 
                         <div>
                             <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Correo Electrónico <span class="text-red-500">*</span></label>
-                            <input type="email" id="reg-email" required class="w-full bg-gray-50 border border-gray-200 text-brand-black text-sm p-4 outline-none focus:border-brand-cyan focus:ring-1 focus:ring-brand-cyan transition-all placeholder-gray-400 font-medium" placeholder="tu@email.com">
+                            <input type="email" id="reg-email" required class="w-full bg-gray-50 border border-gray-200 text-brand-black text-sm p-4 outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition-all placeholder-gray-400 font-medium" placeholder="tu@email.com">
                         </div>
 
                         <div>
                             <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Contraseña <span class="text-red-500">*</span></label>
-                            <input type="password" id="reg-password" required minlength="6" class="w-full bg-gray-50 border border-gray-200 text-brand-black text-sm p-4 outline-none focus:border-brand-cyan focus:ring-1 focus:ring-brand-cyan transition-all placeholder-gray-400 font-medium" placeholder="Mínimo 6 caracteres">
+                            <input type="password" id="reg-password" required minlength="6" class="w-full bg-gray-50 border border-gray-200 text-brand-black text-sm p-4 outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition-all placeholder-gray-400 font-medium" placeholder="Mínimo 6 caracteres">
                         </div>
 
                         <div class="pt-4 flex flex-col gap-4">
-                            <button type="submit" class="bg-brand-black text-white px-10 py-4 font-black text-xs uppercase tracking-[0.2em] hover:bg-brand-cyan hover:text-brand-black transition-all duration-300 shadow-lg hover:shadow-cyan-500/20 w-full text-center">
+                            <button type="submit" class="bg-brand-black text-white px-10 py-4 font-black text-xs uppercase tracking-[0.2em] hover:bg-brand-orange hover:text-brand-black transition-all duration-300 shadow-lg hover:shadow-cyan-500/20 w-full text-center">
                                 Registrarse
                             </button>
 
@@ -64,7 +64,7 @@
                     </form>
                     
                     <p class="mt-8 text-xs text-gray-500 text-center md:text-left">
-                        ¿Ya tienes una cuenta? <a href="/auth/login.html" class="text-brand-cyan font-bold hover:underline">Inicia sesión aquí</a>
+                        ¿Ya tienes una cuenta? <a href="/auth/login.html" class="text-brand-orange font-bold hover:underline">Inicia sesión aquí</a>
                     </p>
                 </div>
 
@@ -78,15 +78,15 @@
                         
                         <ul class="space-y-4 list-none pl-0 mt-8">
                             <li class="flex items-center gap-3">
-                                <i class="fa-solid fa-bolt text-brand-cyan"></i>
+                                <i class="fa-solid fa-bolt text-brand-orange"></i>
                                 <span class="text-xs font-bold text-gray-700">Proceso de pago más rápido</span>
                             </li>
                             <li class="flex items-center gap-3">
-                                <i class="fa-solid fa-box-open text-brand-cyan"></i>
+                                <i class="fa-solid fa-box-open text-brand-orange"></i>
                                 <span class="text-xs font-bold text-gray-700">Rastreo de pedidos en tiempo real</span>
                             </li>
                             <li class="flex items-center gap-3">
-                                <i class="fa-solid fa-clock-rotate-left text-brand-cyan"></i>
+                                <i class="fa-solid fa-clock-rotate-left text-brand-orange"></i>
                                 <span class="text-xs font-bold text-gray-700">Historial de compras completo</span>
                             </li>
                         </ul>
@@ -99,9 +99,9 @@
     <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php'; ?>
 
     <script type="module">
-        import { loadGlobalHeader, loadGlobalFooter } from '../js/global-components.js?v=2.0';        loadGlobalHeader();
+        import { loadGlobalHeader, loadGlobalFooter } from '../js/global-components.js';        loadGlobalHeader();
         loadGlobalFooter();
     </script>
-    <script type="module" src="../js/auth-logic.js"></script>
+    <script type="module" src="../js/shop/auth-logic.js"></script>
 </body>
 </html>

@@ -22,7 +22,7 @@
     </style>
 </head>
 
-<body class="bg-slate-50 font-sans text-brand-black flex h-screen overflow-hidden text-left selection:bg-brand-cyan selection:text-white" style="display: none;">
+<body class="bg-slate-50 font-sans text-brand-black flex h-screen overflow-hidden text-left selection:bg-brand-orange selection:text-white" style="display: none;">
 
     <div id="admin-sidebar"></div>
 
@@ -37,7 +37,7 @@
                     <p class="text-xs font-bold text-brand-black uppercase">Detalle de Cuenta</p>
                 </div>
             </div>
-            <button id="btn-edit-supplier" class="bg-brand-black text-white px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-cyan hover:shadow-lg hover:shadow-cyan-500/20 transition-all duration-300 flex items-center gap-2 transform active:scale-95">
+            <button id="btn-edit-supplier" class="bg-brand-black text-white px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-orange hover:shadow-lg hover:shadow-cyan-500/20 transition-all duration-300 flex items-center gap-2 transform active:scale-95">
                 <i class="fa-solid fa-pen-to-square"></i> <span>Editar Perfil</span>
             </button>
         </header>
@@ -56,11 +56,11 @@
                 
                 <div class="flex flex-wrap gap-4 w-full lg:w-auto">
                     <div class="bg-white border border-gray-100 p-6 rounded-[2rem] shadow-sm flex-1 min-w-[160px] hover:shadow-xl transition-shadow duration-300">
-                        <div class="w-10 h-10 bg-cyan-50 rounded-full flex items-center justify-center mb-3 text-brand-cyan">
+                        <div class="w-10 h-10 bg-cyan-50 rounded-full flex items-center justify-center mb-3 text-brand-orange">
                             <i class="fa-solid fa-chart-line"></i>
                         </div>
                         <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Inversión Total</p>
-                        <h3 id="sup-total-invested" class="text-2xl font-black text-brand-cyan tracking-tighter">$0</h3>
+                        <h3 id="sup-total-invested" class="text-2xl font-black text-brand-orange tracking-tighter">$0</h3>
                     </div>
                     <div class="bg-white border border-gray-100 p-6 rounded-[2rem] shadow-sm flex-1 min-w-[140px] hover:shadow-xl transition-shadow duration-300">
                         <div class="w-10 h-10 bg-red-50 rounded-full flex items-center justify-center mb-3 text-red-500">
@@ -74,7 +74,7 @@
 
             <div class="flex flex-col md:flex-row bg-white p-2 rounded-[2rem] shadow-sm border border-gray-100 mb-10 gap-2">
                 <button class="crm-tab-btn group flex-1 py-4 px-6 rounded-[1.5rem] flex items-center justify-center gap-3 transition-all duration-300 hover:bg-slate-50 border-2 border-transparent active" data-tab="generales">
-                    <i class="fa-solid fa-id-card text-xl text-gray-300 group-[.active]:text-brand-cyan transition-colors"></i>
+                    <i class="fa-solid fa-id-card text-xl text-gray-300 group-[.active]:text-brand-orange transition-colors"></i>
                     <span class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 group-[.active]:text-brand-black">Datos Generales</span>
                 </button>
                 <button class="crm-tab-btn group flex-1 py-4 px-6 rounded-[1.5rem] flex items-center justify-center gap-3 transition-all duration-300 hover:bg-slate-50 border-2 border-transparent" data-tab="historial">
@@ -91,7 +91,7 @@
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div class="lg:col-span-2 space-y-6">
                         <div class="flex items-center gap-3 mb-2">
-                            <span class="w-2 h-2 rounded-full bg-brand-cyan"></span>
+                            <span class="w-2 h-2 rounded-full bg-brand-orange"></span>
                             <h4 class="font-black text-brand-black text-[10px] uppercase tracking-[0.3em]">Información de Contacto</h4>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -115,10 +115,10 @@
                             <h4 class="font-black text-brand-black text-[10px] uppercase tracking-[0.3em]">Datos Bancarios</h4>
                         </div>
                         <div class="bg-slate-900 p-8 rounded-[2.5rem] shadow-2xl relative overflow-hidden group h-full flex flex-col justify-between min-h-[250px]">
-                            <div class="absolute -top-10 -right-10 w-40 h-40 bg-brand-cyan/20 rounded-full blur-3xl group-hover:bg-brand-cyan/30 transition-colors"></div>
+                            <div class="absolute -top-10 -right-10 w-40 h-40 bg-brand-orange/20 rounded-full blur-3xl group-hover:bg-brand-orange/30 transition-colors"></div>
                             <div class="relative z-10 mt-8">
                                 <p id="sup-bank" class="text-2xl font-black text-white uppercase tracking-tighter mb-1">---</p>
-                                <span id="sup-account-type" class="text-brand-cyan text-[9px] font-black uppercase tracking-widest">---</span>
+                                <span id="sup-account-type" class="text-brand-orange text-[9px] font-black uppercase tracking-widest">---</span>
                             </div>
                             <div class="relative z-10 mt-8 pt-6 border-t border-white/10">
                                 <p class="text-[8px] text-white/40 uppercase font-black tracking-[0.2em] mb-1">Número de Cuenta</p>
@@ -151,7 +151,7 @@
                         </table>
                     </div>
                     <div id="load-more-purchases-container" class="py-4 text-center hidden border-t border-gray-50">
-                        <button onclick="window.loadMorePurchases()" class="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-cyan transition flex items-center justify-center gap-2 mx-auto">
+                        <button onclick="window.loadMorePurchases()" class="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-orange transition flex items-center justify-center gap-2 mx-auto">
                             <i class="fa-solid fa-circle-plus"></i> Ver compras antiguas
                         </button>
                     </div>
@@ -242,7 +242,7 @@
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onclick="closeModal('purchase-detail-modal')"></div>
         <div class="relative bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden transform transition-all scale-100 max-h-[90vh] flex flex-col">
             <div class="p-8 border-b border-gray-50 flex justify-between items-center bg-slate-50/50">
-                <h3 class="text-lg font-black uppercase tracking-tight">Detalle de <span class="text-brand-cyan">Compra</span></h3>
+                <h3 class="text-lg font-black uppercase tracking-tight">Detalle de <span class="text-brand-orange">Compra</span></h3>
                 <button onclick="closeModal('purchase-detail-modal')" class="w-10 h-10 rounded-full bg-white border border-gray-200 text-gray-400 hover:bg-brand-red hover:text-white hover:border-transparent transition flex items-center justify-center">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
@@ -255,22 +255,22 @@
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onclick="closeModal('edit-supplier-modal')"></div>
         <div class="relative bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
             <div class="p-8 border-b border-gray-50 flex justify-between items-center">
-                <h3 class="text-xl font-black uppercase tracking-tighter">Actualizar <span class="text-brand-cyan">Perfil</span></h3>
+                <h3 class="text-xl font-black uppercase tracking-tighter">Actualizar <span class="text-brand-orange">Perfil</span></h3>
                 <button onclick="closeModal('edit-supplier-modal')" class="w-10 h-10 rounded-full bg-gray-50 text-gray-400 hover:bg-red-500 hover:text-white transition flex items-center justify-center">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
             <div class="p-10 overflow-y-auto custom-scroll">
                 <form id="edit-supplier-form" class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div class="md:col-span-2"><label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Empresa / Razón Social</label><input type="text" id="e-name" required class="w-full bg-slate-50 border border-gray-200 rounded-xl p-4 text-sm font-bold outline-none focus:border-brand-cyan transition-all"></div>
-                    <div><label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block">NIT</label><input type="text" id="e-nit" required class="w-full bg-slate-50 border border-gray-200 rounded-xl p-4 text-sm font-bold outline-none focus:border-brand-cyan transition-all"></div>
-                    <div><label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Teléfono / WhatsApp</label><input type="text" id="e-phone" required class="w-full bg-slate-50 border border-gray-200 rounded-xl p-4 text-sm font-bold outline-none focus:border-brand-cyan transition-all"></div>
-                    <div><label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Contacto Directo</label><input type="text" id="e-contact" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-4 text-sm font-bold outline-none focus:border-brand-cyan transition-all"></div>
-                    <div><label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Email</label><input type="email" id="e-email" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-4 text-sm font-bold outline-none focus:border-brand-cyan transition-all"></div>
-                    <div class="md:col-span-2 pt-4 border-t border-gray-100 mt-2"><span class="text-[10px] font-black uppercase tracking-widest text-brand-cyan bg-cyan-50 px-2 py-1 rounded">Información Financiera</span></div>
-                    <div><label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Banco</label><input type="text" id="e-bank" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-4 text-sm font-bold outline-none focus:border-brand-cyan transition-all"></div>
-                    <div><label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Cuenta</label><input type="text" id="e-account" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-4 text-sm font-bold outline-none focus:border-brand-cyan transition-all"></div>
-                    <button type="submit" class="md:col-span-2 mt-4 bg-brand-black text-white py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-brand-cyan hover:shadow-cyan-500/30 hover:-translate-y-1 transition-all duration-300">Guardar Cambios</button>
+                    <div class="md:col-span-2"><label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Empresa / Razón Social</label><input type="text" id="e-name" required class="w-full bg-slate-50 border border-gray-200 rounded-xl p-4 text-sm font-bold outline-none focus:border-brand-orange transition-all"></div>
+                    <div><label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block">NIT</label><input type="text" id="e-nit" required class="w-full bg-slate-50 border border-gray-200 rounded-xl p-4 text-sm font-bold outline-none focus:border-brand-orange transition-all"></div>
+                    <div><label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Teléfono / WhatsApp</label><input type="text" id="e-phone" required class="w-full bg-slate-50 border border-gray-200 rounded-xl p-4 text-sm font-bold outline-none focus:border-brand-orange transition-all"></div>
+                    <div><label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Contacto Directo</label><input type="text" id="e-contact" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-4 text-sm font-bold outline-none focus:border-brand-orange transition-all"></div>
+                    <div><label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Email</label><input type="email" id="e-email" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-4 text-sm font-bold outline-none focus:border-brand-orange transition-all"></div>
+                    <div class="md:col-span-2 pt-4 border-t border-gray-100 mt-2"><span class="text-[10px] font-black uppercase tracking-widest text-brand-orange bg-cyan-50 px-2 py-1 rounded">Información Financiera</span></div>
+                    <div><label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Banco</label><input type="text" id="e-bank" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-4 text-sm font-bold outline-none focus:border-brand-orange transition-all"></div>
+                    <div><label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Cuenta</label><input type="text" id="e-account" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-4 text-sm font-bold outline-none focus:border-brand-orange transition-all"></div>
+                    <button type="submit" class="md:col-span-2 mt-4 bg-brand-black text-white py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-brand-orange hover:shadow-cyan-500/30 hover:-translate-y-1 transition-all duration-300">Guardar Cambios</button>
                 </form>
             </div>
         </div>
@@ -278,7 +278,7 @@
 
 <script type="module">
         import { db, doc, getDoc, getDocs, collection, query, where, orderBy, limit, updateDoc, addDoc, Timestamp, runTransaction, startAfter, getAggregateFromServer, sum } from '../js/firebase-init.js';
-        import { loadAdminSidebar } from '../js/admin-ui.js?v=2.0.0';
+        import { loadAdminSidebar } from '../js/admin/admin-ui.js';
 
         loadAdminSidebar();
 
@@ -352,7 +352,7 @@
             const btnContainer = document.getElementById('load-more-purchases-container');
             
             if(!isNextPage) {
-                table.innerHTML = `<tr><td colspan="7" class="p-8 text-center"><i class="fa-solid fa-circle-notch fa-spin text-brand-cyan"></i></td></tr>`;
+                table.innerHTML = `<tr><td colspan="7" class="p-8 text-center"><i class="fa-solid fa-circle-notch fa-spin text-brand-orange"></i></td></tr>`;
                 btnContainer.classList.add('hidden');
             } else {
                 btnContainer.querySelector('button').innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Cargando...`;
@@ -423,7 +423,7 @@
                             <td class="px-8 py-6 text-right font-bold text-red-500 text-xs">$${balance.toLocaleString('es-CO')}</td>
                             <td class="px-8 py-6 text-center">${statusBadge}</td>
                             <td class="px-8 py-6 text-center">
-                                <button onclick="window.openPurchaseDetail('${d.id}')" class="w-8 h-8 rounded-lg bg-white border border-gray-200 text-gray-400 hover:text-brand-cyan hover:border-brand-cyan transition shadow-sm"><i class="fa-solid fa-eye text-xs"></i></button>
+                                <button onclick="window.openPurchaseDetail('${d.id}')" class="w-8 h-8 rounded-lg bg-white border border-gray-200 text-gray-400 hover:text-brand-orange hover:border-brand-orange transition shadow-sm"><i class="fa-solid fa-eye text-xs"></i></button>
                             </td>
                         </tr>`;
                 });
@@ -674,7 +674,7 @@
                         <div class="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl">
                             <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-gray-400 shadow-sm font-black text-xs">${i.quantity}x</div>
                             <div class="flex-grow"><p class="text-xs font-black uppercase text-brand-black">${i.name}</p><p class="text-[9px] font-bold text-gray-400 uppercase">${i.color || ''} ${i.capacity || ''}</p></div>
-                            <p class="text-xs font-bold text-brand-cyan">$${(i.unitCostBase || 0).toLocaleString()}</p>
+                            <p class="text-xs font-bold text-brand-orange">$${(i.unitCostBase || 0).toLocaleString()}</p>
                         </div>
                     `).join('')}
                 </div>
@@ -704,14 +704,14 @@
         document.querySelectorAll('.crm-tab-btn').forEach(btn => {
             btn.onclick = (e) => {
                 document.querySelectorAll('.crm-tab-btn').forEach(b => {
-                    b.classList.remove('active', 'border-brand-cyan', 'bg-cyan-50/20', 'border-blue-500', 'bg-blue-50/20', 'border-emerald-500', 'bg-emerald-50/20');
+                    b.classList.remove('active', 'border-brand-orange', 'bg-cyan-50/20', 'border-blue-500', 'bg-blue-50/20', 'border-emerald-500', 'bg-emerald-50/20');
                     b.classList.add('border-transparent');
                 });
                 document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
                 const target = e.currentTarget.dataset.tab;
                 e.currentTarget.classList.remove('border-transparent');
                 
-                if(target === 'generales') e.currentTarget.classList.add('active', 'border-brand-cyan', 'bg-cyan-50/20');
+                if(target === 'generales') e.currentTarget.classList.add('active', 'border-brand-orange', 'bg-cyan-50/20');
                 if(target === 'historial') e.currentTarget.classList.add('active', 'border-blue-500', 'bg-blue-50/20');
                 if(target === 'pagos') e.currentTarget.classList.add('active', 'border-emerald-500', 'bg-emerald-50/20');
                 
@@ -743,6 +743,6 @@
 
         loadData();
     </script>
-    <script type="module" src="../js/admin-guard.js"></script>
+    <script type="module" src="../js/admin/admin-guard.js"></script>
 </body>
 </html>

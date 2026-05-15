@@ -18,6 +18,7 @@
 
         .custom-scroll::-webkit-scrollbar {
             width: 6px;
+            height: 6px;
         }
 
         .custom-scroll::-webkit-scrollbar-track {
@@ -64,41 +65,43 @@
 
     <div id="admin-sidebar"></div>
 
-    <main class="flex-grow overflow-y-auto relative custom-scroll">
+    <main class="flex-grow overflow-y-auto relative custom-scroll overflow-x-hidden">
+        
         <header
-            class="bg-white/90 backdrop-blur-xl border-b border-gray-100 px-8 py-4 flex justify-between items-center sticky top-0 z-20 shadow-sm">
+            class="bg-white/90 backdrop-blur-xl border-b border-gray-100 px-4 md:px-8 py-4 flex flex-col xl:flex-row justify-between items-start xl:items-center sticky top-0 z-20 shadow-sm gap-4 xl:gap-0">
             <h2 class="font-black text-brand-black text-[9px] uppercase tracking-[0.3em]">Centro Logístico</h2>
-            <div class="flex items-center gap-4">
-                <!-- NUEVO: Botón de Imprimir Rótulos -->
-                <div class="flex bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-                    <button onclick="window.openBulkPaymentModal()" title="Cobrar Seleccionados" class="px-4 py-2.5 text-gray-400 hover:text-green-600 hover:bg-green-50 transition border-r border-gray-100 flex items-center justify-center">
+            
+            <div class="flex flex-wrap items-center gap-3 w-full xl:w-auto justify-start xl:justify-end">
+                <div class="flex bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm grow sm:grow-0">
+                    <button onclick="window.openBulkPaymentModal()" title="Cobrar Seleccionados" class="flex-1 sm:flex-none px-4 py-2.5 text-gray-400 hover:text-green-600 hover:bg-green-50 transition border-r border-gray-100 flex items-center justify-center">
                         <i class="fa-solid fa-hand-holding-dollar"></i>
                     </button>
-                    <button onclick="window.openBulkPackingModal()" title="Alistar Seleccionados" class="px-4 py-2.5 text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition border-r border-gray-100 flex items-center justify-center">
+                    <button onclick="window.openBulkPackingModal()" title="Alistar Seleccionados" class="flex-1 sm:flex-none px-4 py-2.5 text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition border-r border-gray-100 flex items-center justify-center">
                         <i class="fa-solid fa-box-open"></i>
                     </button>
-                    <button onclick="window.openBulkDispatchModal()" title="Despachar Seleccionados" class="px-4 py-2.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition border-r border-gray-100 flex items-center justify-center">
+                    <button onclick="window.openBulkDispatchModal()" title="Despachar Seleccionados" class="flex-1 sm:flex-none px-4 py-2.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition border-r border-gray-100 flex items-center justify-center">
                         <i class="fa-solid fa-truck-fast"></i>
                     </button>
-                    <button onclick="window.printSelectedLabels()" title="Imprimir Rótulos" class="px-4 py-2.5 text-gray-500 hover:text-brand-black hover:bg-slate-100 transition flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
-                        <i class="fa-solid fa-tags"></i> Rótulos
+                    <button onclick="window.printSelectedLabels()" title="Imprimir Rótulos" class="flex-1 sm:flex-none px-4 py-2.5 text-gray-500 hover:text-brand-black hover:bg-slate-100 transition flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest">
+                        <i class="fa-solid fa-tags"></i> <span class="hidden sm:inline">Rótulos</span>
                     </button>
                 </div>
 
                 <button id="btn-open-manual"
-                    class="bg-brand-black text-white px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-cyan hover:text-brand-black hover:shadow-lg transition-all flex items-center gap-2 transform active:scale-95">
+                    class="grow sm:grow-0 justify-center bg-brand-black text-white px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-cyan hover:text-brand-black hover:shadow-lg transition-all flex items-center gap-2 transform active:scale-95">
                     <i class="fa-solid fa-plus"></i> Nueva Venta
                 </button>
-                <div class="w-10 h-10 bg-slate-100 text-brand-cyan rounded-xl flex items-center justify-center font-bold shadow-sm">
+                
+                <div class="hidden sm:flex w-10 h-10 bg-slate-100 text-brand-cyan rounded-xl items-center justify-center font-bold shadow-sm">
                     <i class="fa-solid fa-user-shield"></i>
                 </div>
             </div>
         </header>
 
-        <div class="p-8 max-w-[1600px] mx-auto pb-20">
-            <div class="flex flex-col md:flex-row justify-between items-end mb-8 gap-6">
+        <div class="p-4 md:p-8 max-w-[1600px] mx-auto pb-20">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 md:mb-8 gap-4">
                 <div>
-                    <h1 class="text-4xl font-black tracking-tighter text-brand-black uppercase leading-none mb-2">
+                    <h1 class="text-3xl md:text-4xl font-black tracking-tighter text-brand-black uppercase leading-none mb-2">
                         Pedidos & <span class="text-brand-cyan">Envíos</span></h1>
                     <p class="text-sm text-brand-black font-bold tracking-wide">Administra el flujo de ventas y
                         despachos.</p>
@@ -110,34 +113,32 @@
                 </div>
             </div>
 
-            <div class="flex flex-wrap gap-3 mb-8">
+            <div class="flex flex-wrap gap-2 md:gap-3 mb-6 md:mb-8">
                 <button onclick="window.switchTab('ACTIONABLE')" id="tab-actionable"
-                    class="tab-btn active px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2"><i
+                    class="tab-btn active px-4 md:px-6 py-2.5 md:py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 grow sm:grow-0 justify-center"><i
                         class="fa-solid fa-bell"></i> Por Atender</button>
                 <button onclick="window.switchTab('WAITING')" id="tab-waiting"
-                    class="tab-btn px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2"><i
+                    class="tab-btn px-4 md:px-6 py-2.5 md:py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 grow sm:grow-0 justify-center"><i
                         class="fa-solid fa-clock"></i> En Espera</button>
                 <button onclick="window.switchTab('DISPATCHED')" id="tab-dispatched"
-                    class="tab-btn px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2"><i
+                    class="tab-btn px-4 md:px-6 py-2.5 md:py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 grow sm:grow-0 justify-center"><i
                         class="fa-solid fa-truck-fast"></i> Enviados</button>
                 <button onclick="window.switchTab('REFUNDS')" id="tab-refunds"
-                    class="tab-btn px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2"><i
+                    class="tab-btn px-4 md:px-6 py-2.5 md:py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 grow sm:grow-0 justify-center"><i
                         class="fa-solid fa-rotate-left"></i> Devoluciones</button>
-
                 <button onclick="window.switchTab('FAILED')" id="tab-failed"
-                    class="tab-btn px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2"><i
+                    class="tab-btn px-4 md:px-6 py-2.5 md:py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 grow sm:grow-0 justify-center"><i
                         class="fa-solid fa-ban"></i> Cancelados</button>
                 <button onclick="window.switchTab('ALL')" id="tab-all"
-                    class="tab-btn px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2"><i
+                    class="tab-btn px-4 md:px-6 py-2.5 md:py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 grow sm:grow-0 justify-center"><i
                         class="fa-solid fa-list"></i> Todo</button>
             </div>
 
             <div class="bg-white rounded-[2.5rem] shadow-xl border border-gray-100 overflow-hidden fade-in">
-                <div class="overflow-x-auto">
+                <div class="overflow-x-auto custom-scroll pb-2">
                     <table class="w-full text-left text-sm min-w-[900px]">
                         <thead class="bg-slate-50 text-[9px] uppercase font-black text-brand-black tracking-widest border-b border-gray-100">
                             <tr>
-                                <!-- NUEVO: Checkbox para seleccionar todos -->
                                 <th class="px-4 py-6 w-12 text-center">
                                     <input type="checkbox" id="select-all-orders" onclick="window.toggleAllOrders(this)" class="cursor-pointer w-4 h-4 rounded text-brand-cyan focus:ring-brand-cyan border-gray-300">
                                 </th>
@@ -239,20 +240,22 @@
             </div>
             <div
                 class="p-8 bg-slate-50 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-6">
-                <div class="flex gap-10 text-right md:text-left">
-                    <div>
-                        <p class="text-[9px] font-black text-brand-black uppercase tracking-widest">Subtotal</p>
-                        <p id="modal-order-subtotal" class="text-sm font-bold text-brand-black">---</p>
+                <div class="w-full md:w-auto grid grid-cols-2 md:flex md:items-end gap-4 md:gap-8">
+                    <div class="text-left">
+                        <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Subtotal</p>
+                        <p id="modal-order-subtotal" class="text-base font-bold text-brand-black">---</p>
                     </div>
-                    <div>
-                        <p class="text-[9px] font-black text-brand-cyan uppercase tracking-widest">Envío</p>
-                        <p id="modal-order-shipping" class="text-sm font-bold text-brand-cyan">---</p>
+                    <div class="text-right md:text-left border-l border-gray-200 pl-4 md:pl-0 md:border-none">
+                        <p class="text-[9px] font-black text-brand-cyan uppercase tracking-widest mb-1">Envío</p>
+                        <p id="modal-order-shipping" class="text-base font-bold text-brand-cyan">---</p>
                     </div>
-                    <div id="modal-total-container" class="pl-8 border-l border-gray-200 min-w-[150px] text-right">
-                        <p class="text-[9px] font-black text-brand-black uppercase tracking-widest">Total Neto</p>
+                    <div id="modal-total-container" class="col-span-2 text-right md:text-left border-t md:border-t-0 md:border-l border-gray-200 pt-4 md:pt-0 md:pl-8 mt-1 md:mt-0 min-w-[150px]">
+                        <p class="text-[9px] font-black text-brand-black uppercase tracking-widest mb-1">Total Neto</p>
                         <h4 id="modal-order-total" class="text-3xl font-black text-brand-black leading-none">---</h4>
                     </div>
                 </div>
+
+                
                 <div class="flex items-center gap-4 w-full md:w-auto justify-end">
                     <div id="modal-footer-msg" class="text-xs font-bold uppercase tracking-widest hidden"></div>
                     <div id="modal-footer-actions" class="flex gap-3 w-full md:w-auto hidden">
@@ -511,11 +514,11 @@
     </div>
 
     <script type="module">
-        import '../js/admin-guard.js';
+        import '../js/admin/admin-guard.js';
         import { db, collection, getDocs, orderBy, query, limit, auth, doc, getDoc, where, onSnapshot } from '../js/firebase-init.js';
-        import { loadAdminSidebar } from '../js/admin-ui.js?v=2.0.0';
-        import { initManualSale, openManualSaleModal } from '../js/manual-sale.js';
-        import '../js/order-actions.js';
+        import { loadAdminSidebar } from '../js/admin/admin-ui.js?v=2.0.0';
+        import { initManualSale, openManualSaleModal } from '../js/admin/manual-sale.js';
+        import '../js/admin/order-actions.js';
 
         loadAdminSidebar();
 
@@ -606,7 +609,7 @@
                     return dateB - dateA;
                 });
                 
-                // 🔥 NUEVA LÍNEA: Compartimos esta memoria viva con order-actions.js
+                // 🔥 NUEVA LÍNEA: Compartimos esta memoria viva con admin/order-actions.js
                 window.adminOrdersCache = adminOrdersCache; 
             },
 
@@ -884,7 +887,6 @@
             const tableBody = document.getElementById('orders-table-body');
             tableBody.innerHTML += `
                 <tr class="hover:bg-slate-50 transition border-b border-gray-50 group fade-in">
-                    <!-- NUEVO: Checkbox individual -->
                     <td class="px-4 py-6 text-center">
                         <input type="checkbox" class="order-cb cursor-pointer w-4 h-4 rounded text-brand-cyan focus:ring-brand-cyan border-gray-300" value="${o.id}">
                     </td>
@@ -937,11 +939,11 @@
             // Filtrar los objetos completos de la caché local para no gastar lecturas de Firebase
             const selectedOrders = adminOrdersCache.filter(o => selectedIds.includes(o.id));
             
-            // Llamar a la función generadora en order-actions.js
+            // Llamar a la función generadora en admin/order-actions.js
             window.generateLabels(selectedOrders);
         };
     </script>
-    <script type="module" src="../js/admin-guard.js"></script>
+    <script type="module" src="../js/admin/admin-guard.js"></script>
 </body>
 
 </html>

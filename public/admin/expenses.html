@@ -43,7 +43,7 @@
                     <i class="fa-solid fa-trash-can-arrow-up"></i> Papelera / Logs
                 </button>
 
-                <button onclick="window.openModal()" class="bg-brand-black text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-cyan hover:text-brand-black transition shadow-lg flex items-center justify-center gap-2">
+                <button onclick="window.openModal()" class="bg-brand-black text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-orange hover:text-brand-black transition shadow-lg flex items-center justify-center gap-2">
                     <i class="fa-solid fa-plus"></i> Registrar Gasto
                 </button>
             </div>
@@ -65,7 +65,7 @@
                     <i class="fa-solid fa-list-ul text-gray-400"></i> Listado de Gastos
                 </h3>
                 <div class="relative w-full md:w-64">
-                    <input type="text" id="search-input" placeholder="Buscar proveedor o concepto..." class="w-full bg-white border border-gray-200 pl-10 pr-4 py-2 rounded-xl text-xs font-bold focus:border-brand-cyan outline-none">
+                    <input type="text" id="search-input" placeholder="Buscar proveedor o concepto..." class="w-full bg-white border border-gray-200 pl-10 pr-4 py-2 rounded-xl text-xs font-bold focus:border-brand-orange outline-none">
                     <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
                 </div>
             </div>
@@ -88,7 +88,7 @@
             </div>
 
             <div id="load-more-container" class="py-6 text-center hidden border-t border-gray-100">
-                <button onclick="window.loadMoreExpenses()" class="text-xs font-bold text-gray-400 hover:text-brand-cyan transition uppercase tracking-widest flex items-center justify-center gap-2 mx-auto">
+                <button onclick="window.loadMoreExpenses()" class="text-xs font-bold text-gray-400 hover:text-brand-orange transition uppercase tracking-widest flex items-center justify-center gap-2 mx-auto">
                     <i class="fa-solid fa-circle-plus"></i> Cargar siguientes 50
                 </button>
             </div>
@@ -107,31 +107,31 @@
             <form id="expense-form" class="p-8 space-y-5">
                 <div class="relative">
                     <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Proveedor / Beneficiario *</label>
-                    <input type="text" id="supplier-search" placeholder="Escribe para buscar..." autocomplete="off" class="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl font-bold text-sm focus:border-brand-cyan outline-none transition-all placeholder-gray-400">
+                    <input type="text" id="supplier-search" placeholder="Escribe para buscar..." autocomplete="off" class="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl font-bold text-sm focus:border-brand-orange outline-none transition-all placeholder-gray-400">
                     <input type="hidden" id="selected-supplier-id">
                     <div id="supplier-dropdown" class="hidden absolute z-50 w-full bg-white border border-gray-200 rounded-xl shadow-xl mt-1 max-h-48 overflow-y-auto custom-scroll"></div>
                 </div>
 
                 <div>
                     <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Descripción *</label>
-                    <input type="text" id="desc" required placeholder="Ej: Pago de Internet" class="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl font-bold text-sm focus:border-brand-cyan outline-none">
+                    <input type="text" id="desc" required placeholder="Ej: Pago de Internet" class="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl font-bold text-sm focus:border-brand-orange outline-none">
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Valor (COP) *</label>
-                        <input type="text" id="amount-display" required placeholder="$0" class="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl font-bold text-sm focus:border-brand-cyan outline-none tracking-wide">
+                        <input type="text" id="amount-display" required placeholder="$0" class="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl font-bold text-sm focus:border-brand-orange outline-none tracking-wide">
                     </div>
                     <div>
                         <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Fecha *</label>
-                        <input type="date" id="date" required class="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl font-bold text-sm focus:border-brand-cyan outline-none">
+                        <input type="date" id="date" required class="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl font-bold text-sm focus:border-brand-orange outline-none">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div class="col-span-1">
                         <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Categoría</label>
-                        <select id="category" class="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl font-bold text-sm focus:border-brand-cyan outline-none cursor-pointer">
+                        <select id="category" class="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl font-bold text-sm focus:border-brand-orange outline-none cursor-pointer">
                             <option value="Operativo">Operativo</option>
                             <option value="Nómina">Nómina</option>
                             <option value="Servicios">Servicios</option>
@@ -146,7 +146,7 @@
                     
                     <div class="col-span-1">
                         <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Cuenta Origen *</label>
-                        <select id="account-select" required class="w-full bg-slate-100 border border-slate-200 p-3 rounded-xl font-bold text-sm focus:border-brand-cyan outline-none cursor-pointer">
+                        <select id="account-select" required class="w-full bg-slate-100 border border-slate-200 p-3 rounded-xl font-bold text-sm focus:border-brand-orange outline-none cursor-pointer">
                             <option value="">Cargando...</option>
                         </select>
                     </div>
@@ -160,7 +160,7 @@
                     </div>
                 </div>
 
-                <button type="submit" id="btn-save" class="w-full bg-brand-black text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-cyan hover:text-brand-black transition shadow-lg mt-4">
+                <button type="submit" id="btn-save" class="w-full bg-brand-black text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-orange hover:text-brand-black transition shadow-lg mt-4">
                     Registrar Gasto
                 </button>
             </form>
@@ -195,7 +195,7 @@
             </div>
         </div>
     </div>
-    <script type="module" src="../js/admin-guard.js"></script>
-    <script type="module" src="../js/admin-expenses.js"></script>
+    <script type="module" src="../js/admin/admin-guard.js"></script>
+    <script type="module" src="../js/admin/admin-expenses.js"></script>
 </body>
 </html>

@@ -37,7 +37,7 @@
 
     <main class="flex-grow flex items-center justify-center p-6 relative overflow-hidden">
         
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-brand-cyan/5 rounded-full blur-[100px] pointer-events-none"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-brand-orange/5 rounded-full blur-[100px] pointer-events-none"></div>
 
         <div class="max-w-2xl w-full text-center fade-in-up relative z-10">
             
@@ -45,13 +45,13 @@
                 <h1 class="text-9xl md:text-[12rem] font-black text-brand-black leading-none glitch-text" data-text="404">
                     404
                 </h1>
-                <div class="absolute -bottom-4 -right-4 bg-brand-cyan text-white w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center text-3xl shadow-lg rotate-12">
+                <div class="absolute -bottom-4 -right-4 bg-brand-orange text-white w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center text-3xl shadow-lg rotate-12">
                     <i class="fa-solid fa-robot fa-bounce"></i>
                 </div>
             </div>
 
             <h2 class="text-2xl md:text-4xl font-black uppercase tracking-tighter mb-4 text-brand-black">
-                ¡Ups! Error en la <span class="text-brand-cyan">Matrix</span>
+                ¡Ups! Error en la <span class="text-brand-orange">Matrix</span>
             </h2>
             
             <p class="text-gray-500 font-medium text-sm md:text-base max-w-md mx-auto mb-10 leading-relaxed">
@@ -59,7 +59,7 @@
             </p>
 
             <div class="flex flex-col md:flex-row gap-4 justify-center">
-                <a href="/index.html" class="bg-brand-black text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-brand-cyan hover:text-brand-black transition-all shadow-xl hover:shadow-cyan-500/20 transform hover:-translate-y-1 flex items-center justify-center gap-2">
+                <a href="/index.html" class="bg-brand-black text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-brand-orange hover:text-brand-black transition-all shadow-xl hover:shadow-cyan-500/20 transform hover:-translate-y-1 flex items-center justify-center gap-2">
                     <i class="fa-solid fa-house"></i> Ir al Inicio
                 </a>
                 
@@ -83,7 +83,7 @@
     <script type="module">
         // Import dinámico con manejo de errores por si la ruta relativa falla
         try {
-            const { loadGlobalHeader, loadGlobalFooter } = await import('/js/global-components.js?v=2.0?v=2.0');
+            const { loadGlobalHeader, loadGlobalFooter } = await import('/js/global-components.js');
             loadGlobalHeader();
             loadGlobalFooter();
         } catch (e) {

@@ -31,7 +31,7 @@
                 <button id="btn-import-clients" class="bg-white border border-gray-200 text-brand-black px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:border-emerald-500 hover:text-emerald-500 transition shadow-sm flex items-center gap-2">
                     <i class="fa-solid fa-file-excel"></i> Importar Excel
                 </button>
-                <button id="btn-add-client" class="bg-brand-black text-white px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-cyan hover:text-brand-black transition shadow-lg flex items-center gap-2">
+                <button id="btn-add-client" class="bg-brand-black text-white px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-orange hover:text-brand-black transition shadow-lg flex items-center gap-2">
                     <i class="fa-solid fa-user-plus"></i> Nuevo Cliente
                 </button>
             </div>
@@ -46,7 +46,7 @@
                 
                 <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
                     <div class="relative w-full sm:w-48">
-                        <select id="filter-client-type" class="w-full bg-white border border-gray-200 py-3 pl-4 pr-10 rounded-2xl text-xs focus:ring-2 focus:ring-brand-cyan/20 outline-none transition font-bold appearance-none cursor-pointer">
+                        <select id="filter-client-type" class="w-full bg-white border border-gray-200 py-3 pl-4 pr-10 rounded-2xl text-xs focus:ring-2 focus:ring-brand-orange/20 outline-none transition font-bold appearance-none cursor-pointer">
                             <option value="ALL">Todos los tipos</option>
                             <option value="WEB">Origen Web</option>
                             <option value="MANUAL">Manual</option>
@@ -55,7 +55,7 @@
                         <i class="fa-solid fa-filter absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 text-xs pointer-events-none"></i>
                     </div>
                     <div class="relative w-full sm:w-72">
-                        <input type="text" id="search-client" placeholder="Buscar por nombre, cel o doc..." class="w-full bg-white border border-gray-200 py-3 pl-12 pr-4 rounded-2xl text-xs focus:ring-2 focus:ring-brand-cyan/20 outline-none transition font-bold">
+                        <input type="text" id="search-client" placeholder="Buscar por nombre, cel o doc..." class="w-full bg-white border border-gray-200 py-3 pl-12 pr-4 rounded-2xl text-xs focus:ring-2 focus:ring-brand-orange/20 outline-none transition font-bold">
                         <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-300"></i>
                     </div>
                 </div>
@@ -78,7 +78,7 @@
             </div>
 
             <div id="load-more-container" class="py-8 text-center hidden">
-                <button onclick="window.loadMoreClients()" class="text-xs font-bold text-gray-400 hover:text-brand-cyan transition uppercase tracking-widest flex items-center justify-center gap-2 mx-auto">
+                <button onclick="window.loadMoreClients()" class="text-xs font-bold text-gray-400 hover:text-brand-orange transition uppercase tracking-widest flex items-center justify-center gap-2 mx-auto">
                     <i class="fa-solid fa-circle-plus"></i> Cargar siguientes 50
                 </button>
             </div>
@@ -90,7 +90,7 @@
         
         <div class="relative bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300 max-h-[90vh] flex flex-col">
             <div class="p-8 border-b border-gray-50 flex justify-between items-center bg-slate-50/50">
-                <h3 id="modal-title" class="font-black text-xl uppercase tracking-tighter">Registrar <span class="text-brand-cyan">Cliente</span></h3>
+                <h3 id="modal-title" class="font-black text-xl uppercase tracking-tighter">Registrar <span class="text-brand-orange">Cliente</span></h3>
                 <button class="close-modal w-10 h-10 rounded-full bg-white border border-gray-200 text-gray-400 hover:text-brand-red hover:bg-red-50 transition flex items-center justify-center">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
@@ -102,40 +102,40 @@
                     <div class="md:col-span-2">
                         <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 block ml-1">Tipo de Cliente *</label>
                         <div class="relative">
-                            <select id="new-client-type" class="w-full bg-slate-50 border border-gray-100 p-4 rounded-2xl text-sm font-bold outline-none focus:border-brand-cyan focus:bg-white transition-all appearance-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed">
+                            <select id="new-client-type" class="w-full bg-slate-50 border border-gray-100 p-4 rounded-2xl text-sm font-bold outline-none focus:border-brand-orange focus:bg-white transition-all appearance-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed">
                                 <option value="MANUAL">Normal</option>
                                 <option value="MAYORISTA">Mayorista</option>
                                 <option value="WEB" class="hidden">Web (Automático)</option>
                             </select>
                             <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none text-xs"></i>
                         </div>
-                        <p id="web-client-warning" class="text-[9px] text-brand-cyan font-bold mt-1 hidden"><i class="fa-solid fa-circle-info"></i> El origen de los clientes web no se puede modificar.</p>
+                        <p id="web-client-warning" class="text-[9px] text-brand-orange font-bold mt-1 hidden"><i class="fa-solid fa-circle-info"></i> El origen de los clientes web no se puede modificar.</p>
                     </div>
 
                     <div class="md:col-span-2">
                         <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 block ml-1">Nombre Completo / Empresa *</label>
-                        <input type="text" id="new-client-name" placeholder="Ej: Juan Pérez" class="w-full bg-slate-50 border border-gray-100 p-4 rounded-2xl text-sm font-bold outline-none focus:border-brand-cyan focus:bg-white transition-all">
+                        <input type="text" id="new-client-name" placeholder="Ej: Juan Pérez" class="w-full bg-slate-50 border border-gray-100 p-4 rounded-2xl text-sm font-bold outline-none focus:border-brand-orange focus:bg-white transition-all">
                     </div>
 
                     <div>
                         <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 block ml-1">Teléfono / WhatsApp</label>
-                        <input type="text" id="new-client-phone" placeholder="Ej: 3001234567" class="w-full bg-slate-50 border border-gray-100 p-4 rounded-2xl text-sm font-bold outline-none focus:border-brand-cyan focus:bg-white transition-all">
+                        <input type="text" id="new-client-phone" placeholder="Ej: 3001234567" class="w-full bg-slate-50 border border-gray-100 p-4 rounded-2xl text-sm font-bold outline-none focus:border-brand-orange focus:bg-white transition-all">
                     </div>
 
                     <div>
                         <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 block ml-1">Cédula / NIT</label>
-                        <input type="text" id="new-client-doc" placeholder="Opcional" class="w-full bg-slate-50 border border-gray-100 p-4 rounded-2xl text-sm font-bold outline-none focus:border-brand-cyan focus:bg-white transition-all">
+                        <input type="text" id="new-client-doc" placeholder="Opcional" class="w-full bg-slate-50 border border-gray-100 p-4 rounded-2xl text-sm font-bold outline-none focus:border-brand-orange focus:bg-white transition-all">
                     </div>
 
                     <div class="md:col-span-2">
                         <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 block ml-1">Email</label>
-                        <input type="email" id="new-client-email" placeholder="cliente@ejemplo.com" class="w-full bg-slate-50 border border-gray-100 p-4 rounded-2xl text-sm font-bold outline-none focus:border-brand-cyan focus:bg-white transition-all">
+                        <input type="email" id="new-client-email" placeholder="cliente@ejemplo.com" class="w-full bg-slate-50 border border-gray-100 p-4 rounded-2xl text-sm font-bold outline-none focus:border-brand-orange focus:bg-white transition-all">
                     </div>
 
                     <div>
                         <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 block ml-1">Departamento</label>
                         <div class="relative">
-                            <select id="new-client-dept" class="w-full bg-slate-50 border border-gray-100 p-4 rounded-2xl text-sm font-bold outline-none focus:border-brand-cyan focus:bg-white transition-all appearance-none cursor-pointer">
+                            <select id="new-client-dept" class="w-full bg-slate-50 border border-gray-100 p-4 rounded-2xl text-sm font-bold outline-none focus:border-brand-orange focus:bg-white transition-all appearance-none cursor-pointer">
                                 <option value="">Seleccione...</option>
                             </select>
                             <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none text-xs"></i>
@@ -145,7 +145,7 @@
                     <div>
                         <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 block ml-1">Ciudad</label>
                         <div class="relative">
-                            <select id="new-client-city" class="w-full bg-slate-50 border border-gray-100 p-4 rounded-2xl text-sm font-bold outline-none focus:border-brand-cyan focus:bg-white transition-all appearance-none cursor-pointer" disabled>
+                            <select id="new-client-city" class="w-full bg-slate-50 border border-gray-100 p-4 rounded-2xl text-sm font-bold outline-none focus:border-brand-orange focus:bg-white transition-all appearance-none cursor-pointer" disabled>
                                 <option value="">Seleccione Depto...</option>
                             </select>
                             <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none text-xs"></i>
@@ -154,18 +154,18 @@
 
                     <div class="md:col-span-2">
                         <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 block ml-1">Dirección de Entrega</label>
-                        <input type="text" id="new-client-address" placeholder="Ej: Calle 123 # 45-67" class="w-full bg-slate-50 border border-gray-100 p-4 rounded-2xl text-sm font-bold outline-none focus:border-brand-cyan focus:bg-white transition-all">
+                        <input type="text" id="new-client-address" placeholder="Ej: Calle 123 # 45-67" class="w-full bg-slate-50 border border-gray-100 p-4 rounded-2xl text-sm font-bold outline-none focus:border-brand-orange focus:bg-white transition-all">
                     </div>
 
                     <div class="md:col-span-2">
                         <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 block ml-1">Notas Internas</label>
-                        <textarea id="new-client-notes" placeholder="Información adicional (solo visible para admin)..." class="w-full bg-slate-50 border border-gray-100 p-4 rounded-2xl text-sm font-bold outline-none focus:border-brand-cyan focus:bg-white transition-all resize-none h-24"></textarea>
+                        <textarea id="new-client-notes" placeholder="Información adicional (solo visible para admin)..." class="w-full bg-slate-50 border border-gray-100 p-4 rounded-2xl text-sm font-bold outline-none focus:border-brand-orange focus:bg-white transition-all resize-none h-24"></textarea>
                     </div>
                 </div>
             </div>
 
             <div class="p-8 bg-slate-50 border-t border-gray-100">
-                <button id="save-client" class="w-full bg-brand-black text-white font-black py-4 rounded-2xl uppercase text-xs tracking-widest hover:bg-brand-cyan hover:text-brand-black transition shadow-lg transform active:scale-95">
+                <button id="save-client" class="w-full bg-brand-black text-white font-black py-4 rounded-2xl uppercase text-xs tracking-widest hover:bg-brand-orange hover:text-brand-black transition shadow-lg transform active:scale-95">
                     Guardar Cliente
                 </button>
             </div>
@@ -215,10 +215,10 @@
     </div>
 
     <script type="module">
-        import { loadAdminSidebar } from '../js/admin-ui.js?v=2.0.0';
+        import { loadAdminSidebar } from '../js/admin/admin-ui.js';
         loadAdminSidebar();
     </script>
-    <script type="module" src="../js/admin-guard.js"></script>
-    <script type="module" src="../js/admin-clients.js"></script>
+    <script type="module" src="../js/admin/admin-guard.js"></script>
+    <script type="module" src="../js/admin/admin-clients.js"></script>
 </body>
 </html>

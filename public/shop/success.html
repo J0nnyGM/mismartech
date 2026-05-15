@@ -35,7 +35,7 @@
     <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php'; ?>
 
     <div id="loading-screen" class="fixed inset-0 flex flex-col items-center justify-center bg-slate-50 z-50">
-        <div class="w-16 h-16 border-4 border-gray-200 border-t-brand-cyan rounded-full animate-spin mb-4"></div>
+        <div class="w-16 h-16 border-4 border-gray-200 border-t-brand-orange rounded-full animate-spin mb-4"></div>
         <h2 class="text-xl font-black uppercase tracking-tight">Verificando Estado...</h2>
         <p id="loading-text" class="text-xs text-gray-400 font-bold mt-2 tracking-widest">Consultando transacción</p>
     </div>
@@ -47,7 +47,7 @@
             <div class="w-8 h-px bg-gray-200"></div>
             <span class="text-[10px] font-black text-gray-300 uppercase tracking-widest">02 Envío</span>
             <div class="w-8 h-px bg-gray-200"></div>
-            <span class="text-[10px] font-black text-brand-black uppercase tracking-widest underline decoration-brand-cyan decoration-2 underline-offset-8">03 Confirmación</span>
+            <span class="text-[10px] font-black text-brand-black uppercase tracking-widest underline decoration-brand-orange decoration-2 underline-offset-8">03 Confirmación</span>
         </div>
 
         <div class="max-w-4xl mx-auto text-center fade-in-up">
@@ -130,8 +130,9 @@
     <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php'; ?>
 
     <script type="module">
-        import { loadGlobalHeader, loadGlobalFooter } from '../js/global-components.js?v=2.0';        import { db, doc, onSnapshot, auth, onAuthStateChanged } from '../js/firebase-init.js';
-        import { updateCartCount } from '../js/cart.js';
+        import { loadGlobalHeader, loadGlobalFooter } from '../js/global-components.js';        
+        import { db, doc, onSnapshot, auth, onAuthStateChanged } from '../js/firebase-init.js';
+        import { updateCartCount } from '../js/shop/cart.js';   
 
         loadGlobalHeader();
         loadGlobalFooter();
@@ -222,18 +223,18 @@
 
             // --- ESTILOS POR ESTADO ---
             if (type === 'SUCCESS') {
-                title.innerHTML = `¡Pedido <span class="text-brand-cyan">Confirmado</span>!`;
+                title.innerHTML = `¡Pedido <span class="text-brand-orange">Confirmado</span>!`;
                 subtitle.textContent = "Gracias por confiar en PixelTech";
                 infoCard.className = "bg-brand-black rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden";
-                bgIcon.className = "fa-solid fa-box-open absolute -right-8 -bottom-8 text-[12rem] opacity-5 rotate-12 text-brand-cyan";
+                bgIcon.className = "fa-solid fa-box-open absolute -right-8 -bottom-8 text-[12rem] opacity-5 rotate-12 text-brand-orange";
                 badge.className = "px-3 py-1 rounded text-[10px] font-black uppercase tracking-widest bg-green-500 text-white shadow-lg shadow-green-500/30";
                 badge.textContent = "PAGO EXITOSO";
                 
                 actions.innerHTML = `
-                    <a href="/profile.html" class="w-full bg-brand-cyan text-brand-black font-black py-5 rounded-2xl hover:bg-brand-black hover:text-white transition-all uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-3 shadow-xl shadow-cyan-500/10">
+                    <a href="/profile.html" class="w-full bg-brand-orange text-brand-black font-black py-5 rounded-2xl hover:bg-brand-black hover:text-white transition-all uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-3 shadow-xl shadow-cyan-500/10">
                         Ir a mis pedidos <i class="fa-solid fa-list-check"></i>
                     </a>
-                    <a href="/index.html" class="w-full bg-white border border-gray-200 text-gray-400 font-black py-5 rounded-2xl hover:border-brand-cyan hover:text-brand-black transition-all uppercase text-[10px] tracking-[0.2em] flex items-center justify-center gap-3">
+                    <a href="/index.html" class="w-full bg-white border border-gray-200 text-gray-400 font-black py-5 rounded-2xl hover:border-brand-orange hover:text-brand-black transition-all uppercase text-[10px] tracking-[0.2em] flex items-center justify-center gap-3">
                         Seguir Comprando
                     </a>
                 `;
@@ -331,7 +332,7 @@
                                 <h4 class="font-bold text-[10px] uppercase text-brand-black truncate">${item.title || item.name}</h4>
                                 <div class="flex flex-wrap gap-1 mt-1">
                                     ${item.color ? `<span class="text-[7px] font-bold uppercase bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded border border-gray-200">${item.color}</span>` : ''}
-                                    ${item.capacity ? `<span class="text-[7px] font-bold uppercase bg-brand-cyan/10 text-brand-cyan px-1.5 py-0.5 rounded border border-brand-cyan/20">${item.capacity}</span>` : ''}
+                                    ${item.capacity ? `<span class="text-[7px] font-bold uppercase bg-brand-orange/10 text-brand-orange px-1.5 py-0.5 rounded border border-brand-orange/20">${item.capacity}</span>` : ''}
                                     ${hasDiscount ? `<span class="text-[7px] font-bold uppercase bg-red-100 text-red-600 px-1.5 py-0.5 rounded border border-red-200"><i class="fa-solid fa-tag mr-1"></i>OFERTA</span>` : ''}
                                 </div>
                             </div>

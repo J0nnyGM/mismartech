@@ -27,6 +27,7 @@ const orderCounterModule = require('./order-counter');
 const mercadolibreModule = require('./mercadolibre');
 const mercadolibre2Module = require('./mercadolibre2');
 const mercadolibre3Module = require('./mercadolibre3');
+const syncWatcherModule = require('./sync-watcher'); // 🔥 NUEVO: Importar el centinela
 
 
 // --- 3. EXPORTAR FUNCIONES ---
@@ -94,3 +95,11 @@ exports.renewMercadoLibreStore2Token = onSchedule("every 5 hours", mercadolibre2
 // Tienda 3
 exports.mercadolibreStore3Webhook = functions.https.onRequest(mercadolibre3Module.webhook);
 exports.renewMercadoLibreStore3Token = onSchedule("every 5 hours", mercadolibre3Module.renewTokenTask);
+
+// 🔥 NUEVO: Exportar los Centinelas de Sincronización (Delta Sync)
+exports.watchers = syncWatcherModule;
+
+
+//Arreglo cedulas en pedidos 
+//const fixCedulasModule = require('./fix-cedulas');
+//exports.fixMissingCedulas = fixCedulasModule.runFix;

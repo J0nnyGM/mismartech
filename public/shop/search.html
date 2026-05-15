@@ -45,9 +45,9 @@
                 </button>
 
                 <div class="relative w-full md:w-64" id="custom-sort-container">
-                    <button id="sort-trigger" class="w-full bg-white border border-gray-200 px-4 py-3 rounded-xl flex justify-between items-center hover:border-brand-cyan transition group">
+                    <button id="sort-trigger" class="w-full bg-white border border-gray-200 px-4 py-3 rounded-xl flex justify-between items-center hover:border-brand-orange transition group">
                         <div class="flex items-center gap-2">
-                            <i class="fa-solid fa-arrow-down-short-wide text-gray-400 group-hover:text-brand-cyan transition"></i>
+                            <i class="fa-solid fa-arrow-down-short-wide text-gray-400 group-hover:text-brand-orange transition"></i>
                             <span class="text-xs font-bold text-gray-600 uppercase tracking-wide" id="sort-label">Lo más nuevo</span>
                         </div>
                         <i class="fa-solid fa-chevron-down text-[10px] text-gray-400 transition-transform duration-300" id="sort-icon"></i>
@@ -55,10 +55,10 @@
                     
                     <div id="sort-dropdown" class="absolute top-full right-0 mt-2 w-full bg-white border border-gray-100 rounded-xl shadow-xl hidden z-30 overflow-hidden">
                         <div class="p-1 space-y-1">
-                            <button onclick="window.setSort('newest', 'Lo más nuevo')" class="w-full text-left px-4 py-3 text-xs font-bold text-gray-600 hover:bg-slate-50 hover:text-brand-cyan rounded-lg transition uppercase">Lo más nuevo</button>
-                            <button onclick="window.setSort('price-asc', 'Menor Precio')" class="w-full text-left px-4 py-3 text-xs font-bold text-gray-600 hover:bg-slate-50 hover:text-brand-cyan rounded-lg transition uppercase">Menor Precio</button>
-                            <button onclick="window.setSort('price-desc', 'Mayor Precio')" class="w-full text-left px-4 py-3 text-xs font-bold text-gray-600 hover:bg-slate-50 hover:text-brand-cyan rounded-lg transition uppercase">Mayor Precio</button>
-                            <button onclick="window.setSort('alpha-asc', 'A - Z')" class="w-full text-left px-4 py-3 text-xs font-bold text-gray-600 hover:bg-slate-50 hover:text-brand-cyan rounded-lg transition uppercase">Nombre (A-Z)</button>
+                            <button onclick="window.setSort('newest', 'Lo más nuevo')" class="w-full text-left px-4 py-3 text-xs font-bold text-gray-600 hover:bg-slate-50 hover:text-brand-orange rounded-lg transition uppercase">Lo más nuevo</button>
+                            <button onclick="window.setSort('price-asc', 'Menor Precio')" class="w-full text-left px-4 py-3 text-xs font-bold text-gray-600 hover:bg-slate-50 hover:text-brand-orange rounded-lg transition uppercase">Menor Precio</button>
+                            <button onclick="window.setSort('price-desc', 'Mayor Precio')" class="w-full text-left px-4 py-3 text-xs font-bold text-gray-600 hover:bg-slate-50 hover:text-brand-orange rounded-lg transition uppercase">Mayor Precio</button>
+                            <button onclick="window.setSort('alpha-asc', 'A - Z')" class="w-full text-left px-4 py-3 text-xs font-bold text-gray-600 hover:bg-slate-50 hover:text-brand-orange rounded-lg transition uppercase">Nombre (A-Z)</button>
                         </div>
                     </div>
                 </div>
@@ -87,7 +87,7 @@
             <div class="lg:col-span-9 xl:col-span-10">
                 <div id="products-grid" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 min-h-[400px]">
                     <div class="col-span-full py-20 flex flex-col items-center justify-center text-gray-300">
-                        <i class="fa-solid fa-circle-notch fa-spin text-4xl text-brand-cyan mb-4"></i>
+                        <i class="fa-solid fa-circle-notch fa-spin text-4xl text-brand-orange mb-4"></i>
                         <p class="font-bold uppercase text-xs tracking-widest">Buscando productos...</p>
                     </div>
                 </div>
@@ -98,7 +98,7 @@
                     </div>
                     <h3 class="text-xl font-black text-brand-black mb-2 uppercase tracking-tight">Sin resultados</h3>
                     <p class="text-gray-400 text-sm max-w-md mx-auto mb-8">No encontramos productos con esos criterios. Intenta con otros términos o filtros.</p>
-                    <button onclick="window.clearAllFilters()" class="bg-brand-black text-white px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-cyan hover:text-brand-black transition shadow-lg">
+                    <button onclick="window.clearAllFilters()" class="bg-brand-black text-white px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-orange hover:text-brand-black transition shadow-lg">
                         Ver todo el catálogo
                     </button>
                 </div>
@@ -120,7 +120,7 @@
         <div class="flex-grow overflow-y-auto p-6 space-y-8 custom-scroll" id="mobile-filters-content">
             </div>
         <div class="p-6 border-t border-gray-100 bg-white">
-            <button id="btn-apply-mobile" class="w-full bg-brand-black text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-brand-cyan hover:text-brand-black transition">
+            <button id="btn-apply-mobile" class="w-full bg-brand-black text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-brand-orange hover:text-brand-black transition">
                 Ver Resultados
             </button>
         </div>
@@ -128,9 +128,9 @@
     <div id="mobile-filters-overlay" class="fixed inset-0 bg-black/60 z-40 hidden lg:hidden backdrop-blur-sm opacity-0 transition-opacity duration-300"></div>
 
     <script type="module">
-        import { loadGlobalHeader, loadGlobalFooter } from '../js/global-components.js?v=2.0';        loadGlobalHeader();
+        import { loadGlobalHeader, loadGlobalFooter } from '../js/global-components.js';        loadGlobalHeader();
         loadGlobalFooter();
     </script>
-    <script type="module" src="../js/search.js"></script>
+    <script type="module" src="../js/shop/search.js"></script>
 </body>
 </html>

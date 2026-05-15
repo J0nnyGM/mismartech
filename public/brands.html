@@ -30,13 +30,13 @@
 
     <main class="flex-grow w-full px-[5%] py-12 fade-in">
         
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6 border-l-8 border-brand-cyan pl-8">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6 border-l-8 border-brand-orange pl-8">
             <div>
                 <h2 class="text-4xl md:text-5xl font-black text-brand-black tracking-tighter uppercase">Marcas <span class="text-gray-300">Oficiales</span></h2>
                 <p class="text-gray-400 font-bold text-sm mt-2 uppercase tracking-widest">Tecnología de los mejores fabricantes</p>
             </div>
             
-            <a href="/shop/search.html" class="group flex items-center gap-3 bg-brand-black text-white px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-cyan hover:text-brand-black transition shadow-lg">
+            <a href="/shop/search.html" class="group flex items-center gap-3 bg-brand-black text-white px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-orange hover:text-brand-black transition shadow-lg">
                 <span>Ver Todo el Catálogo</span>
                 <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
             </a>
@@ -44,7 +44,7 @@
 
         <div id="brands-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
             <div class="col-span-full flex justify-center py-20">
-                <i class="fa-solid fa-circle-notch fa-spin text-4xl text-brand-cyan"></i>
+                <i class="fa-solid fa-circle-notch fa-spin text-4xl text-brand-orange"></i>
             </div>
         </div>
 
@@ -53,7 +53,7 @@
     <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php'; ?>
 
     <script type="module">
-        import { loadGlobalHeader, loadGlobalFooter, renderBrandCarousel } from './js/global-components.js?v=2.0';
+        import { loadGlobalHeader, loadGlobalFooter, renderBrandCarousel } from './js/global-components.js';
         loadGlobalHeader();
         loadGlobalFooter();
         
@@ -61,7 +61,7 @@
         // renderBrandCarousel('carousel-container');
     </script>
     
-    <script type="module" src="js/brands.js"></script>
+    <script type="module" src="js/shop/brands.js"></script>
 
 </body>
 </html>
