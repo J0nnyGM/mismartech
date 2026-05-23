@@ -14,8 +14,10 @@
 <body class="bg-[#F8FAFC] font-sans text-brand-black flex flex-col min-h-screen relative overflow-x-hidden">
 
     <!-- Ambient Radial Glows -->
-    <div class="absolute -top-40 -right-40 w-[30rem] h-[30rem] rounded-full bg-brand-orange/5 blur-[120px] pointer-events-none"></div>
-    <div class="absolute -bottom-40 -left-40 w-[30rem] h-[30rem] rounded-full bg-brand-orange/5 blur-[120px] pointer-events-none"></div>
+    <div class="pointer-events-none absolute inset-0 overflow-hidden z-0">
+        <div class="absolute -top-40 -right-40 w-[30rem] h-[30rem] rounded-full bg-brand-orange/5 blur-[120px]"></div>
+        <div class="absolute -bottom-40 -left-40 w-[30rem] h-[30rem] rounded-full bg-brand-orange/5 blur-[120px]"></div>
+    </div>
 
     <div id="header-placeholder"></div>
 
