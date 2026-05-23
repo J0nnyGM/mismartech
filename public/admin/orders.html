@@ -3,11 +3,11 @@
 
 <head>
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#00AEC7">
+    <meta name="theme-color" content="#F05A28">
     <link rel="apple-touch-icon" href="/img/icons/icon-192x192.webp">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Pedidos - PixelTech</title>
+    <title>Gestión de Pedidos - Mi Smartech</title>
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
@@ -26,7 +26,7 @@
         }
 
         .custom-scroll::-webkit-scrollbar-thumb {
-            background: #00AEC7;
+            background: #F05A28;
             border-radius: 10px;
         }
 
@@ -44,7 +44,7 @@
         }
 
         .tab-btn.active {
-            background-color: #00AEC7;
+            background-color: #F05A28;
             color: white;
             box-shadow: 0 4px 12px rgba(0, 174, 199, 0.3);
             border-color: transparent;
@@ -60,7 +60,7 @@
 </head>
 
 <body
-    class="bg-slate-50 font-sans text-brand-black flex h-screen overflow-hidden selection:bg-brand-cyan selection:text-white"
+    class="bg-slate-50 font-sans text-brand-black flex h-screen overflow-hidden selection:bg-brand-orange selection:text-white"
     style="display: none;">
 
     <div id="admin-sidebar"></div>
@@ -88,11 +88,11 @@
                 </div>
 
                 <button id="btn-open-manual"
-                    class="grow sm:grow-0 justify-center bg-brand-black text-white px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-cyan hover:text-brand-black hover:shadow-lg transition-all flex items-center gap-2 transform active:scale-95">
+                    class="grow sm:grow-0 justify-center bg-brand-black text-white px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-orange hover:text-brand-black hover:shadow-lg transition-all flex items-center gap-2 transform active:scale-95">
                     <i class="fa-solid fa-plus"></i> Nueva Venta
                 </button>
                 
-                <div class="hidden sm:flex w-10 h-10 bg-slate-100 text-brand-cyan rounded-xl items-center justify-center font-bold shadow-sm">
+                <div class="hidden sm:flex w-10 h-10 bg-slate-100 text-brand-orange rounded-xl items-center justify-center font-bold shadow-sm">
                     <i class="fa-solid fa-user-shield"></i>
                 </div>
             </div>
@@ -102,14 +102,14 @@
             <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 md:mb-8 gap-4">
                 <div>
                     <h1 class="text-3xl md:text-4xl font-black tracking-tighter text-brand-black uppercase leading-none mb-2">
-                        Pedidos & <span class="text-brand-cyan">Envíos</span></h1>
+                        Pedidos & <span class="text-brand-orange">Envíos</span></h1>
                     <p class="text-sm text-brand-black font-bold tracking-wide">Administra el flujo de ventas y
                         despachos.</p>
                 </div>
                 <div class="relative w-full md:w-auto">
                     <i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-brand-black text-xs"></i>
                     <input type="text" id="search-input" placeholder="Buscar por # Orden o Cliente..."
-                        class="w-full md:w-64 pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-xs font-bold outline-none focus:border-brand-cyan transition bg-white shadow-sm text-brand-black">
+                        class="w-full md:w-64 pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-xs font-bold outline-none focus:border-brand-orange transition bg-white shadow-sm text-brand-black">
                 </div>
             </div>
 
@@ -140,7 +140,7 @@
                         <thead class="bg-slate-50 text-[9px] uppercase font-black text-brand-black tracking-widest border-b border-gray-100">
                             <tr>
                                 <th class="px-4 py-6 w-12 text-center">
-                                    <input type="checkbox" id="select-all-orders" onclick="window.toggleAllOrders(this)" class="cursor-pointer w-4 h-4 rounded text-brand-cyan focus:ring-brand-cyan border-gray-300">
+                                    <input type="checkbox" id="select-all-orders" onclick="window.toggleAllOrders(this)" class="cursor-pointer w-4 h-4 rounded text-brand-orange focus:ring-brand-orange border-gray-300">
                                 </th>
                                 <th class="px-8 py-6 w-36"># Orden / Fecha</th>
                                 <th class="px-8 py-6">Cliente</th>
@@ -157,7 +157,7 @@
 
                 <div id="load-more-container" class="p-6 text-center hidden border-t border-gray-100">
                     <button onclick="window.loadMoreOrders()"
-                        class="text-xs font-bold text-gray-400 hover:text-brand-cyan transition uppercase tracking-widest flex items-center justify-center gap-2 mx-auto">
+                        class="text-xs font-bold text-gray-400 hover:text-brand-orange transition uppercase tracking-widest flex items-center justify-center gap-2 mx-auto">
                         <i class="fa-solid fa-circle-plus"></i> Cargar siguientes 50
                     </button>
                 </div>
@@ -198,19 +198,19 @@
                         <div class="bg-white border border-gray-100 p-6 rounded-[2rem] shadow-sm">
                             <h4
                                 class="text-[9px] font-black uppercase tracking-[0.2em] text-brand-black mb-4 flex items-center gap-2">
-                                <i class="fa-solid fa-user-tag text-brand-cyan"></i> Cliente</h4>
+                                <i class="fa-solid fa-user-tag text-brand-orange"></i> Cliente</h4>
                             <p id="modal-client-name" class="font-black text-brand-black uppercase text-sm mb-1">...</p>
                             <p id="modal-client-doc" class="text-[10px] font-bold text-brand-black uppercase mb-1">...
                             </p>
                             <p id="modal-client-contact" class="text-xs text-brand-black font-bold break-all">...</p>
                         </div>
                         <div class="bg-white border border-gray-100 p-6 rounded-[2rem] shadow-sm">
-                            <h4 class="text-[9px] font-black uppercase tracking-[0.2em] text-brand-black mb-4 flex items-center gap-2"><i class="fa-solid fa-map-location-dot text-brand-cyan"></i> Envío</h4>
+                            <h4 class="text-[9px] font-black uppercase tracking-[0.2em] text-brand-black mb-4 flex items-center gap-2"><i class="fa-solid fa-map-location-dot text-brand-orange"></i> Envío</h4>
                             <p id="modal-delivery-address" class="text-xs font-bold text-brand-black mb-1">...</p>
                             <p id="modal-delivery-city" class="text-[10px] text-gray-500 font-black uppercase">...</p>
                             
-                            <div id="modal-tracking-info" class="mt-4 p-4 bg-brand-cyan/5 rounded-xl border border-brand-cyan/20 hidden animate-fadeIn">
-                                <p class="text-[9px] font-black text-brand-cyan uppercase tracking-widest mb-1">Datos de Despacho</p>
+                            <div id="modal-tracking-info" class="mt-4 p-4 bg-brand-orange/5 rounded-xl border border-brand-orange/20 hidden animate-fadeIn">
+                                <p class="text-[9px] font-black text-brand-orange uppercase tracking-widest mb-1">Datos de Despacho</p>
                                 <p class="text-xs font-bold text-brand-black uppercase"><i class="fa-solid fa-truck-fast mr-1 text-gray-400"></i> <span id="modal-carrier"></span></p>
                                 <p class="text-[10px] font-mono font-bold text-gray-500 mt-1">Guía: <span id="modal-tracking-number" class="select-all text-brand-black"></span></p>
                             </div>
@@ -218,9 +218,9 @@
                             <div id="modal-order-notes" class="mt-4 p-4 bg-yellow-50 rounded-xl text-[10px] text-yellow-900 font-bold border border-yellow-100 hidden"><i class="fa-regular fa-note-sticky mr-1"></i> <span id="note-text"></span></div>
                         </div>
                         <div id="modal-billing-section"
-                            class="hidden bg-brand-cyan/5 border border-brand-cyan/10 p-6 rounded-[2rem]">
+                            class="hidden bg-brand-orange/5 border border-brand-orange/10 p-6 rounded-[2rem]">
                             <h4
-                                class="text-[9px] font-black uppercase tracking-[0.2em] text-brand-cyan mb-4 flex items-center gap-2">
+                                class="text-[9px] font-black uppercase tracking-[0.2em] text-brand-orange mb-4 flex items-center gap-2">
                                 <i class="fa-solid fa-file-invoice-dollar"></i> Facturación</h4>
                             <div class="space-y-2 text-xs font-bold text-brand-black">
                                 <p id="bill-modal-name">--</p>
@@ -232,7 +232,7 @@
                     <div class="lg:col-span-2">
                         <h4
                             class="text-[9px] font-black uppercase tracking-[0.2em] text-brand-black mb-4 flex items-center gap-2">
-                            <i class="fa-solid fa-boxes-packing text-brand-cyan"></i> Picking List & Seriales</h4>
+                            <i class="fa-solid fa-boxes-packing text-brand-orange"></i> Picking List & Seriales</h4>
                         <div class="bg-slate-50 rounded-[2rem] border border-gray-100 overflow-hidden"
                             id="modal-items-list-responsive"></div>
                     </div>
@@ -246,8 +246,8 @@
                         <p id="modal-order-subtotal" class="text-base font-bold text-brand-black">---</p>
                     </div>
                     <div class="text-right md:text-left border-l border-gray-200 pl-4 md:pl-0 md:border-none">
-                        <p class="text-[9px] font-black text-brand-cyan uppercase tracking-widest mb-1">Envío</p>
-                        <p id="modal-order-shipping" class="text-base font-bold text-brand-cyan">---</p>
+                        <p class="text-[9px] font-black text-brand-orange uppercase tracking-widest mb-1">Envío</p>
+                        <p id="modal-order-shipping" class="text-base font-bold text-brand-orange">---</p>
                     </div>
                     <div id="modal-total-container" class="col-span-2 text-right md:text-left border-t md:border-t-0 md:border-l border-gray-200 pt-4 md:pt-0 md:pl-8 mt-1 md:mt-0 min-w-[150px]">
                         <p class="text-[9px] font-black text-brand-black uppercase tracking-widest mb-1">Total Neto</p>
@@ -261,7 +261,7 @@
                     <div id="modal-footer-actions" class="flex gap-3 w-full md:w-auto hidden">
                         <button id="btn-save-alistado"
                             onclick="window.saveAlistamiento(() => window.switchTab('ACTIONABLE'))"
-                            class="flex-1 md:flex-none bg-brand-black text-white px-8 py-4 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-brand-cyan hover:text-brand-black transition-all shadow-xl">Guardar
+                            class="flex-1 md:flex-none bg-brand-black text-white px-8 py-4 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-brand-orange hover:text-brand-black transition-all shadow-xl">Guardar
                             Alistamiento</button>
                         <button id="btn-set-despachado" onclick="window.openDispatchModal()"
                             class="flex-1 md:flex-none bg-green-500 text-white px-8 py-4 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-green-600 transition-all shadow-xl"><i
@@ -328,7 +328,7 @@
                         <i
                             class="fa-solid fa-building-columns absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
                         <select id="pay-account-select" required
-                            class="w-full bg-slate-50 border border-gray-200 pl-10 pr-4 py-4 rounded-xl font-bold text-xs outline-none focus:border-brand-cyan focus:ring-1 focus:ring-brand-cyan/20 appearance-none text-brand-black cursor-pointer shadow-sm transition-all">
+                            class="w-full bg-slate-50 border border-gray-200 pl-10 pr-4 py-4 rounded-xl font-bold text-xs outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange/20 appearance-none text-brand-black cursor-pointer shadow-sm transition-all">
                             <option value="">Cargando cuentas...</option>
                         </select>
                         <i
@@ -501,7 +501,7 @@
                     <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Cuenta de Destino (Tesorería)</label>
                     <div class="relative">
                         <i class="fa-solid fa-building-columns absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                        <select id="bulk-pay-account-select" class="w-full bg-slate-50 border border-gray-200 pl-10 pr-4 py-4 rounded-xl font-bold text-xs outline-none focus:border-brand-cyan appearance-none text-brand-black cursor-pointer shadow-sm transition-all">
+                        <select id="bulk-pay-account-select" class="w-full bg-slate-50 border border-gray-200 pl-10 pr-4 py-4 rounded-xl font-bold text-xs outline-none focus:border-brand-orange appearance-none text-brand-black cursor-pointer shadow-sm transition-all">
                             <option value="">Cargando cuentas...</option>
                         </select>
                     </div>
@@ -516,8 +516,9 @@
     <script type="module">
         import '../js/admin/admin-guard.js';
         import { db, collection, getDocs, orderBy, query, limit, auth, doc, getDoc, where, onSnapshot } from '../js/firebase-init.js';
-        import { loadAdminSidebar } from '../js/admin/admin-ui.js?v=2.0.0';
+        import { loadAdminSidebar } from '../js/admin/admin-ui.js';
         import { initManualSale, openManualSaleModal } from '../js/admin/manual-sale.js';
+        import { AdminStore } from '../js/admin/admin-store.js';
         import '../js/admin/order-actions.js';
 
         loadAdminSidebar();
@@ -537,14 +538,18 @@
 
                 const accSelect = document.getElementById('pay-account-select');
                 if (accSelect) {
-                    const accSnap = await getDocs(collection(db, "accounts"));
-                    let ops = '<option value="">Seleccione Cuenta...</option>';
-                    accSnap.forEach(d => {
-                        const acc = d.data();
-                        const label = acc.accountNumber ? `${acc.name} - ${acc.accountNumber}` : acc.name;
-                        ops += `<option value="${d.id}">${label}</option>`;
+                    const activeBranchId = sessionStorage.getItem('activeBranchId') || 'sede_principal';
+                    AdminStore.subscribeToAccounts((accs) => {
+                        let ops = '<option value="">Seleccione Cuenta...</option>';
+                        accs.forEach(acc => {
+                            const accBranchId = acc.branchId || 'sede_principal';
+                            if (accBranchId === activeBranchId) {
+                                const label = acc.accountNumber ? `${acc.name} - ${acc.accountNumber}` : acc.name;
+                                ops += `<option value="${acc.id}">${label}</option>`;
+                            }
+                        });
+                        accSelect.innerHTML = ops;
                     });
-                    accSelect.innerHTML = ops;
                 }
 
                 // Iniciamos el motor inteligente
@@ -570,7 +575,7 @@
         // 🧠 SMART REAL-TIME CACHE: MOTOR CENTRAL DE ÓRDENES
         // ==========================================================================
         const SmartAdminOrdersSync = {
-            STORAGE_KEY: 'pixeltech_admin_orders_cache',
+            STORAGE_KEY: 'mismartech_admin_orders_cache',
             runtimeMap: {},
             lastSyncTime: 0,
             unsubscribe: null,
@@ -764,7 +769,7 @@
             if (results.length === 0) {
                 tableBody.innerHTML = `<tr><td colspan="7" class="p-10 text-center text-xs text-red-500 font-bold uppercase">No se encontró coincidencia en caché local. Presiona ENTER para buscar a fondo.</td></tr>`;
             } else {
-                tableBody.innerHTML += `<tr class="bg-brand-cyan/10 border-b border-brand-cyan/20"><td colspan="7" class="py-3 px-8 text-[10px] font-black uppercase text-brand-black tracking-widest"><i class="fa-solid fa-search text-brand-cyan mr-2"></i> Resultados de Búsqueda</td></tr>`;
+                tableBody.innerHTML += `<tr class="bg-brand-orange/10 border-b border-brand-orange/20"><td colspan="7" class="py-3 px-8 text-[10px] font-black uppercase text-brand-black tracking-widest"><i class="fa-solid fa-search text-brand-orange mr-2"></i> Resultados de Búsqueda</td></tr>`;
                 results.forEach(o => renderRow(o));
             }
         });
@@ -776,7 +781,7 @@
                 if (val.length < 3) return; // Evitar búsquedas muy cortas
 
                 const tableBody = document.getElementById('orders-table-body');
-                tableBody.innerHTML = `<tr><td colspan="7" class="p-8 text-center"><i class="fa-solid fa-cloud-arrow-down fa-bounce text-brand-cyan"></i> Buscando en el archivo del servidor...</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="7" class="p-8 text-center"><i class="fa-solid fa-cloud-arrow-down fa-bounce text-brand-orange"></i> Buscando en el archivo del servidor...</td></tr>`;
 
                 try {
                     const ordersRef = collection(db, "orders");
@@ -802,7 +807,7 @@
                     }
 
                     if (finalDocs.length > 0) {
-                        tableBody.innerHTML = `<tr class="bg-gray-800 text-white"><td colspan="7" class="py-3 px-8 text-[10px] font-black uppercase tracking-widest"><i class="fa-solid fa-cloud text-brand-cyan mr-2"></i> Resultado desde Servidor</td></tr>`;
+                        tableBody.innerHTML = `<tr class="bg-gray-800 text-white"><td colspan="7" class="py-3 px-8 text-[10px] font-black uppercase tracking-widest"><i class="fa-solid fa-cloud text-brand-orange mr-2"></i> Resultado desde Servidor</td></tr>`;
                         finalDocs.forEach(o => renderRow(o));
                     } else {
                         tableBody.innerHTML = `<tr><td colspan="7" class="p-10 text-center text-xs text-red-500 font-bold uppercase">Definitivamente no existe la orden con ID o Número: "${val}".</td></tr>`;
@@ -888,11 +893,11 @@
             tableBody.innerHTML += `
                 <tr class="hover:bg-slate-50 transition border-b border-gray-50 group fade-in">
                     <td class="px-4 py-6 text-center">
-                        <input type="checkbox" class="order-cb cursor-pointer w-4 h-4 rounded text-brand-cyan focus:ring-brand-cyan border-gray-300" value="${o.id}">
+                        <input type="checkbox" class="order-cb cursor-pointer w-4 h-4 rounded text-brand-orange focus:ring-brand-orange border-gray-300" value="${o.id}">
                     </td>
                     <td class="px-8 py-6">
                         <div class="flex items-center gap-2 mb-1">
-                            <div class="font-black text-base text-brand-cyan uppercase tracking-tighter">${internalNumDisplay}</div>
+                            <div class="font-black text-base text-brand-orange uppercase tracking-tighter">${internalNumDisplay}</div>
                             <div class="font-mono text-[8px] text-gray-400 uppercase bg-gray-100 px-1.5 py-0.5 rounded" title="ID Firebase: ${o.id}">${shortId}</div>
                         </div>
                         <div class="text-[9px] font-bold text-brand-black mt-1">${dateStr}</div>
@@ -902,7 +907,7 @@
                         <div class="text-[9px] text-brand-black font-bold">${o.buyerInfo?.phone || o.phone || ''}</div>
                     </td>
                     <td class="px-8 py-6 text-center">
-                        <span class="text-[8px] font-black px-2 py-0.5 rounded shadow-sm ${isTienda ? 'bg-brand-cyan text-brand-black' : 'bg-brand-black text-white'}">${isTienda ? 'WEB' : 'MANUAL'}</span>
+                        <span class="text-[8px] font-black px-2 py-0.5 rounded shadow-sm ${isTienda ? 'bg-brand-orange text-brand-black' : 'bg-brand-black text-white'}">${isTienda ? 'WEB' : 'MANUAL'}</span>
                     </td>
                     <td class="px-8 py-6 text-center">${pBadge}</td>
                     <td class="px-8 py-6 text-center">

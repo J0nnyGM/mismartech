@@ -1,21 +1,32 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Smartech">
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#00AEC7">
+    <meta name="theme-color" content="#F05A28">
     <link rel="apple-touch-icon" href="/img/icons/icon-192x192.webp">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tu carrito de Compras | PixelTech Col</title>
+    <title>Tu carrito de Compras | Smartech</title>
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
     <style>
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .cart-item-card { transition: all 0.3s ease; border: 1px solid #e5e7eb; }
-        .cart-item-card:hover { border-color: #00AEC7; box-shadow: 0 10px 30px -15px rgba(0, 174, 199, 0.15); }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* ✅ RESTAURACIÓN DE ANIMACIÓN MARQUEE GLOBAL */
+        @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+        .animate-marquee { display: flex; width: max-content; animation: marquee 45s linear infinite; }
+        .marquee-container:hover .animate-marquee { animation-play-state: paused; }
 
-        /* --- ANIMACIÓN BARRA DE PROGRESO --- */
+        /* Estilos de Tarjetas Premium */
+        .cart-item-card { transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); border: 1px solid #f1f1f4; }
+        .cart-item-card:hover { border-color: rgba(240, 90, 40, 0.25); box-shadow: 0 15px 35px -10px rgba(240, 90, 40, 0.08); }
+
+        /* Animación Barra de Envío Gratis */
         .progress-striped {
             background-image: linear-gradient(45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent);
             background-size: 1rem 1rem;
@@ -26,52 +37,50 @@
             100% { background-position: 1rem 0; }
         }
         
-        .pulse-text { animation: pulse-green 2s infinite; }
-        @keyframes pulse-green {
-            0% { text-shadow: 0 0 0 rgba(16, 185, 129, 0.4); }
-            70% { text-shadow: 0 0 10px rgba(16, 185, 129, 0); }
-            100% { text-shadow: 0 0 0 rgba(16, 185, 129, 0); }
+        .pulse-text { animation: pulse-orange 2s infinite; }
+        @keyframes pulse-orange {
+            0% { text-shadow: 0 0 0 rgba(240, 90, 40, 0.3); }
+            70% { text-shadow: 0 0 8px rgba(240, 90, 40, 0); }
+            100% { text-shadow: 0 0 0 rgba(240, 90, 40, 0); }
         }
 
         .item-agotado {
-            opacity: 0.6;
-            background-color: #f9fafb; /* gris muy claro */
-            border-color: #fee2e2; /* borde rojizo suave */
+            opacity: 0.55;
+            background-color: #f8f9fa;
+            border-color: #fee2e2;
         }
     </style>
     <link rel="modulepreload" href="../js/firebase-init.js">
     <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js">
     <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js">
     <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js">
-    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js">
-    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js">
 </head>
 
-<body class="bg-slate-50 font-sans text-brand-black antialiased">
+<body class="bg-slate-50/60 font-sans text-brand-black antialiased flex flex-col min-h-screen">
 
-    <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php'; ?>
+    <div id="header-placeholder"></div>
 
-    <main class="container mx-auto px-6 py-12 min-h-[70vh]">
+    <main class="container mx-auto px-4 md:px-6 py-10 flex-grow">
         
-        <div class="flex items-center justify-between mb-16">
-            <a href="/index.html" class="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-brand-orange transition">
-                <i class="fa-solid fa-arrow-left-long"></i> Seguir Explorando
+        <div class="flex items-center justify-between mb-12">
+            <a href="/index.html" class="flex items-center gap-2.5 text-[11px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-orange transition-colors">
+                <i class="fa-solid fa-arrow-left-long text-[9px]"></i> Seguir Comprando
             </a>
-            <div class="hidden md:flex items-center gap-6">
-                <span class="text-[10px] font-black text-brand-black uppercase tracking-widest underline decoration-brand-orange decoration-2 underline-offset-8">01 Carrito</span>
-                <div class="w-8 h-px bg-gray-300"></div>
-                <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">02 Envío</span>
-                <div class="w-8 h-px bg-gray-300"></div>
-                <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">03 Pago</span>
+            <div class="hidden md:flex items-center gap-6 select-none">
+                <span class="text-[11px] font-black text-brand-black uppercase tracking-widest underline decoration-brand-orange decoration-2 underline-offset-8">01 Carrito</span>
+                <div class="w-6 h-px bg-gray-300"></div>
+                <span class="text-[11px] font-black text-gray-400 uppercase tracking-widest">02 Envío</span>
+                <div class="w-6 h-px bg-gray-300"></div>
+                <span class="text-[11px] font-black text-gray-400 uppercase tracking-widest">03 Pago</span>
             </div>
         </div>
 
-        <h1 class="text-5xl font-black mb-12 tracking-tighter uppercase text-brand-black">Tu <span class="text-gray-400">Carrito</span></h1>
+        <h1 class="text-4xl md:text-5xl font-black mb-10 tracking-tighter uppercase text-brand-black">Tu <span class="text-gray-400 font-bold">Carrito</span></h1>
 
-        <div id="cart-container" class="flex flex-col lg:flex-row gap-16 hidden">
+        <div id="cart-container" class="flex flex-col lg:flex-row gap-10 lg:gap-14 hidden">
             
-            <div class="lg:w-2/3 space-y-6">
-                <div class="hidden md:grid grid-cols-12 gap-4 px-8 mb-4 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">
+            <div class="w-full lg:w-[65%] space-y-5">
+                <div class="hidden md:grid grid-cols-12 gap-4 px-6 mb-2 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
                     <div class="col-span-6">Detalle del Producto</div>
                     <div class="col-span-2 text-center">Cantidad</div>
                     <div class="col-span-2 text-right">Unitario</div>
@@ -80,95 +89,93 @@
                 <div id="cart-items-list" class="space-y-4"></div>
             </div>
 
-            <div class="lg:w-1/3">
-                <div class="bg-white rounded-[2.5rem] p-10 shadow-2xl border border-gray-200 sticky top-28">
+            <div class="w-full lg:w-[35%]">
+                <div class="bg-gradient-to-br from-[#1c1c1f] via-brand-black to-black rounded-[2.5rem] p-8 md:p-9 shadow-[0_20px_50px_rgba(0,0,0,0.25)] border border-white/5 sticky top-28 text-white">
                     
-                    <h2 class="font-black text-xs uppercase tracking-[0.2em] text-gray-600 mb-8 border-b border-gray-100 pb-6 flex justify-between items-center">
-                        Resumen <i class="fa-solid fa-receipt text-gray-300"></i>
+                    <h2 class="font-black text-[11px] uppercase tracking-[0.2em] text-gray-400 mb-8 border-b border-white/5 pb-5 flex justify-between items-center">
+                        Resumen de compra <i class="fa-solid fa-receipt text-brand-orange/40 text-sm"></i>
                     </h2>
 
-                    <div class="space-y-4 mb-8">
-                        <div class="flex justify-between items-end text-gray-600 font-bold text-[11px] uppercase tracking-wide">
+                    <div class="space-y-4 mb-6">
+                        <div class="flex justify-between items-end text-gray-300 font-bold text-xs uppercase tracking-wide">
                             <div class="flex flex-col">
-                                <span>Subtotal</span>
-                                <span class="text-[8px] text-gray-400 normal-case tracking-normal">IVA incluido</span>
+                                <span class="text-gray-400">Subtotal</span>
+                                <span class="text-[9px] text-gray-500 normal-case tracking-normal font-medium mt-0.5">Impuesto del IVA incluido</span>
                             </div>
-                            <span id="summary-subtotal" class="text-brand-black">$0</span>
+                            <span id="summary-subtotal" class="text-white font-black text-sm tracking-tight">$0</span>
                         </div>
                         
-                        <div id="shipping-row" class="flex flex-col gap-1">
-                            <div class="flex justify-between text-gray-600 font-bold text-[11px] uppercase tracking-wide">
-                                <span>Envío Estimado</span>
-                                <span id="shipping-cost-display" class="text-brand-orange bg-cyan-50 px-2 py-0.5 rounded text-[10px]">Por Confirmar</span>
+                        <div id="shipping-row" class="flex flex-col gap-1 border-t border-white/5 pt-4">
+                            <div class="flex justify-between text-gray-300 font-bold text-xs uppercase tracking-wide items-center">
+                                <span class="text-gray-400">Envío Nacional</span>
+                                <span id="shipping-cost-display" class="text-brand-orange bg-brand-orange/10 border border-brand-orange/20 px-2.5 py-1 rounded-xl text-[10px] font-black tracking-wider">Por Confirmar</span>
                             </div>
-                            <div id="shipping-address-feedback" class="text-right"></div>
-                            
-                            <div id="dispatch-time-msg" class="text-right mt-2 hidden animate-in fade-in slide-in-from-top-1"></div>
+                            <div id="shipping-address-feedback" class="text-right text-gray-400"></div>
+                            <div id="dispatch-time-msg" class="text-right mt-1.5 hidden animate-in fade-in slide-in-from-top-1"></div>
                         </div>
                     </div>
 
-                    <div id="free-shipping-container" class="mb-8 hidden">
-                        <div class="flex justify-between items-end mb-2">
-                            <p id="free-shipping-msg" class="text-[10px] font-bold text-gray-500 uppercase tracking-wide">
-                                Faltan <span class="text-brand-black font-black">$50.000</span> para envío gratis
+                    <div id="free-shipping-container" class="mb-8 border-t border-white/5 pt-4 hidden">
+                        <div class="flex justify-between items-end mb-2.5">
+                            <p id="free-shipping-msg" class="text-[10px] font-black text-gray-400 uppercase tracking-wide">
+                                Faltan <span class="text-brand-orange">$50.000</span> para envío gratis
                             </p>
-                            <i class="fa-solid fa-truck-fast text-brand-orange text-sm animate-bounce"></i>
+                            <i class="fa-solid fa-shipping-fast text-brand-orange text-xs animate-bounce"></i>
                         </div>
-                        <div class="w-full bg-gray-100 rounded-full h-3 overflow-hidden border border-gray-200">
+                        <div class="w-full bg-white/5 rounded-full h-2 overflow-hidden border border-white/5">
                             <div id="free-shipping-bar" class="h-full bg-brand-orange progress-striped transition-all duration-700 ease-out w-0"></div>
                         </div>
                     </div>
-                    <div class="flex flex-col items-end mb-10 border-t-2 border-dashed border-gray-200 pt-8">
-                        <span class="font-black text-[10px] uppercase tracking-[0.3em] text-gray-500 mb-2">Total a Pagar</span>
-                        <span id="cart-total-display" class="text-5xl font-black tracking-tighter text-brand-black leading-none">$0</span>
-                        <p class="text-[9px] font-bold text-gray-400 mt-2 uppercase tracking-wide">Impuestos incluidos</p>
+
+                    <div class="flex flex-col items-end mb-8 border-t-2 border-dashed border-white/10 pt-6">
+                        <span class="font-black text-[10px] uppercase tracking-[0.25em] text-gray-500 mb-1.5">Total Neto a Pagar</span>
+                        <span id="cart-total-display" class="text-4xl md:text-5xl font-black tracking-tighter text-white leading-none">$0</span>
+                        <p class="text-[9px] font-bold text-gray-500 mt-2 uppercase tracking-widest">Garantía e impuestos incluidos</p>
                     </div>
 
-                    <button id="btn-checkout" class="w-full bg-brand-black text-white font-black py-5 rounded-2xl shadow-xl hover:bg-brand-orange hover:text-brand-black transition-all duration-300 transform hover:-translate-y-1 uppercase text-xs tracking-[0.25em] flex items-center justify-center gap-4 group">
+                    <button id="btn-checkout" class="w-full bg-brand-orange text-white font-black py-4.5 rounded-2xl shadow-xl hover:bg-white hover:text-brand-orange transition-all duration-300 transform hover:-translate-y-0.5 uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-3.5 group shadow-brand-orange/10">
                         Proceder al Pago 
-                        <div class="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center group-hover:bg-brand-black group-hover:text-white transition">
-                            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                        <div class="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center group-hover:bg-brand-orange group-hover:text-white transition-colors">
+                            <i class="fa-solid fa-chevron-right text-[9px]"></i>
                         </div>
                     </button>
 
-                    <div class="mt-8 flex flex-col items-center gap-4 border-t border-gray-100 pt-6">
-                        <p class="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                            <i class="fa-solid fa-lock text-emerald-500"></i> Compra 100% Segura
+                    <div class="mt-8 flex flex-col items-center gap-3.5 border-t border-white/5 pt-6">
+                        <p class="text-[9px] font-black text-gray-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                            <i class="fa-solid fa-shield-halved text-emerald-500 text-xs"></i> Conexión Cifrada & Compra Segura
                         </p>
-                        <div class="flex gap-4 opacity-50 grayscale hover:grayscale-0 transition duration-500">
-                            <i class="fa-brands fa-cc-visa text-2xl text-blue-900"></i>
-                            <i class="fa-brands fa-cc-mastercard text-2xl text-red-600"></i>
-                            <i class="fa-solid fa-money-bill-wave text-2xl text-green-600"></i>
+                        <div class="flex gap-4 opacity-30 grayscale hover:grayscale-0 hover:opacity-70 transition duration-500 text-xl">
+                            <i class="fa-brands fa-cc-visa"></i>
+                            <i class="fa-brands fa-cc-mastercard"></i>
+                            <i class="fa-solid fa-money-bill-wave"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div id="empty-cart-msg" class="hidden p-20 text-center bg-white rounded-[2.5rem] border border-gray-200 max-w-2xl mx-auto shadow-sm">
-            <div class="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-8 text-gray-300">
-                <i class="fa-solid fa-cart-shopping text-4xl"></i>
+        <div id="empty-cart-msg" class="hidden p-16 text-center bg-white rounded-[2.5rem] border border-gray-100 max-w-xl mx-auto shadow-sm">
+            <div class="w-20 h-20 bg-slate-50 text-gray-300 rounded-full flex items-center justify-center mx-auto mb-6 border border-gray-50">
+                <i class="fa-solid fa-cart-shopping text-3xl"></i>
             </div>
-            <h3 class="font-black text-sm uppercase tracking-widest text-gray-500 mb-8">Tu carrito está vacío</h3>
-            <a href="/catalog.html" class="inline-block bg-brand-black text-white px-12 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-brand-orange hover:text-brand-black transition-all shadow-xl">
-                Ir al Catálogo
+            <h3 class="font-black text-xs uppercase tracking-widest text-gray-400 mb-8">Tu cesta está vacía</h3>
+            <a href="/shop/catalog.html" class="inline-block bg-brand-black text-white px-10 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-brand-orange hover:text-white transition-all shadow-md active:scale-95">
+                Ir al Catálogo General
             </a>
         </div>
 
     </main>
 
-    <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php'; ?>
+    <div id="footer-placeholder"></div>
 
 <script type="module">
     import { getCart, updateQuantity, removeFromCart, getCartTotal, updateCartCount } from '../js/shop/cart.js';
     import { auth, db, doc, getDoc, onAuthStateChanged, collection, query, where, documentId, getDocs } from '../js/firebase-init.js'; 
     import { loadGlobalHeader, loadGlobalFooter } from '../js/global-components.js';
 
-    // Cargar componentes globales
     loadGlobalHeader();
     loadGlobalFooter();
 
-    // --- ELEMENTOS DOM ---
     const container = document.getElementById('cart-items-list');
     const mainContainer = document.getElementById('cart-container');
     const emptyMsg = document.getElementById('empty-cart-msg');
@@ -179,20 +186,15 @@
     const dispatchMsg = document.getElementById('dispatch-time-msg');
     const checkoutBtn = document.getElementById('btn-checkout');
     
-    // Elementos Barra Progreso
     const shippingBarContainer = document.getElementById('free-shipping-container');
     const shippingBar = document.getElementById('free-shipping-bar');
     const shippingMsg = document.getElementById('free-shipping-msg');
     
-    // Variables de estado
     let calculatedShipping = 0;
     let freeShippingThreshold = 0; 
     let globalCutoffTime = "14:00";
-    
-    // 🔥 NUEVO: Variables para festivos de Colombia
     let colombianHolidays = [];
 
-    // 🔥 NUEVO: Cargar festivos desde la API
     async function loadHolidays() {
         try {
             const year = new Date().getFullYear();
@@ -204,28 +206,21 @@
         }
     }
 
-    // ==========================================================================
-    // ⚡ SINCRONIZACIÓN CON CACHÉ (LA MAGIA DE 0 LECTURAS)
-    // ==========================================================================
     function syncCartWithCache() {
-        const cachedRaw = localStorage.getItem('pixeltech_master_catalog');
-        if (!cachedRaw) return; // Si no hay caché, usamos lo que tiene el carrito guardado
+        const cachedRaw = localStorage.getItem('smartech_master_catalog');
+        if (!cachedRaw) return;
 
         try {
             const masterCatalog = JSON.parse(cachedRaw).map || {};
             let cart = getCart();
             let hasChanges = false;
 
-            // Recorremos el carrito y actualizamos con datos frescos de la memoria
             cart = cart.map(item => {
                 const freshProduct = masterCatalog[item.id];
-                
-                // Si el producto existe en caché, actualizamos sus datos críticos
                 if (freshProduct) {
                     let updatedPrice = freshProduct.price;
                     let updatedStock = freshProduct.stock;
 
-                    // Si es variante, intentamos buscar el precio/stock específico en la caché
                     if (item.color || item.capacity) {
                         if (freshProduct.combinations) {
                             const variant = freshProduct.combinations.find(c => 
@@ -239,13 +234,11 @@
                         }
                     }
 
-                    // Detectar cambios
                     if (item.price !== updatedPrice || item.maxStock !== updatedStock) {
-                        // Actualizamos el item del carrito con la info fresca
                         item.price = updatedPrice;
                         item.maxStock = updatedStock;
                         item.originalPrice = freshProduct.originalPrice || 0;
-                        item.name = freshProduct.name; // Por si corrigieron el nombre
+                        item.name = freshProduct.name;
                         hasChanges = true;
                     }
                 }
@@ -254,7 +247,7 @@
 
             if (hasChanges) {
                 console.log("⚡ Carrito actualizado desde SmartCache (0 lecturas)");
-                localStorage.setItem('pixeltech_cart', JSON.stringify(cart));
+                localStorage.setItem('smartech_cart', JSON.stringify(cart));
             }
 
         } catch (e) {
@@ -262,9 +255,8 @@
         }
     }
 
-    // --- 1. OBTENER CONFIGURACIÓN DE ENVÍO (OPTIMIZADO CON SESSION STORAGE) ---
     async function fetchShippingConfig() {
-        const cachedConfig = sessionStorage.getItem('pixeltech_shipping_config');
+        const cachedConfig = sessionStorage.getItem('mismartech_shipping_config');
         if (cachedConfig) {
             const config = JSON.parse(cachedConfig);
             freeShippingThreshold = config.freeThreshold || 0;
@@ -280,7 +272,7 @@
                 const config = configSnap.data();
                 freeShippingThreshold = config.freeThreshold || 0;
                 globalCutoffTime = config.cutoffTime || "14:00";
-                sessionStorage.setItem('pixeltech_shipping_config', JSON.stringify(config));
+                sessionStorage.setItem('mismartech_shipping_config', JSON.stringify(config));
                 updateProgressBar();
                 checkDispatchTime();
             }
@@ -289,18 +281,16 @@
         }
     }
 
-// --- 2. LÓGICA DE TIEMPO DE DESPACHO (INTELIGENTE) ---
     function checkDispatchTime() {
         if(!dispatchMsg) return;
         
         const now = new Date();
-        const dayOfWeek = now.getDay(); // 0 = Domingo
+        const dayOfWeek = now.getDay();
         const [hours, minutes] = globalCutoffTime.split(':').map(Number);
         
         let cutoffDate = new Date();
         cutoffDate.setHours(hours, minutes, 0, 0);
 
-        // Formateador de fecha local para comparar con la API
         const formatDateStr = (dateObj) => {
             const offset = dateObj.getTimezoneOffset() * 60000;
             return new Date(dateObj.getTime() - offset).toISOString().split('T')[0];
@@ -308,10 +298,8 @@
 
         const todayStr = formatDateStr(now);
         const isTodayHoliday = colombianHolidays.includes(todayStr);
-
         let isBeforeCutoff = now < cutoffDate;
 
-        // Si hoy es domingo o festivo, no se despacha hoy
         if (dayOfWeek === 0 || isTodayHoliday) {
             isBeforeCutoff = false;
         }
@@ -327,9 +315,8 @@
             if(diffHrs > 0) timeText += `${diffHrs}h `;
             timeText += `${diffMins}m`;
             
-            dispatchMsg.innerHTML = `<p class="text-[10px] font-black uppercase text-green-600 pulse-text"><i class="fa-solid fa-bolt text-yellow-500 mr-1"></i> Pide en <span class="underline">${timeText}</span> y despachamos HOY</p>`;
+            dispatchMsg.innerHTML = `<p class="text-[11px] font-black uppercase text-brand-orange pulse-text"><i class="fa-solid fa-bolt text-yellow-500 mr-1"></i> Pide en <span class="underline">${timeText}</span> y despachamos HOY</p>`;
         } else {
-            // Buscar el siguiente día hábil
             let nextDay = new Date(now);
             nextDay.setDate(nextDay.getDate() + 1);
 
@@ -346,11 +333,10 @@
                 dispatchDayText = "MAÑANA";
             }
 
-            dispatchMsg.innerHTML = `<p class="text-[10px] font-black uppercase text-blue-500"><i class="fa-solid fa-calendar-check mr-1"></i> Comprando hoy, despachamos ${dispatchDayText}</p>`;
+            dispatchMsg.innerHTML = `<p class="text-[11px] font-black uppercase text-gray-500"><i class="fa-solid fa-calendar-check mr-1"></i> Comprando hoy, despachamos ${dispatchDayText}</p>`;
         }
     }
 
-    // --- 3. BARRA DE ENVÍO GRATIS ---
     function updateProgressBar() {
         if (freeShippingThreshold <= 0) {
             shippingBarContainer.classList.add('hidden'); 
@@ -364,21 +350,20 @@
         setTimeout(() => { shippingBar.style.width = `${percentage}%`; }, 100);
 
         if (remaining > 0) {
-            shippingMsg.innerHTML = `Faltan <span class="text-brand-black font-black">$${remaining.toLocaleString('es-CO')}</span> para envío gratis`;
+            shippingMsg.innerHTML = `Faltan <span class="text-brand-orange font-black">$${remaining.toLocaleString('es-CO')}</span> para envío gratis`;
             shippingBar.classList.remove('bg-emerald-500');
             shippingBar.classList.add('bg-brand-orange', 'progress-striped');
         } else {
-            shippingMsg.innerHTML = `<span class="text-emerald-600 font-black flex items-center gap-2"><i class="fa-solid fa-check-circle"></i> ¡Tienes Envío Gratis!</span>`;
+            shippingMsg.innerHTML = `<span class="text-emerald-400 font-black flex items-center gap-1.5"><i class="fa-solid fa-check-circle"></i> ¡Felicidades! Tienes Envío Gratis</span>`;
             shippingBar.classList.remove('bg-brand-orange', 'progress-striped');
             shippingBar.classList.add('bg-emerald-500'); 
         }
     }
 
-    // --- 4. ESTIMAR COSTO DE ENVÍO ---
     async function estimateShipping(user) {
         try {
             let userAddr = null;
-            const cachedAddr = sessionStorage.getItem('pixeltech_user_addr');
+            const cachedAddr = sessionStorage.getItem('smartech_user_addr');
             
             if (cachedAddr) {
                 userAddr = JSON.parse(cachedAddr);
@@ -390,11 +375,11 @@
                 
                 const defaultAddr = userData.addresses.find(a => a.isDefault) || userData.addresses[0];
                 userAddr = defaultAddr;
-                sessionStorage.setItem('pixeltech_user_addr', JSON.stringify(defaultAddr));
+                sessionStorage.setItem('smartech_user_addr', JSON.stringify(defaultAddr));
             }
 
             const targetCity = userAddr.city;
-            const cachedConfigRaw = sessionStorage.getItem('pixeltech_shipping_config');
+            const cachedConfigRaw = sessionStorage.getItem('mismartech_shipping_config');
             if(!cachedConfigRaw) { await fetchShippingConfig(); return; }
             
             const config = JSON.parse(cachedConfigRaw);
@@ -416,17 +401,16 @@
 
             calculatedShipping = cost;
             if (cost === 0) {
-                shippingDisplay.innerHTML = `<span class="text-emerald-600 font-black">¡GRATIS!</span>`;
+                shippingDisplay.innerHTML = `<span class="text-emerald-400 font-black">¡GRATIS!</span>`;
             } else {
                 shippingDisplay.textContent = `$${cost.toLocaleString('es-CO')}`;
             }
-            addressFeedback.innerHTML = `<p class="text-[9px] font-bold text-gray-500 mt-1"><i class="fa-solid fa-location-dot text-brand-orange mr-1"></i> ${userAddr.address}, ${userAddr.city}</p>`;
+            addressFeedback.innerHTML = `<p class="text-[10px] font-bold text-gray-400 mt-1"><i class="fa-solid fa-location-dot text-brand-orange mr-1"></i> Enviar a: ${userAddr.address}, ${userAddr.city}</p>`;
             updateTotalUI();
 
         } catch (e) { console.error("Error estimando envío:", e); }
     }
 
-    // --- 5. RENDERIZADO VISUAL ---
     function render() {
         const cart = getCart();
         updateCartCount();
@@ -445,49 +429,53 @@
             const discountPercent = hasDiscount ? Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100) : 0;
             const isOutOfStock = (item.maxStock !== undefined && item.maxStock <= 0);
             const isMaxedOut = !isOutOfStock && (item.quantity >= (item.maxStock || 999));
+            const totalItemCost = item.price * item.quantity;
 
             return `
-            <div class="cart-item-card bg-white p-6 md:p-8 rounded-[2rem] flex flex-col md:grid md:grid-cols-12 gap-6 items-center relative group ${isOutOfStock ? 'item-agotado grayscale' : ''}">
+            <div class="cart-item-card bg-white p-5 md:p-6 rounded-[2rem] flex flex-col md:grid md:grid-cols-12 gap-5 items-center relative group ${isOutOfStock ? 'item-agotado grayscale' : ''}">
                 ${isOutOfStock ? `<div class="absolute inset-0 z-10 bg-white/10 cursor-not-allowed"></div>` : ''}
-                <div class="col-span-6 flex items-center gap-6 w-full">
-                    <div class="w-24 h-24 bg-white border border-gray-200 rounded-2xl p-2 shrink-0 flex items-center justify-center relative shadow-sm">
+                
+                <div class="col-span-6 flex items-center gap-5 w-full">
+                    <div class="w-20 h-20 bg-white border border-gray-100 rounded-2xl p-2 shrink-0 flex items-center justify-center relative shadow-sm">
                         <img src="${item.image || 'https://placehold.co/100'}" class="max-h-full max-w-full object-contain">
                         ${isOutOfStock 
-                            ? `<span class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-red-600 text-white text-[10px] font-black px-3 py-1 rounded-full shadow-lg border border-white z-20">AGOTADO</span>`
-                            : (hasDiscount ? `<span class="absolute -top-2 -left-2 bg-brand-red text-white text-[9px] font-black px-2 py-1 rounded-lg shadow-md border border-white">-${discountPercent}%</span>` : '')
+                            ? `<span class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-brand-red text-white text-[9px] font-black px-2.5 py-1 rounded-full shadow-md z-20 border border-white">AGOTADO</span>`
+                            : (hasDiscount ? `<span class="absolute -top-1.5 -left-1.5 bg-brand-red text-white text-[9px] font-black px-1.5 py-0.5 rounded-lg shadow-sm border border-white">-${discountPercent}%</span>` : '')
                         }
                     </div>
                     <div class="min-w-0 flex-grow">
-                        <h3 class="font-black text-sm text-brand-black uppercase tracking-tight mb-2 leading-tight cursor-pointer hover:text-brand-orange transition truncate" onclick="${isOutOfStock ? '' : `window.location.href='/shop/product.html?id=${item.id}'`}">
+                        <h3 class="font-black text-xs md:text-sm text-brand-black uppercase tracking-tight mb-1.5 leading-snug cursor-pointer hover:text-brand-orange transition truncate" onclick="${isOutOfStock ? '' : `window.location.href='/shop/product.html?id=${item.id}'`}">
                             ${item.name}
                         </h3>
-                        <div class="flex flex-wrap gap-2 mb-3">
-                            ${item.color ? `<span class="text-[9px] font-bold text-gray-600 bg-gray-100 px-2 py-1 rounded-lg uppercase border border-gray-200">${item.color}</span>` : ''}
-                            ${item.capacity ? `<span class="text-[9px] font-bold text-brand-orange bg-cyan-50 px-2 py-1 rounded-lg uppercase border border-cyan-100">${item.capacity}</span>` : ''}
+                        <div class="flex flex-wrap gap-1.5 mb-2.5">
+                            ${item.color ? `<span class="text-[10px] font-black text-gray-500 bg-gray-50 px-2 py-0.5 rounded border border-gray-100 uppercase tracking-wide">${item.color}</span>` : ''}
+                            ${item.capacity ? `<span class="text-[10px] font-black text-brand-orange bg-orange-50 px-2 py-0.5 rounded border border-orange-100 uppercase tracking-wide">${item.capacity}</span>` : ''}
                         </div>
-                        <button onclick="window.removeItem('${item.cartId}')" class="relative z-30 group flex items-center gap-2 text-[9px] font-bold text-red-400 hover:text-red-600 transition uppercase tracking-wider cursor-pointer">
-                            <div class="w-6 h-6 rounded-full bg-red-50 group-hover:bg-red-100 flex items-center justify-center transition"><i class="fa-solid fa-trash-can"></i></div>
-                            Eliminar
+                        <button onclick="window.removeItem('${item.cartId}')" class="relative z-30 group flex items-center gap-1.5 text-[9px] font-black text-gray-400 hover:text-brand-red transition uppercase tracking-widest cursor-pointer bg-transparent border-none outline-none">
+                            <i class="fa-solid fa-trash-can text-[10px] text-gray-300 group-hover:text-brand-red transition-colors"></i> Eliminar
                         </button>
                     </div>
                 </div>
+                
                 <div class="col-span-2 flex justify-center w-full md:w-auto">
-                    ${isOutOfStock ? `<span class="text-xs font-black text-gray-400">---</span>` : 
-                    `<div class="flex items-center bg-white border border-gray-200 rounded-xl p-1 h-10 shadow-sm relative z-20">
-                        <button onclick="window.changeQty('${item.cartId}', ${item.quantity - 1})" class="w-8 h-full flex items-center justify-center text-gray-400 hover:text-brand-black transition font-bold text-sm hover:bg-gray-50 rounded-lg">-</button>
-                        <span class="w-8 text-center text-xs font-black text-brand-black">${item.quantity}</span>
-                        <button onclick="window.changeQty('${item.cartId}', ${item.quantity + 1})" class="w-8 h-full flex items-center justify-center transition font-bold text-sm rounded-lg ${isMaxedOut ? 'text-gray-200 cursor-not-allowed' : 'text-gray-400 hover:text-brand-black hover:bg-gray-50'}" ${isMaxedOut ? 'disabled' : ''}>+</button>
+                    ${isOutOfStock ? `<span class="text-xs font-black text-gray-300">---</span>` : 
+                    `<div class="flex items-center bg-gray-50 border border-gray-200 rounded-xl h-8.5 w-24 overflow-hidden relative z-20 shadow-inner">
+                        <button onclick="window.changeQty('${item.cartId}', ${item.quantity - 1})" class="w-8 h-full flex items-center justify-center text-gray-400 hover:text-brand-black transition font-bold text-xs hover:bg-gray-200/60">-</button>
+                        <span class="flex-1 text-center text-xs font-black text-brand-black bg-white h-full flex items-center justify-center border-x border-gray-200 shadow-inner">${item.quantity}</span>
+                        <button onclick="window.changeQty('${item.cartId}', ${item.quantity + 1})" class="w-8 h-full flex items-center justify-center transition font-bold text-xs ${isMaxedOut ? 'text-gray-200 cursor-not-allowed' : 'text-gray-400 hover:text-brand-black hover:bg-gray-200/60'}" ${isMaxedOut ? 'disabled' : ''}>+</button>
                     </div>`}
                 </div>
+                
                 <div class="col-span-2 text-right hidden md:block">
-                    <span class="text-[9px] font-black text-gray-400 uppercase block mb-1">Precio</span>
-                    ${isOutOfStock ? `<span class="text-sm font-black text-gray-300 line-through">$${item.price.toLocaleString('es-CO')}</span>` :
-                    (hasDiscount ? `<div class="flex flex-col items-end"><span class="text-[10px] font-bold text-gray-400 line-through decoration-brand-red decoration-2">$${item.originalPrice.toLocaleString('es-CO')}</span><span class="text-sm font-black text-brand-red">$${item.price.toLocaleString('es-CO')}</span></div>` 
-                    : `<span class="text-sm font-black text-gray-700">$${item.price.toLocaleString('es-CO')}</span>`)}
+                    <span class="text-[9px] font-black text-gray-400 uppercase block mb-0.5 tracking-wider">Precio</span>
+                    ${isOutOfStock ? `<span class="text-xs font-black text-gray-300 line-through">$${item.price.toLocaleString('es-CO')}</span>` :
+                    (hasDiscount ? `<div class="flex flex-col items-end leading-tight"><span class="text-[10px] font-bold text-gray-400 line-through">$${item.originalPrice.toLocaleString('es-CO')}</span><span class="text-xs font-black text-brand-red">$${item.price.toLocaleString('es-CO')}</span></div>` 
+                    : `<span class="text-xs font-black text-gray-700">$${item.price.toLocaleString('es-CO')}</span>`)}
                 </div>
-                <div class="col-span-2 text-right w-full md:w-auto flex justify-between md:block items-center">
-                    <span class="text-[10px] font-black text-gray-500 uppercase md:hidden">Subtotal</span>
-                    <span class="text-lg font-black tracking-tighter ${isOutOfStock ? 'text-gray-300 line-through decoration-2' : 'text-brand-black'}">${isOutOfStock ? '$0' : `$${(item.price * item.quantity).toLocaleString('es-CO')}`}</span>
+                
+                <div class="col-span-2 text-right w-full md:w-auto flex justify-between md:block items-center border-t border-dashed border-gray-100 md:border-none pt-2 md:pt-0">
+                    <span class="text-[10px] font-black text-gray-400 uppercase md:hidden tracking-wider">Subtotal</span>
+                    <span class="text-base font-black tracking-tight ${isOutOfStock ? 'text-gray-300 line-through' : 'text-brand-black'}">${isOutOfStock ? '$0' : `$${totalItemCost.toLocaleString('es-CO')}`}</span>
                 </div>
             </div>`
         }).join('');
@@ -512,7 +500,7 @@
     };
 
     window.removeItem = (cartId) => {
-        if (confirm("¿Eliminar producto del carrito?")) {
+        if (confirm("¿Deseas eliminar este producto del carrito?")) {
             removeFromCart(cartId);
             render();
             const user = auth.currentUser;
@@ -520,20 +508,18 @@
         }
     };
 
-    // --- 8. LÓGICA DE CHECKOUT (Seguridad: Valida contra Firebase) ---
     checkoutBtn.onclick = async () => {
         const originalText = checkoutBtn.innerHTML;
         checkoutBtn.disabled = true;
-        checkoutBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> VALIDANDO...';
+        checkoutBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> VALIDANDO PRODUCTOS...';
 
         try {
             const currentCart = getCart(); 
             if (currentCart.length === 0) return;
 
             let oosItems = []; 
+            let priceChanges = [];
             let cartHasChanges = false;
-
-            // Batch Validation (Para ahorrar lecturas: Max 10 por lote)
             const uniqueIds = [...new Set(currentCart.map(i => i.id))];
             let productsMap = {};
 
@@ -547,33 +533,85 @@
             const newCart = currentCart.map(item => {
                 const p = productsMap[item.id];
                 if (!p) {
-                    item.maxStock = 0; oosItems.push(item.name + " (No disponible)"); cartHasChanges = true; return item;
+                    item.maxStock = 0; 
+                    oosItems.push(item.name + " (No disponible)"); 
+                    cartHasChanges = true; 
+                    return item;
                 }
+                
+                let realPrice = p.price || 0;
+                let realOriginalPrice = p.originalPrice || 0;
                 let realStock = p.stock || 0;
-                if (item.color || item.capacity) {
-                    if (p.combinations) {
-                        const variant = p.combinations.find(c => 
-                            (c.color === item.color || (!c.color && !item.color)) &&
-                            (c.capacity === item.capacity || (!c.capacity && !item.capacity))
-                        );
-                        if (variant) realStock = variant.stock;
+                const isInactive = p.status !== 'active';
+
+                if (isInactive) {
+                    realStock = 0;
+                } 
+                else if (p.combinations && p.combinations.length > 0) {
+                    const combo = p.combinations.find(c => 
+                        (c.color === item.color || (!c.color && !item.color)) &&
+                        (c.capacity === item.capacity || (!c.capacity && !item.capacity))
+                    );
+                    if (combo) {
+                        realPrice = combo.price;
+                        realOriginalPrice = combo.originalPrice || 0;
+                        realStock = combo.stock;
+                    } else {
+                        realStock = 0; 
+                    }
+                } 
+                else if (item.capacity && p.capacities) {
+                    const cap = p.capacities.find(c => c.label === item.capacity);
+                    if (cap) {
+                        realPrice = cap.price;
+                        realOriginalPrice = cap.originalPrice || 0;
                     }
                 }
+
+                // Validar cambios de precio/promoción
+                if (item.price !== realPrice || item.originalPrice !== realOriginalPrice) {
+                    let desc = item.name;
+                    if (item.color || item.capacity) {
+                        desc += ` (${[item.color, item.capacity].filter(Boolean).join(" - ")})`;
+                    }
+                    priceChanges.push(desc);
+                    item.price = realPrice;
+                    item.originalPrice = realOriginalPrice;
+                    cartHasChanges = true;
+                }
+
+                // Validar cambios de stock
                 if (realStock <= 0) {
-                    if (item.maxStock !== 0) { item.maxStock = 0; oosItems.push(item.name); cartHasChanges = true; }
+                    if (item.maxStock !== 0) { 
+                        item.maxStock = 0; 
+                        oosItems.push(item.name); 
+                        cartHasChanges = true; 
+                    }
                 } else {
                     item.maxStock = realStock; 
-                    if (item.quantity > realStock) { item.quantity = realStock; cartHasChanges = true; }
+                    if (item.quantity > realStock) { 
+                        item.quantity = realStock; 
+                        cartHasChanges = true; 
+                    }
                 }
                 return item;
             });
 
             if (cartHasChanges) {
-                localStorage.setItem('pixeltech_cart', JSON.stringify(newCart));
+                localStorage.setItem('smartech_cart', JSON.stringify(newCart));
                 render();
-                window.updateCartCountGlobal();
+                if (window.updateCartCountGlobal) window.updateCartCountGlobal();
                 window.dispatchEvent(new Event('cartUpdated'));
-                if (oosItems.length > 0) alert(`⚠️ STOCK ACTUALIZADO:\n\n${oosItems.join(", ")}\n\nAlgunos items ya no están disponibles.`);
+                
+                let alertMsg = "";
+                if (oosItems.length > 0) {
+                    alertMsg += `⚠️ STOCK ACTUALIZADO:\n\n${oosItems.join("\n")}\n\nAlgunos artículos de tu carrito ya no están disponibles en el inventario o superan la cantidad permitida.\n\n`;
+                }
+                if (priceChanges.length > 0) {
+                    alertMsg += `⚠️ PRECIOS ACTUALIZADOS:\n\n${priceChanges.join("\n")}\n\nLa promoción de algunos productos ha finalizado o sus precios se han actualizado. Hemos ajustado tu carrito con los valores actuales. Por favor, revisa el nuevo total antes de continuar.`;
+                }
+                
+                alert(alertMsg);
                 checkoutBtn.disabled = false;
                 checkoutBtn.innerHTML = originalText;
                 return; 
@@ -600,13 +638,12 @@
             console.error("Error checkout:", e);
             checkoutBtn.disabled = false;
             checkoutBtn.innerHTML = originalText;
-            alert("Error al validar inventario. Intenta de nuevo.");
+            alert("Error al validar productos. Intenta de nuevo.");
         }
     };
 
-     syncCartWithCache(); 
+    syncCartWithCache(); 
     
-    // Primero cargamos los festivos, luego la config de envíos (que dispara checkDispatchTime)
     loadHolidays().then(() => {
         fetchShippingConfig(); 
     });
@@ -618,7 +655,6 @@
     });
 
     setInterval(checkDispatchTime, 60000);
-
 </script>
 </body>
 </html>

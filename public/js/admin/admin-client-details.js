@@ -1,5 +1,6 @@
 import { db, doc, getDoc, updateDoc, collection, query, where, getDocs, orderBy, runTransaction, Timestamp, limit, startAfter } from '../firebase-init.js';
 import { loadAdminSidebar } from './admin-ui.js';
+import { AdminStore } from './admin-store.js';
 
 loadAdminSidebar();
 
@@ -80,12 +81,15 @@ async function init() {
 // --- 2. CARGAR METADATA ---
 async function loadAccounts() {
     try {
-        const q = query(collection(db, "accounts"), orderBy("name", "asc"));
-        const snap = await getDocs(q);
-        els.payAccount.innerHTML = '<option value="">Seleccione Cuenta Destino...</option>';
-        snap.forEach(d => {
-            const acc = d.data();
-            els.payAccount.innerHTML += `<option value="${d.id}">${acc.name}</option>`;
+        const activeBranchId = sessionStorage.getItem('activeBranchId') || 'sede_principal';
+        AdminStore.subscribeToAccounts((accs) => {
+            els.payAccount.innerHTML = '<option value="">Seleccione Cuenta Destino...</option>';
+            accs.forEach(acc => {
+                const accBranchId = acc.branchId || 'sede_principal';
+                if (accBranchId === activeBranchId) {
+                    els.payAccount.innerHTML += `<option value="${acc.id}">${acc.name}</option>`;
+                }
+            });
         });
     } catch (e) { console.error("Error loading accounts:", e); }
 }

@@ -40,6 +40,9 @@ const els = {
     billTax: document.getElementById('bill-taxid'),
     billEmail: document.getElementById('bill-email'),
 
+    // Ayuda WhatsApp
+    waHelpBtn: document.getElementById('wa-help-btn'),
+
     // Modal Solicitud Garantía
     warrantyModal: document.getElementById('warranty-modal'),
     warrantyForm: document.getElementById('warranty-form'),
@@ -97,7 +100,7 @@ async function initSmartRealtimeOrder() {
 
         // 1. CARGA RÁPIDA (Caché Local)
         // La caché ahora está en formato { map: {...}, lastSync: ... } gracias a shop/profile.js
-        const cachedRaw = localStorage.getItem('pixeltech_user_orders');
+        const cachedRaw = localStorage.getItem('smartech_user_orders');
         if (cachedRaw) {
             try {
                 const parsed = JSON.parse(cachedRaw);
@@ -186,7 +189,7 @@ function listenForWarranties() {
 
 function updateOrderInLocalCache(orderData) {
     try {
-        const STORAGE_KEY = 'pixeltech_user_orders';
+        const STORAGE_KEY = 'smartech_user_orders';
         const cachedRaw = localStorage.getItem(STORAGE_KEY);
         if (cachedRaw) {
             const parsed = JSON.parse(cachedRaw);
@@ -209,7 +212,7 @@ function updateOrderInLocalCache(orderData) {
 // --- HELPER: DESCARGAR PRODUCTOS FALTANTES PARA LA CACHÉ ---
 // Reemplazado getDoc en bucle por promesa concurrente pura
 async function ensureProductsInCache(items) {
-    const STORAGE_KEY = 'pixeltech_master_catalog';
+    const STORAGE_KEY = 'smartech_master_catalog';
     let rawCache = localStorage.getItem(STORAGE_KEY);
     let catalogState = { map: {}, lastSync: 0 };
 
@@ -378,6 +381,15 @@ function renderHeaderInfo(displayId, order) {
     const shipCost = order.shippingCost || 0;
     els.shipping.textContent = shipCost === 0 ? "Gratis" : `$${shipCost.toLocaleString('es-CO')}`;
     els.total.textContent = `$${(order.total || 0).toLocaleString('es-CO')}`;
+
+    // ENLACE DINÁMICO DE SOPORTE WHATSAPP CON MENSAJE PRECARGADO
+    if (els.waHelpBtn) {
+        const shortId = displayId.slice(0, 8).toUpperCase();
+        const formattedTotal = (order.total || 0).toLocaleString('es-CO');
+        const buyerName = (order.shippingData?.name || order.buyerInfo?.name || "Cliente").toUpperCase();
+        const messageText = `¡Hola! Necesito soporte con mi pedido #${shortId} por un valor de $${formattedTotal} a nombre de ${buyerName}.`;
+        els.waHelpBtn.href = `https://wa.me/573196276426?text=${encodeURIComponent(messageText)}`;
+    }
 }
 
 // --- 3. RENDER TIMELINE ---
@@ -491,7 +503,7 @@ function renderPaymentInfo(order) {
                 <div class="w-full mt-6 bg-slate-50 p-5 rounded-2xl border border-gray-200 animate-in">
                     <p class="text-[10px] font-black uppercase tracking-widest text-brand-black mb-2 flex items-center"><i class="fa-solid fa-circle-exclamation text-yellow-500 mr-2 text-sm"></i> Acción Requerida</p>
                     <p class="text-xs text-gray-600 mb-4 leading-relaxed">Para comenzar a preparar tu pedido, realiza la transferencia por <strong>$${(order.total || 0).toLocaleString('es-CO')}</strong> y envía el comprobante a nuestro equipo de WhatsApp.</p>
-                    <a href="https://wa.me/573009046450?text=Hola,%20adjunto%20el%20comprobante%20de%20pago%20de%20mi%20orden%20%23${order.id.slice(0,8).toUpperCase()}" target="_blank" class="inline-flex items-center gap-2 bg-green-500 text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-green-600 hover:shadow-lg hover:-translate-y-0.5 transition-all">
+                    <a href="https://wa.me/573196276426?text=Hola,%20adjunto%20el%20comprobante%20de%20pago%20de%20mi%20orden%20%23${order.id.slice(0,8).toUpperCase()}" target="_blank" class="inline-flex items-center gap-2 bg-green-500 text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-green-600 hover:shadow-lg hover:-translate-y-0.5 transition-all">
                         <i class="fa-brands fa-whatsapp text-base"></i> Enviar Comprobante
                     </a>
                 </div>
@@ -535,7 +547,7 @@ function getWarrantyDaysInTotal(item) {
 
     if (w === undefined || w === null) {
         try {
-            const cachedRaw = localStorage.getItem('pixeltech_master_catalog');
+            const cachedRaw = localStorage.getItem('smartech_master_catalog');
             if (cachedRaw) {
                 const catalog = JSON.parse(cachedRaw).map || {};
                 const cachedProduct = catalog[item.id];

@@ -50,8 +50,14 @@ document.querySelectorAll('.currency-input').forEach(input => {
 
 AdminStore.subscribeToAccounts((accs) => {
     accounts = accs;
+    const activeBranchId = sessionStorage.getItem('activeBranchId') || 'sede_principal';
     accountSelect.innerHTML = '<option value="">Seleccione...</option>';
-    accounts.forEach(acc => accountSelect.innerHTML += `<option value="${acc.id}">${acc.name}</option>`);
+    accounts.forEach(acc => {
+        const accBranchId = acc.branchId || 'sede_principal';
+        if (accBranchId === activeBranchId) {
+            accountSelect.innerHTML += `<option value="${acc.id}">${acc.name}</option>`;
+        }
+    });
 });
 
 AdminStore.subscribeToReceivables((recs) => {

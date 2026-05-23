@@ -10,7 +10,7 @@ class StoreModule {
     constructor(config) {
         this.name = config.name;
         this.collectionName = config.collection;
-        this.storageKey = `pixeltech_core_${config.name}`;
+        this.storageKey = `mismartech_core_${config.name}`;
         this.dateField = config.dateField || 'createdAt';
         this.queryConstraints = config.queryConstraints || [];
         this.clientSideFilter = config.clientSideFilter || null;
@@ -255,7 +255,7 @@ const modules = {
         name: 'accounts',
         collection: 'accounts',
         dateField: 'createdAt', 
-        lightweight: (a) => ({ id: a.id, name: a.name, type: a.type, balance: a.balance, isExempt: a.isExempt, updatedAt: a.updatedAt })
+        lightweight: (a) => ({ id: a.id, name: a.name, type: a.type, balance: a.balance, isExempt: a.isExempt, branchId: a.branchId || 'sede_principal', updatedAt: a.updatedAt })
     })
 };
 

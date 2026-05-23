@@ -3,15 +3,15 @@ import { db, collection, query, orderBy, where, onSnapshot } from "../firebase-i
 const mainGrid = document.getElementById('categories-grid');
 const subGrid = document.getElementById('subcategories-grid');
 const mainView = document.getElementById('main-view');
-const subView = document.getElementById('sub-view');
+const subPanel = document.getElementById('subcategories-panel');
 const currentCatNameEl = document.getElementById('current-cat-name');
 const btnViewAllSub = document.getElementById('btn-view-all-sub'); 
 
 // Estado en memoria
 let categoriesData = [];
 
-// Claves de almacenamiento
-const STORAGE_KEY = 'pixeltech_categories_smart';
+// Claves de almacenamiento optimizadas para mismartech
+const STORAGE_KEY = 'smartech_categories_smart';
 let isListening = false; // Evita múltiples conexiones simultáneas
 
 // ==========================================================================
@@ -116,14 +116,14 @@ function listenForUpdates(lastSyncTime) {
             // Re-renderizamos la vista principal con los datos frescos
             renderMainGrid();
             
-            // Si el usuario está viendo una subcategoría, actualizamos esa vista también si la categoría actual cambió
-            if (!subView.classList.contains('hidden') && currentCatNameEl.textContent) {
+            // Si el panel dinámico está abierto, lo mantenemos sincronizado con el contenido fresco
+            if (subPanel && !subPanel.classList.contains('hidden') && currentCatNameEl.textContent) {
                 const currentCatIndex = categoriesData.findIndex(c => c.name === currentCatNameEl.textContent);
                 if (currentCatIndex !== -1) {
-                    window.showSubcategories(currentCatIndex); // Repinta la subcategoría en caliente
+                    window.showSubcategories(currentCatIndex); // Repinta el panel inline
                 } else {
-                    // Si la categoría que estaba viendo fue borrada, lo regresamos al inicio
-                    window.showMainCategories();
+                    // Si se eliminó la categoría que estaba viendo, cerramos el panel
+                    window.closeSubcategories();
                 }
             }
         }
@@ -133,14 +133,19 @@ function listenForUpdates(lastSyncTime) {
 }
 
 // ==========================================================================
-// RENDERIZADO (UI) - Sin cambios en lógica visual
+// RENDERIZADO (UI) - Diseño Renovado y Premium de mismartech
 // ==========================================================================
 
 function renderMainGrid() {
     mainGrid.innerHTML = "";
 
+    // Volver a inyectar el panel de subcategorías como elemento oculto para que no se pierda al limpiar
+    if (subPanel) {
+        mainGrid.appendChild(subPanel);
+    }
+
     if (categoriesData.length === 0) {
-        mainGrid.innerHTML = `<p class="col-span-full text-center text-gray-400">Sin departamentos disponibles.</p>`;
+        mainGrid.innerHTML = `<p class="col-span-full text-center text-gray-400 font-bold py-10">Sin categorías disponibles por el momento.</p>`;
         return;
     }
 
@@ -149,24 +154,35 @@ function renderMainGrid() {
         const subCount = cat.subcategories ? cat.subcategories.length : 0;
 
         const card = document.createElement('div');
+        card.id = `cat-card-${index}`;
         card.onclick = () => showSubcategories(index);
         
-        card.className = "group relative bg-white rounded-[2rem] border border-gray-100 overflow-hidden shadow-sm hover:shadow-2xl hover:shadow-brand-orange/20 hover:border-brand-orange/50 transition-all duration-500 hover:-translate-y-2 cursor-pointer h-72 flex flex-col";
+        // Estilos premium: Elevación translate, escala interna de imagen, y sombras difuminadas con brillo de marca naranja
+        card.className = "group relative bg-white rounded-[2.5rem] border border-slate-100 overflow-hidden shadow-[0_4px_25px_rgba(0,0,0,0.02)] hover:shadow-[0_20px_50px_rgba(240,90,40,0.15)] hover:border-brand-orange/30 transition-all duration-500 hover:-translate-y-2.5 cursor-pointer h-80 flex flex-col";
 
         card.innerHTML = `
-            <div class="absolute inset-0 bg-gray-100 overflow-hidden">
-                <img src="${imageSrc}" alt="${cat.name}" class="w-full h-full object-cover group-hover:scale-110 transition duration-700 ease-out opacity-90 group-hover:opacity-100">
-                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity"></div>
+            <div class="absolute inset-0 bg-slate-100 overflow-hidden">
+                <img src="${imageSrc}" alt="${cat.name}" class="w-full h-full object-cover scale-[1.01] group-hover:scale-110 transition duration-700 ease-out opacity-90 group-hover:opacity-100">
+                
+                <!-- Gradiente por defecto: Oscuro elegante -->
+                <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent opacity-85 group-hover:opacity-0 transition-all duration-500 z-10"></div>
+                
+                <!-- Gradiente en hover: Resplandor naranja de marca mismartech -->
+                <div class="absolute inset-0 bg-gradient-to-t from-brand-orange/80 via-black/45 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 z-10"></div>
             </div>
             
-            <div class="relative z-10 mt-auto p-6">
-                <div class="w-8 h-1 bg-brand-orange mb-3 w-0 group-hover:w-8 transition-all duration-300 ease-out"></div>
-                <h3 class="text-white font-black text-2xl uppercase tracking-tighter leading-none mb-1 drop-shadow-md group-hover:text-brand-orange transition-colors">
+            <div class="relative z-20 mt-auto p-6 flex flex-col gap-2">
+                <div class="w-8 h-1 bg-brand-orange rounded-full mb-1 w-0 group-hover:w-10 transition-all duration-500 ease-out"></div>
+                <h3 class="text-white font-black text-2xl uppercase tracking-tight leading-none mb-1 drop-shadow-md group-hover:text-white transition-colors">
                     ${cat.name}
                 </h3>
-                <p class="text-gray-300 text-[10px] font-bold uppercase tracking-widest opacity-80 group-hover:opacity-100 transition flex items-center gap-2 transform translate-y-2 group-hover:translate-y-0 duration-300">
-                    ${subCount} Colecciones <i class="fa-solid fa-arrow-right"></i>
-                </p>
+                
+                <!-- Badge de subcategorías premium estilo píldora de cristal -->
+                <div class="flex items-center">
+                    <span class="bg-white/10 backdrop-blur-md border border-white/20 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm group-hover:bg-brand-black group-hover:border-transparent transition-all duration-300">
+                        ${subCount} Subcategorías <i class="fa-solid fa-arrow-right text-[8px] transform group-hover:translate-x-1 transition-transform duration-300"></i>
+                    </span>
+                </div>
             </div>
         `;
         mainGrid.appendChild(card);
@@ -177,15 +193,37 @@ window.showSubcategories = (index) => {
     const cat = categoriesData[index];
     const subcategories = cat.subcategories || [];
 
-    if (btnViewAllSub) {
-        btnViewAllSub.href = `/shop/catalog.html?category=${encodeURIComponent(cat.name)}`;
-    }
-
     if (subcategories.length === 0) {
         window.location.href = `/shop/catalog.html?category=${encodeURIComponent(cat.name)}`;
         return;
     }
 
+    const cardEl = document.getElementById(`cat-card-${index}`);
+    const isActive = cardEl.classList.contains('active-card');
+
+    // SI YA ESTABA ACTIVA: Hacemos toggle colapsándola suavemente
+    if (isActive) {
+        window.closeSubcategories();
+        return;
+    }
+
+    // 1. Resetear selección anterior de todas las tarjetas
+    document.querySelectorAll('[id^="cat-card-"]').forEach(el => el.classList.remove('active-card'));
+    
+    // 2. Mover el panel de subcategorías justo detrás de la tarjeta presionada en el DOM
+    if (cardEl && subPanel) {
+        cardEl.after(subPanel);
+    }
+
+    // 3. Iluminar la nueva tarjeta activa
+    cardEl.classList.add('active-card');
+
+    // 4. Configurar el enlace del botón "Ver Todo"
+    if (btnViewAllSub) {
+        btnViewAllSub.href = `/shop/catalog.html?category=${encodeURIComponent(cat.name)}`;
+    }
+
+    // 5. Renderizar los datos de las subcategorías
     currentCatNameEl.textContent = cat.name;
     subGrid.innerHTML = "";
 
@@ -196,32 +234,46 @@ window.showSubcategories = (index) => {
         const card = document.createElement('a');
         card.href = `/shop/catalog.html?category=${encodeURIComponent(cat.name)}&subcategory=${encodeURIComponent(subName)}`;
         
-        card.className = "group relative bg-white rounded-[2rem] border border-gray-100 overflow-hidden shadow-sm hover:shadow-2xl hover:shadow-brand-orange/20 hover:border-brand-orange/50 transition-all duration-500 hover:-translate-y-2 cursor-pointer h-72 flex flex-col";
+        // Estilo premium en tarjetas de subcategorías con hover sincronizado
+        card.className = "group relative bg-white rounded-[2rem] border border-slate-100 overflow-hidden shadow-[0_4px_15px_rgba(0,0,0,0.01)] hover:shadow-[0_15px_35px_rgba(240,90,40,0.12)] hover:border-brand-orange/20 transition-all duration-500 hover:-translate-y-1.5 cursor-pointer h-60 flex flex-col animate-in fade-in duration-300";
 
         card.innerHTML = `
-            <div class="absolute inset-0 bg-gray-100 overflow-hidden">
-                <img src="${subImg}" class="w-full h-full object-cover group-hover:scale-110 transition duration-700 ease-out opacity-90 group-hover:opacity-100">
-                <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-50 group-hover:opacity-70 transition-colors"></div>
+            <div class="absolute inset-0 bg-slate-100 overflow-hidden">
+                <img src="${subImg}" alt="${subName}" class="w-full h-full object-cover scale-[1.01] group-hover:scale-110 transition duration-700 ease-out opacity-90 group-hover:opacity-100">
+                
+                <!-- Gradientes -->
+                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent opacity-85 group-hover:opacity-0 transition-all duration-500 z-10"></div>
+                <div class="absolute inset-0 bg-gradient-to-t from-brand-orange/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 z-10"></div>
             </div>
             
-            <div class="relative z-10 mt-auto p-6 text-center w-full">
-                <div class="w-8 h-1 bg-white mx-auto mb-3 w-0 group-hover:w-8 transition-all duration-300 ease-out"></div>
-                <h4 class="text-white font-black text-xl uppercase tracking-tight leading-none group-hover:text-brand-orange transition text-shadow-md">${subName}</h4>
-                <span class="mt-2 inline-block text-[8px] font-bold text-gray-300 uppercase tracking-widest opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition duration-300">Explorar</span>
+            <div class="relative z-20 mt-auto p-4 text-center w-full flex flex-col items-center">
+                <div class="w-6 h-0.5 bg-white rounded-full mb-2 group-hover:w-8 transition-all duration-500 ease-out group-hover:bg-brand-orange"></div>
+                <h4 class="text-white font-black text-sm uppercase tracking-tight leading-tight group-hover:text-white transition drop-shadow-md">${subName}</h4>
+                <span class="mt-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white text-[7px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full opacity-0 group-hover:opacity-100 transform translate-y-1 group-hover:translate-y-0 transition duration-300 flex items-center gap-1 shadow-sm">
+                    Explorar <i class="fa-solid fa-chevron-right text-[6px]"></i>
+                </span>
             </div>
         `;
         subGrid.appendChild(card);
     });
 
-    mainView.classList.add('hidden');
-    subView.classList.remove('hidden');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // 6. Desplegar el panel inline
+    subPanel.classList.remove('hidden');
+    
+    // 7. Scroll suave y sutil al panel expansible
+    subPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 };
 
+window.closeSubcategories = () => {
+    if (subPanel) {
+        subPanel.classList.add('hidden');
+    }
+    document.querySelectorAll('[id^="cat-card-"]').forEach(el => el.classList.remove('active-card'));
+};
+
+// Mantener alias por compatibilidad
 window.showMainCategories = () => {
-    subView.classList.add('hidden');
-    mainView.classList.remove('hidden');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.closeSubcategories();
 };
 
 document.addEventListener('DOMContentLoaded', loadCategories);

@@ -1,7 +1,7 @@
 {
-  "name": "PixelTech Store",
-  "short_name": "PixelTech",
-  "description": "La mejor tecnología al alcance de tu mano. Envíos a toda Colombia.",
+  "name": "Mismartech Store",
+  "short_name": "MiSmartech",
+  "description": "Tecnologia a tu alcance. Contraentrega en MEDELLIN, Envíos a toda Colombia.",
   "start_url": "/index.html",
   "scope": "/",
   "display": "standalone",

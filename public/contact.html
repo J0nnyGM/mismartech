@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#00AEC7">
-    <link rel="apple-touch-icon" href="/img/icons/icon-192x192.webp">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contacto y Soporte | PixelTech</title>
-    <link rel="canonical" href="https://pixeltechcol.com/contact.html" />
+     <link rel="manifest" href="/manifest.json">
+     <meta name="theme-color" content="#F05A28">
+     <link rel="apple-touch-icon" href="/img/icons/icon-192x192.webp">
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>Contacto y Soporte | MiSmartech</title>
+     <link rel="canonical" href="https://mismartech.com/contact.html" />
     <link rel="stylesheet" href="css/styles.css">
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
@@ -17,7 +17,7 @@
             width: 100%; background-color: #f8fafc; border: 2px solid transparent; border-radius: 1rem; padding: 1rem 1.25rem; font-size: 0.875rem; font-weight: 700; outline: none; transition: all 0.3s ease;
         }
         .input-group input:focus, .input-group textarea:focus {
-            border-color: #00AEC7; background-color: #ffffff; box-shadow: 0 10px 20px -10px rgba(0, 174, 199, 0.2);
+            border-color: #F05A28; background-color: #ffffff; box-shadow: 0 10px 20px -10px rgba(240, 90, 40, 0.25);
         }
         .input-group label {
             display: block; font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.15em; color: #9ca3af; margin-bottom: 0.5rem; margin-left: 0.25rem;
@@ -32,7 +32,7 @@
 </head>
 <body class="bg-white font-sans text-brand-black antialiased flex flex-col min-h-screen">
 
-    <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php'; ?>
+     <div id="header-placeholder"></div>
 
     <main class="flex-grow w-full max-w-7xl mx-auto px-6 py-12 md:py-20">
         
@@ -49,19 +49,19 @@
             <div class="space-y-6">
                 <h3 class="text-xl font-black uppercase tracking-widest mb-6">Información Directa</h3>
                 
-                <a href="https://wa.me/573009046450" target="_blank" class="flex items-center gap-5 p-6 rounded-[2rem] bg-green-50 border border-green-100 hover:shadow-lg hover:-translate-y-1 transition-all group">
+                <a href="https://wa.me/573196276426" target="_blank" class="flex items-center gap-5 p-6 rounded-[2rem] bg-green-50 border border-green-100 hover:shadow-lg hover:-translate-y-1 transition-all group">
                     <div class="w-14 h-14 rounded-2xl bg-white text-green-500 flex items-center justify-center text-2xl shadow-sm group-hover:scale-110 transition"><i class="fa-brands fa-whatsapp"></i></div>
                     <div>
                         <p class="text-[10px] font-black text-green-700 uppercase tracking-widest mb-1">Ventas y Asesoría</p>
-                        <p class="text-lg font-black text-brand-black">+57 300 904 6450</p>
+                        <p class="text-lg font-black text-brand-black">+57 319 627 6426</p>
                     </div>
                 </a>
 
-                <a href="mailto:soporte@pixeltechcol.com" class="flex items-center gap-5 p-6 rounded-[2rem] bg-slate-50 border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition-all group">
+                <a href="mailto:admin@mismartech.com" class="flex items-center gap-5 p-6 rounded-[2rem] bg-slate-50 border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition-all group">
                     <div class="w-14 h-14 rounded-2xl bg-white text-brand-orange flex items-center justify-center text-xl shadow-sm group-hover:scale-110 transition"><i class="fa-solid fa-envelope"></i></div>
                     <div>
                         <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Correo Electrónico</p>
-                        <p class="text-sm md:text-base font-bold text-brand-black">soporte@pixeltechcol.com</p>
+                        <p class="text-sm md:text-base font-bold text-brand-black">admin@mismartech.com</p>
                     </div>
                 </a>
 
@@ -69,8 +69,8 @@
                     <div class="w-14 h-14 rounded-2xl bg-white text-brand-black flex items-center justify-center text-xl shadow-sm group-hover:scale-110 transition"><i class="fa-solid fa-location-dot"></i></div>
                     <div>
                         <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Sede Principal</p>
-                        <p class="text-sm font-bold text-brand-black">Calle 31 # 13A-51 Oficina 223 Ed. Panorama</p>
-                        <p class="text-xs font-bold text-gray-500">Bogotá, Colombia</p>
+                        <p class="text-sm font-bold text-brand-black">Calle 19 # 43G-155</p>
+                        <p class="text-xs font-bold text-gray-500">Medellín, Colombia</p>
                     </div>
                 </div>
 
@@ -121,7 +121,7 @@
         </div>
     </main>
 
-    <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php'; ?>
+     <div id="footer-placeholder"></div>
 
     <script type="module">
         import { loadGlobalHeader, loadGlobalFooter } from './js/global-components.js';
@@ -146,7 +146,7 @@
             whatsappText += `%0A💬 *Mensaje:*%0A${message}`;
 
             // Número de tu empresa
-            const companyPhone = "573009046450";
+            const companyPhone = "573196276426";
             
             // Crear el enlace a WhatsApp
             const whatsappUrl = `https://wa.me/${companyPhone}?text=${whatsappText}`;

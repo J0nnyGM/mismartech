@@ -1,5 +1,5 @@
 // public/js/admin/users-admin.js
-import { db, updateDoc, doc } from '../firebase-init.js';
+import { db, updateDoc, doc, collection, onSnapshot } from '../firebase-init.js';
 import { AdminStore } from './admin-store.js'; // 🔥 IMPORTAMOS EL CEREBRO CENTRAL
 
 const tableBody = document.getElementById('staff-table-body');
@@ -11,6 +11,18 @@ const modalUsersList = document.getElementById('modal-users-list');
 
 let allUsersCache = []; // Caché total de usuarios
 let staffCache = [];    // Caché filtrado solo para la tabla (Empleados)
+let branchesCache = []; // Caché de sedes en tiempo real
+
+// Escuchar las sedes en tiempo real
+onSnapshot(collection(db, "branches"), (snap) => {
+    branchesCache = [];
+    snap.forEach(d => {
+        branchesCache.push({ id: d.id, ...d.data() });
+    });
+    if (staffCache.length > 0) {
+        renderStaffTable(staffCache);
+    }
+});
 
 // ==========================================================================
 // 🔥 CONEXIÓN AL STORE CENTRAL
@@ -42,7 +54,7 @@ function renderStaffTable(staffList) {
     tableBody.innerHTML = '';
     
     if (staffList.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-gray-400 font-bold text-xs uppercase tracking-widest">No se encontró personal administrativo.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-gray-400 font-bold text-xs uppercase tracking-widest">No se encontró personal administrativo.</td></tr>`;
         return;
     }
 
@@ -50,6 +62,14 @@ function renderStaffTable(staffList) {
         const date = u.createdAt?.toDate ? u.createdAt.toDate().toLocaleDateString('es-CO') : '---';
         const isSuperAdmin = u.role === 'admin';
         
+        // Sede asignada por defecto
+        const defaultBranch = isSuperAdmin ? 'ALL' : 'sede_principal';
+        const currentBranch = u.assignedBranchId || defaultBranch;
+
+        const hasAllOption = u.role === 'admin';
+        const branchOptions = branchesCache.map(b => `<option value="${b.id}" ${currentBranch === b.id ? 'selected' : ''}>${b.name}</option>`).join('');
+        const allOptionHtml = hasAllOption ? `<option value="ALL" ${currentBranch === 'ALL' ? 'selected' : ''}>Todas (Acceso Total)</option>` : '';
+
         const tr = document.createElement('tr');
         tr.className = "hover:bg-slate-50 transition group";
         tr.innerHTML = `
@@ -63,7 +83,16 @@ function renderStaffTable(staffList) {
             <td class="px-6 py-4 text-xs text-gray-400 font-bold">${date}</td>
             <td class="px-6 py-4">
                 <div class="relative">
-                    <select onchange="window.updateUserRole('${u.id}', this.value)" class="w-full bg-slate-100 border-none rounded-xl text-xs font-black p-3 outline-none focus:ring-2 focus:ring-brand-orange/30 appearance-none cursor-pointer ${isSuperAdmin ? 'text-brand-orange bg-cyan-50' : 'text-gray-600'}">
+                    <select onchange="window.updateUserBranch('${u.id}', this.value)" class="w-full bg-slate-100 border-none rounded-xl text-xs font-black p-3 outline-none focus:ring-2 focus:ring-brand-orange/30 appearance-none cursor-pointer text-gray-600">
+                        ${allOptionHtml}
+                        ${branchOptions}
+                    </select>
+                    <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-[10px]"></i>
+                </div>
+            </td>
+            <td class="px-6 py-4">
+                <div class="relative">
+                    <select onchange="window.updateUserRole('${u.id}', this.value)" class="w-full bg-slate-100 border-none rounded-xl text-xs font-black p-3 outline-none focus:ring-2 focus:ring-brand-orange/30 appearance-none cursor-pointer ${isSuperAdmin ? 'text-brand-orange bg-orange-50' : 'text-gray-600'}">
                         <option value="ventas" ${u.role === 'ventas' ? 'selected' : ''}>Ventas / Comercial</option>
                         <option value="contabilidad" ${u.role === 'contabilidad' ? 'selected' : ''}>Contabilidad</option>
                         <option value="logistica" ${u.role === 'logistica' ? 'selected' : ''}>Logística / Despachos</option>
@@ -171,6 +200,19 @@ window.updateUserRole = async (uid, newRole) => {
     } catch (e) {
         alert("Error al actualizar: " + e.message);
         renderStaffTable(staffCache); // Revertir visual
+    }
+};
+
+window.updateUserBranch = async (uid, branchId) => {
+    try {
+        await updateDoc(doc(db, "users", uid), {
+            assignedBranchId: branchId,
+            updatedAt: new Date()
+        });
+        showToast("Sede asignada con éxito");
+    } catch (e) {
+        alert("Error al actualizar sede: " + e.message);
+        renderStaffTable(staffCache);
     }
 };
 

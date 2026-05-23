@@ -2,11 +2,11 @@
 <html lang="es">
 <head>
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#00AEC7">
+    <meta name="theme-color" content="#F05A28">
     <link rel="apple-touch-icon" href="/img/icons/icon-192x192.webp">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WhatsApp CRM | PixelTech Admin</title>
+    <title>WhatsApp CRM | Mi Smartech Admin</title>
     <link href="../css/styles.css" rel="stylesheet">
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
@@ -41,7 +41,7 @@
                         <div class="flex justify-between items-center mb-3">
                             <h2 class="font-black text-lg text-brand-black">Bandeja</h2>
                             <div>
-                                <button id="btn-test-template" class="p-2 text-brand-orange hover:bg-cyan-50 rounded-full transition" title="Probar Plantilla (Hello World)"><i class="fa-solid fa-flask"></i></button>
+                                <button id="btn-test-template" class="p-2 text-brand-orange hover:bg-orange-50 rounded-full transition" title="Probar Plantilla (Hello World)"><i class="fa-solid fa-flask"></i></button>
                                 <button class="p-2 hover:bg-gray-200 rounded-full transition" title="Nuevo Chat"><i class="fa-solid fa-pen-to-square"></i></button>
                             </div>
                         </div>
@@ -131,7 +131,7 @@
                         </p>
 
                         <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm max-w-xs w-full flex items-center gap-4 text-left hover:shadow-md transition cursor-default group">
-                            <div class="w-12 h-12 rounded-xl bg-cyan-50 flex items-center justify-center text-brand-orange shrink-0 group-hover:scale-110 transition-transform">
+                            <div class="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-brand-orange shrink-0 group-hover:scale-110 transition-transform">
                                 <i class="fa-solid fa-bolt text-lg"></i>
                             </div>
                             <div>
@@ -155,7 +155,7 @@
                                 <h3 class="text-[10px] font-black text-brand-black uppercase tracking-widest flex items-center gap-2">
                                     <i class="fa-solid fa-chart-pie text-brand-orange text-sm"></i> Rendimiento del Equipo
                                 </h3>
-                                <button id="btn-open-audit" class="text-[9px] font-black text-brand-orange bg-cyan-50 hover:bg-brand-orange hover:text-brand-black px-3 py-1.5 rounded-lg transition uppercase tracking-widest border border-brand-orange/20">
+                                <button id="btn-open-audit" class="text-[9px] font-black text-brand-orange bg-orange-50 hover:bg-brand-orange hover:text-brand-black px-3 py-1.5 rounded-lg transition uppercase tracking-widest border border-brand-orange/20">
                                     <i class="fa-solid fa-history mr-1"></i> Auditar Campañas
                                 </button>
                             </div>
@@ -177,7 +177,7 @@
                         </div>
 
                         <div class="absolute bottom-8 flex items-center gap-2 text-[9px] font-black text-gray-400 uppercase tracking-widest">
-                            <i class="fa-solid fa-lock text-emerald-500"></i> Conexión Segura de PixelTech
+                            <i class="fa-solid fa-lock text-emerald-500"></i> Conexión Segura de Mi Smartech
                         </div>
                     </div>
 
@@ -228,7 +228,7 @@
                         </div>
                         <div>
                             <div id="orders-list-container" class="space-y-3"><p class="text-xs text-gray-400 text-center py-4">Selecciona una opción.</p></div>
-                            <button id="load-more-orders-btn" class="hidden w-full mt-4 py-2 text-[10px] font-bold uppercase text-gray-400 hover:text-brand-orange hover:bg-cyan-50 rounded-lg transition border border-dashed border-gray-200">Cargar más</button>
+                            <button id="load-more-orders-btn" class="hidden w-full mt-4 py-2 text-[10px] font-bold uppercase text-gray-400 hover:text-brand-orange hover:bg-orange-50 rounded-lg transition border border-dashed border-gray-200">Cargar más</button>
                         </div>
                     </div>
                 </div>
@@ -297,7 +297,7 @@
                     <i class="fa-solid fa-circle-info mt-0.5"></i> 
                     <div>
                         <p class="font-black mb-1">Plantilla de Meta Requerida</p>
-                        <p>Asegúrate de tener una plantilla aprobada (ej: <b>promo_pixeltech_v1</b>) con 1 Imagen, 2 Variables de texto (Nombre y Mensaje) y 1 Botón de enlace dinámico.</p>
+                        <p>Asegúrate de tener una plantilla aprobada (ej: <b>promo_mismartech_v1</b>) con 1 Imagen, 2 Variables de texto (Nombre y Mensaje) y 1 Botón de enlace dinámico.</p>
                     </div>
                 </div>
 
@@ -309,7 +309,7 @@
                         <div class="flex gap-4">
                             <div class="w-1/2">
                                 <label class="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1 block ml-1">Nombre Plantilla (Fija) *</label>
-                                <input type="text" id="camp-template-name" value="promo_pixeltech_v1" readonly class="w-full bg-gray-200 text-gray-500 border border-gray-200 p-3 rounded-xl text-xs font-bold outline-none cursor-not-allowed">
+                                <input type="text" id="camp-template-name" value="promo_mismartech_v1" readonly class="w-full bg-gray-200 text-gray-500 border border-gray-200 p-3 rounded-xl text-xs font-bold outline-none cursor-not-allowed">
                             </div>
                             <div class="w-1/2">
                                 <label class="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1 block ml-1">Variable {{1}}</label>
@@ -351,7 +351,7 @@
                                 <input type="text" id="camp-search-prod" placeholder="Buscar producto en catálogo..." class="w-full bg-white border border-gray-200 p-3 pl-10 rounded-xl text-xs font-bold outline-none focus:border-brand-orange">
                                 <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
                                 <div id="camp-prod-results" class="hidden absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-xl overflow-y-auto max-h-48 z-50 p-2"></div>
-                                <div id="camp-selected-prod" class="hidden mt-3 bg-cyan-50 border border-cyan-100 p-3 rounded-xl flex items-center justify-between">
+                                <div id="camp-selected-prod" class="hidden mt-3 bg-orange-50 border border-orange-100 p-3 rounded-xl flex items-center justify-between">
                                     <div class="min-w-0">
                                         <p class="text-[10px] font-black text-brand-orange uppercase tracking-widest">Producto Vinculado:</p>
                                         <p id="camp-prod-name" class="text-xs font-bold text-gray-700 truncate">...</p>

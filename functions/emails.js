@@ -35,7 +35,7 @@ const getTrackingLink = (carrier, guide) => {
 // --- PLANTILLA HTML PROFESIONAL ---
 function getBeautifulEmailTemplate(type, order, orderId) {
     const isDispatch = type === 'DISPATCH';
-    const primaryColor = "#00D6D6"; // Tu Brand Cyan
+    const primaryColor = "#F05A28"; // Brand Orange
     const darkColor = "#1e293b";    // Tu Slate-900
     const lightBg = "#f8fafc";      // Slate-50
 
@@ -73,23 +73,23 @@ function getBeautifulEmailTemplate(type, order, orderId) {
     // --- LÓGICA WHATSAPP (NUEVO) ---
     const customerName = order.buyerInfo?.name || order.extraData?.userName || 'Cliente';
     const cleanOrderId = orderId.slice(0, 8).toUpperCase();
-    // Mensaje predeterminado: "Hola PixelTech, tengo una duda sobre mi pedido #ABC12345 a nombre de Juan..."
-    const waMessage = `Hola PixelTech, tengo una duda sobre mi pedido #${cleanOrderId} a nombre de ${customerName}.`;
+    // Mensaje predeterminado: "Hola MiSmartech, tengo una duda sobre mi pedido #ABC12345 a nombre de Juan..."
+    const waMessage = `Hola MiSmartech, tengo una duda sobre mi pedido #${cleanOrderId} a nombre de ${customerName}.`;
     // Crear Link (Codificamos el texto para que funcione en URL)
-    const waLink = `https://wa.me/573174534353?text=${encodeURIComponent(waMessage)}`;
+    const waLink = `https://wa.me/573196276426?text=${encodeURIComponent(waMessage)}`;
 
 
     // 3. Bloque de Rastreo (Solo si hay guía)
     const trackingHtml = (isDispatch && order.trackingNumber) ? `
-        <div style="background-color: #ecfeff; border: 1px solid #cfFAFE; border-radius: 16px; padding: 20px; margin-bottom: 24px; text-align: center;">
-            <p style="margin: 0; font-size: 10px; font-weight: 800; color: #155e75; text-transform: uppercase; letter-spacing: 1px;">
+        <div style="background-color: #fff7ed; border: 1px solid #ffedd5; border-radius: 16px; padding: 20px; margin-bottom: 24px; text-align: center;">
+            <p style="margin: 0; font-size: 10px; font-weight: 800; color: #9a3412; text-transform: uppercase; letter-spacing: 1px;">
                 Número de Guía (${order.carrier || 'Transportadora'})
             </p>
-            <p style="margin: 8px 0; font-size: 24px; font-family: monospace; font-weight: bold; color: #0e7490;">
+            <p style="margin: 8px 0; font-size: 24px; font-family: monospace; font-weight: bold; color: #ea580c;">
                 ${order.trackingNumber}
             </p>
             <a href="${getTrackingLink(order.carrier, order.trackingNumber)}" 
-               style="display: inline-block; background-color: ${primaryColor}; color: #000; padding: 10px 20px; border-radius: 50px; text-decoration: none; font-size: 12px; font-weight: bold; text-transform: uppercase;">
+               style="display: inline-block; background-color: ${primaryColor}; color: #ffffff; padding: 10px 20px; border-radius: 50px; text-decoration: none; font-size: 12px; font-weight: bold; text-transform: uppercase;">
                Rastrear Pedido
             </a>
         </div>
@@ -115,7 +115,7 @@ function getBeautifulEmailTemplate(type, order, orderId) {
                         
                         <tr>
                             <td style="padding: 40px 40px 20px; text-align: center; background-color: ${darkColor};">
-                                <img src="https://pixeltechcol.com/img/logo.webp" alt="PixelTech" style="height: 40px; margin-bottom: 20px;">
+                                <img src="https://mismartech.com/img/logo.webp" alt="MiSmartech" style="height: 40px; margin-bottom: 20px;">
                                 <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 900; text-transform: uppercase; letter-spacing: -1px;">
                                     ${title}
                                 </h1>
@@ -188,7 +188,7 @@ function getBeautifulEmailTemplate(type, order, orderId) {
                                 </div>
 
                                 <div style="text-align: center; margin-top: 40px;">
-                                    <a href="https://pixeltechcol.com/shop/order-detail.html?id=${orderId}" 
+                                    <a href="https://mismartech.com/shop/order-detail.html?id=${orderId}" 
                                        style="display: inline-block; background-color: ${darkColor}; color: #ffffff; padding: 15px 30px; border-radius: 50px; text-decoration: none; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px;">
                                        Ver Detalles en la Web
                                     </a>
@@ -198,7 +198,7 @@ function getBeautifulEmailTemplate(type, order, orderId) {
                         
                         <tr>
                             <td style="padding: 20px; text-align: center; background-color: #f1f5f9; color: #94a3b8; font-size: 12px;">
-                                <p style="margin: 0;">&copy; ${new Date().getFullYear()} PixelTech Colombia.</p>
+                                <p style="margin: 0;">&copy; ${new Date().getFullYear()} MiSmartech.</p>
                                 
                                 <p style="margin: 10px 0 0;">
                                     ¿Tienes dudas? 
@@ -235,7 +235,7 @@ exports.sendOrderConfirmation = onDocumentCreated("orders/{orderId}", async (eve
     const htmlContent = getBeautifulEmailTemplate('CONFIRMATION', orderData, orderId);
 
     const mailOptions = {
-        from: `"PixelTech Pedidos" <${process.env.SMTP_EMAIL}>`,
+        from: `"MiSmartech Pedidos" <${process.env.SMTP_EMAIL}>`,
         to: email,
         subject: `¡Recibimos tu pedido! #${orderId.slice(0,8).toUpperCase()} 🎉`,
         html: htmlContent
@@ -269,7 +269,7 @@ exports.sendDispatchNotification = onDocumentUpdated("orders/{orderId}", async (
         const htmlContent = getBeautifulEmailTemplate('DISPATCH', newData, orderId);
 
         const mailOptions = {
-            from: `"PixelTech Envíos" <${process.env.SMTP_EMAIL}>`,
+            from: `"MiSmartech Envíos" <${process.env.SMTP_EMAIL}>`,
             to: email,
             subject: `¡Tu pedido va en camino! 🚚 #${orderId.slice(0,8).toUpperCase()}`,
             html: htmlContent

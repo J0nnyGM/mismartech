@@ -138,10 +138,10 @@ export function initCacheKillSwitch(db) {
         onSnapshot(configRef, async (snap) => {
             if (snap.exists()) {
                 const serverVersion = snap.data().cacheVersion || 1;
-                const localVersionString = localStorage.getItem('pixeltech_cache_version');
+                const localVersionString = localStorage.getItem('mismartech_cache_version');
 
                 if (localVersionString === null) {
-                    localStorage.setItem('pixeltech_cache_version', serverVersion.toString());
+                    localStorage.setItem('mismartech_cache_version', serverVersion.toString());
                     return; 
                 }
 
@@ -165,7 +165,7 @@ export function initCacheKillSwitch(db) {
                         }
                     }
 
-                    localStorage.setItem('pixeltech_cache_version', serverVersion.toString());
+                    localStorage.setItem('mismartech_cache_version', serverVersion.toString());
 
                     const newUrl = new URL(window.location.href);
                     newUrl.searchParams.set('v_cache', serverVersion);

@@ -1,13 +1,18 @@
-import { db, doc, getDoc, updateDoc, Timestamp, collection, getDocs, runTransaction, serverTimestamp, writeBatch, auth } from '../firebase-init.js';
+import { db, doc, getDoc, updateDoc, Timestamp, collection, getDocs, runTransaction, serverTimestamp, writeBatch, auth, addDoc } from '../firebase-init.js';
 import { adjustStock } from './inventory-core.js'; 
 import { AdminStore } from './admin-store.js';
 
 // --- CACHÉ DE OPTIMIZACIÓN ---
 let currentOrderData = null; 
 let currentOrderId = null;
-let accountsCache = null;    
+let accountsCache = [];    
 let editProductsCache = []; 
 let isProductsSubscribed = false; 
+
+// 🔥 SUSCRIPCIÓN REACTIVA DE ALTA VELOCIDAD: 0 LECTURAS ADICIONALES Y TIEMPO REAL 100%
+AdminStore.subscribeToAccounts((accs) => {
+    accountsCache = accs;
+});
 
 const getEl = (id) => document.getElementById(id);
 const safeSetText = (id, text) => { const el = getEl(id); if (el) el.textContent = text; };
@@ -17,16 +22,7 @@ const parseCurrency = (str) => Number(String(str).replace(/[^0-9-]/g, '')) || 0;
 const normalizeText = (str) => str ? str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
 
 async function loadAccountsCached() {
-    if (accountsCache) return accountsCache;
-    try {
-        const snap = await getDocs(collection(db, "accounts"));
-        accountsCache = [];
-        snap.forEach(doc => accountsCache.push({ id: doc.id, ...doc.data() }));
-        return accountsCache;
-    } catch (e) {
-        console.error("Error cache cuentas:", e);
-        return [];
-    }
+    return accountsCache;
 }
 
 // ==========================================================================
@@ -53,7 +49,7 @@ export async function viewOrderDetail(orderId) {
         const iconContainer = getEl('modal-source-icon');
         if (iconContainer) {
             iconContainer.innerHTML = isWeb ? '<i class="fa-solid fa-globe"></i>' : '<i class="fa-solid fa-store"></i>';
-            iconContainer.className = `w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-2xl shadow-sm border border-gray-100 ${isWeb ? 'text-brand-cyan' : 'text-brand-black'}`;
+            iconContainer.className = `w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-2xl shadow-sm border border-gray-100 ${isWeb ? 'text-brand-orange' : 'text-brand-black'}`;
         }
 
         safeSetText('modal-order-id', `#${o.internalOrderNumber || snap.id.slice(0, 8).toUpperCase()}`);
@@ -137,10 +133,10 @@ export async function viewOrderDetail(orderId) {
                 let snInputs = '';
                 for (let i = 0; i < (item.quantity || 1); i++) {
                     const val = (item.sns && item.sns[i]) ? item.sns[i] : '';
-                    const lockClass = isLocked ? 'bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200' : 'bg-white text-brand-black border-gray-200 focus:border-brand-cyan focus:ring-1 focus:ring-brand-cyan/20';
+                    const lockClass = isLocked ? 'bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200' : 'bg-white text-brand-black border-gray-200 focus:border-brand-orange focus:ring-1 focus:ring-brand-orange/20';
                     snInputs += `<div class="relative mb-2"><i class="fa-solid fa-barcode absolute left-3 top-3 text-brand-black text-xs"></i><input type="text" placeholder="${isLocked ? (val || 'No registrado') : 'Escanea Serial'}" value="${val}" data-item-index="${idx}" data-unit-index="${i}" class="sn-input w-full rounded-xl py-2 pl-8 pr-3 text-xs font-mono font-bold outline-none transition-all uppercase border ${lockClass}" ${isLocked ? 'readonly' : ''}></div>`;
                 }
-                return `<div class="p-6 border-b border-gray-100 last:border-0 flex flex-col md:flex-row gap-6 items-start"><div class="w-16 h-16 rounded-xl bg-white border border-gray-100 p-2 shrink-0 flex items-center justify-center"><img src="${img}" class="max-w-full max-h-full object-contain"></div><div class="flex-grow w-full"><div class="flex justify-between mb-2"><h5 class="font-black text-xs uppercase text-brand-black">${item.name || item.title}</h5><span class="text-xs font-black text-brand-cyan">x${item.quantity}</span></div><div class="flex gap-2 mb-4">${item.color ? `<span class="text-[8px] font-black uppercase bg-slate-100 px-2 py-1 rounded text-brand-black border border-gray-200">${item.color}</span>` : ''}</div><div class="bg-slate-100/50 p-3 rounded-xl border border-dashed border-gray-200"><p class="text-[8px] font-black text-brand-black uppercase tracking-widest mb-2">Seriales</p><div class="grid grid-cols-1 sm:grid-cols-2 gap-2">${snInputs}</div></div></div></div>`;
+                return `<div class="p-6 border-b border-gray-100 last:border-0 flex flex-col md:flex-row gap-6 items-start"><div class="w-16 h-16 rounded-xl bg-white border border-gray-100 p-2 shrink-0 flex items-center justify-center"><img src="${img}" class="max-w-full max-h-full object-contain"></div><div class="flex-grow w-full"><div class="flex justify-between mb-2"><h5 class="font-black text-xs uppercase text-brand-black">${item.name || item.title}</h5><span class="text-xs font-black text-brand-orange">x${item.quantity}</span></div><div class="flex gap-2 mb-4">${item.color ? `<span class="text-[8px] font-black uppercase bg-slate-100 px-2 py-1 rounded text-brand-black border border-gray-200">${item.color}</span>` : ''}</div><div class="bg-slate-100/50 p-3 rounded-xl border border-dashed border-gray-200"><p class="text-[8px] font-black text-brand-black uppercase tracking-widest mb-2">Seriales</p><div class="grid grid-cols-1 sm:grid-cols-2 gap-2">${snInputs}</div></div></div></div>`;
             }).join('');
 
             if (!isLocked) {
@@ -244,7 +240,7 @@ export async function viewOrderDetail(orderId) {
                 if (o.status === 'PENDIENTE') {
                     const btnEdit = document.createElement('button');
                     btnEdit.id = 'btn-edit-action';
-                    btnEdit.className = "w-12 h-12 bg-brand-cyan text-brand-black border border-brand-cyan rounded-xl hover:bg-cyan-400 transition-all shadow-sm flex items-center justify-center shrink-0";
+                    btnEdit.className = "w-12 h-12 bg-brand-orange text-brand-black border border-brand-orange rounded-xl hover:bg-orange-400 transition-all shadow-sm flex items-center justify-center shrink-0";
                     btnEdit.innerHTML = `<i class="fa-solid fa-pen-to-square text-lg"></i>`;
                     btnEdit.title = "Editar Orden";
                     btnEdit.onclick = () => openEditOrderModal(currentOrderData);
@@ -366,7 +362,7 @@ function injectEditModalHtml() {
     const html = `
     <div id="edit-order-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4 sm:p-6 bg-slate-900/90 backdrop-blur-sm">
         <div class="relative bg-white w-full max-w-4xl rounded-[2.5rem] shadow-2xl flex flex-col max-h-[95vh] overflow-hidden">
-            <div class="px-8 py-6 border-b border-gray-100 flex justify-between items-center bg-brand-cyan shrink-0">
+            <div class="px-8 py-6 border-b border-gray-100 flex justify-between items-center bg-brand-orange shrink-0">
                 <h3 class="text-xl font-black uppercase text-brand-black"><i class="fa-solid fa-pen-to-square"></i> Editar Orden Manual</h3>
                 <button onclick="document.getElementById('edit-order-modal').classList.add('hidden')" class="w-8 h-8 rounded-full bg-black/10 hover:bg-black/20 text-brand-black transition flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
             </div>
@@ -375,7 +371,7 @@ function injectEditModalHtml() {
                 
                 <div class="relative">
                     <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Agregar Producto al Pedido</label>
-                    <input type="text" id="eo-search-prod" placeholder="Buscar por nombre o SKU..." class="w-full bg-slate-50 border border-gray-200 rounded-xl p-3 text-xs font-bold outline-none focus:border-brand-cyan">
+                    <input type="text" id="eo-search-prod" placeholder="Buscar por nombre o SKU..." class="w-full bg-slate-50 border border-gray-200 rounded-xl p-3 text-xs font-bold outline-none focus:border-brand-orange">
                     <div id="eo-search-results" class="absolute top-full left-0 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-xl hidden max-h-48 overflow-y-auto z-50 p-2"></div>
                 </div>
 
@@ -386,23 +382,23 @@ function injectEditModalHtml() {
 
                 <div class="flex justify-end gap-6 items-start pt-4">
                     <div class="flex items-center gap-2 mt-[26px]">
-                        <input type="checkbox" id="eo-apply-4x1000" class="w-4 h-4 rounded text-brand-cyan border-gray-300 cursor-pointer">
+                        <input type="checkbox" id="eo-apply-4x1000" class="w-4 h-4 rounded text-brand-orange border-gray-300 cursor-pointer">
                         <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest cursor-pointer" for="eo-apply-4x1000">Cobrar 4x1000</label>
                     </div>
                     <div>
                         <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-1">Costo de Envío</label>
-                        <input type="text" id="eo-shipping-cost" class="w-32 bg-slate-50 border border-gray-200 rounded-lg p-2 text-sm font-black text-right outline-none focus:border-brand-cyan">
+                        <input type="text" id="eo-shipping-cost" class="w-32 bg-slate-50 border border-gray-200 rounded-lg p-2 text-sm font-black text-right outline-none focus:border-brand-orange">
                     </div>
                     <div class="text-right">
                         <p class="text-[9px] font-black text-brand-black uppercase tracking-widest mb-1">Nuevo Total</p>
-                        <h4 id="eo-total-display" class="text-3xl font-black text-brand-cyan leading-none">$0</h4>
+                        <h4 id="eo-total-display" class="text-3xl font-black text-brand-orange leading-none">$0</h4>
                     </div>
                 </div>
             </div>
             
             <div class="p-6 bg-slate-50 border-t border-gray-100 flex justify-end gap-3 shrink-0">
                 <button onclick="document.getElementById('edit-order-modal').classList.add('hidden')" class="px-6 py-3 text-[10px] font-black text-gray-500 uppercase tracking-widest hover:text-brand-black transition">Cancelar</button>
-                <button id="btn-save-edited-order" class="px-8 py-3 bg-brand-black text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:shadow-lg hover:bg-brand-cyan hover:text-brand-black transition flex items-center gap-2">
+                <button id="btn-save-edited-order" class="px-8 py-3 bg-brand-black text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:shadow-lg hover:bg-brand-orange hover:text-brand-black transition flex items-center gap-2">
                     <i class="fa-solid fa-save"></i> Guardar Cambios
                 </button>
             </div>
@@ -431,7 +427,7 @@ function injectEditModalHtml() {
             filtered.slice(0,10).forEach(p => {
                 const isOutOfStock = p.stock <= 0;
                 const d = document.createElement('div');
-                d.className = `p-2 flex items-center justify-between border-b border-gray-50 last:border-0 ${isOutOfStock ? 'opacity-50' : 'hover:bg-cyan-50 cursor-pointer'}`;
+                d.className = `p-2 flex items-center justify-between border-b border-gray-50 last:border-0 ${isOutOfStock ? 'opacity-50' : 'hover:bg-orange-50 cursor-pointer'}`;
                 d.innerHTML = `<div class="text-[10px] font-black uppercase text-brand-black truncate">${p.name} <span class="text-[9px] text-gray-400 font-bold block">Stock: ${p.stock||0}</span></div><div class="text-[10px] font-bold">${formatCurrency(p.price)}</div>`;
                 if(!isOutOfStock) {
                     d.onmousedown = () => {
@@ -485,7 +481,7 @@ function renderEditItems() {
             colors = [...new Set(colors)];
             
             if (colors.length > 0) {
-                colorHtml = `<select data-idx="${idx}" class="e-color w-full bg-slate-50 border border-gray-200 rounded p-1.5 text-[9px] font-bold text-gray-600 outline-none focus:border-brand-cyan mb-1 cursor-pointer appearance-none">
+                colorHtml = `<select data-idx="${idx}" class="e-color w-full bg-slate-50 border border-gray-200 rounded p-1.5 text-[9px] font-bold text-gray-600 outline-none focus:border-brand-orange mb-1 cursor-pointer appearance-none">
                     <option value="">Color...</option>
                     ${colors.map(c => `<option value="${c}" ${c === item.color ? 'selected' : ''}>${c}</option>`).join('')}
                 </select>`;
@@ -499,7 +495,7 @@ function renderEditItems() {
             caps = [...new Set(caps)];
             
             if (caps.length > 0) {
-                capHtml = `<select data-idx="${idx}" class="e-capacity w-full bg-slate-50 border border-gray-200 rounded p-1.5 text-[9px] font-bold text-gray-600 outline-none focus:border-brand-cyan cursor-pointer appearance-none">
+                capHtml = `<select data-idx="${idx}" class="e-capacity w-full bg-slate-50 border border-gray-200 rounded p-1.5 text-[9px] font-bold text-gray-600 outline-none focus:border-brand-orange cursor-pointer appearance-none">
                     <option value="">Capacidad...</option>
                     ${caps.map(c => `<option value="${c}" ${c === item.capacity ? 'selected' : ''}>${c}</option>`).join('')}
                 </select>`;
@@ -520,11 +516,11 @@ function renderEditItems() {
             <div class="flex items-center gap-2 shrink-0 self-center">
                 <div>
                     <label class="text-[8px] text-gray-400 font-bold block text-center mb-1">Cant.</label>
-                    <input type="number" min="1" value="${item.quantity}" data-idx="${idx}" class="e-qty w-12 bg-slate-50 border border-gray-200 rounded p-2 text-xs font-black text-center outline-none focus:border-brand-cyan">
+                    <input type="number" min="1" value="${item.quantity}" data-idx="${idx}" class="e-qty w-12 bg-slate-50 border border-gray-200 rounded p-2 text-xs font-black text-center outline-none focus:border-brand-orange">
                 </div>
                 <div>
                     <label class="text-[8px] text-gray-400 font-bold block text-center mb-1">Precio Uni.</label>
-                    <input type="text" value="${formatCurrency(item.price)}" data-idx="${idx}" class="e-price w-24 bg-slate-50 border border-gray-200 rounded p-2 text-xs font-bold text-right outline-none focus:border-brand-cyan">
+                    <input type="text" value="${formatCurrency(item.price)}" data-idx="${idx}" class="e-price w-24 bg-slate-50 border border-gray-200 rounded p-2 text-xs font-bold text-right outline-none focus:border-brand-orange">
                 </div>
                 <button class="e-remove w-8 h-8 mt-[18px] bg-red-50 text-red-500 rounded hover:bg-red-500 hover:text-white transition flex items-center justify-center shadow-sm" data-idx="${idx}"><i class="fa-solid fa-trash-can text-xs"></i></button>
             </div>
@@ -659,16 +655,229 @@ export async function saveAlistamiento(onSuccess) {
     btn.disabled = true; btn.innerHTML = "Guardando...";
     try {
         const snap = await getDoc(doc(db, "orders", currentOrderId));
-        const items = snap.data().items;
+        if (!snap.exists()) throw new Error("La orden no existe");
+        const orderData = snap.data();
+        const items = orderData.items;
         const updatedItems = items.map((item, idx) => {
             const inputs = document.querySelectorAll(`.sn-input[data-item-index="${idx}"]`);
             return { ...item, sns: Array.from(inputs).map(i => i.value.trim()) };
         });
+
+        // 🔥 VERIFICAR STOCK ANTES DE HACER ALISTAMIENTO PARA EVITAR SOBREVENTAS O ERRORES
+        if (orderData.source !== 'MANUAL') {
+            const activeBranchId = sessionStorage.getItem('activeBranchId') || 'sede_principal';
+            const activeBranchName = sessionStorage.getItem('activeBranchName') || 'Sede Principal';
+            const deficits = [];
+
+            for (const item of updatedItems) {
+                const qtyToDeduct = parseInt(item.quantity) || 1;
+                const pSnap = await getDoc(doc(db, "products", item.id));
+                if (!pSnap.exists()) continue;
+                const pData = pSnap.data();
+
+                let localStock = 0;
+                let branchStockMap = {};
+                let globalStock = parseInt(pData.stock) || 0;
+
+                if (pData.combinations && pData.combinations.length > 0) {
+                    const combo = pData.combinations.find(c => {
+                        const matchColor = item.color ? c.color === item.color : true;
+                        const matchCap = item.capacity ? c.capacity === item.capacity : true;
+                        return matchColor && matchCap;
+                    });
+                    if (combo) {
+                        branchStockMap = combo.branchStock || {};
+                        const hasComboBranchStock = Object.keys(branchStockMap).length > 0;
+                        localStock = hasComboBranchStock
+                            ? (parseInt(branchStockMap[activeBranchId]) || 0)
+                            : (activeBranchId === 'sede_principal' ? (parseInt(combo.stock) || 0) : 0);
+                        globalStock = parseInt(combo.stock) || 0;
+                    }
+                } else {
+                    branchStockMap = pData.branchStock || {};
+                    const hasBranchStock = Object.keys(branchStockMap).length > 0;
+                    localStock = hasBranchStock
+                        ? (parseInt(branchStockMap[activeBranchId]) || 0)
+                        : (activeBranchId === 'sede_principal' ? (parseInt(pData.stock) || 0) : 0);
+                }
+
+                if (qtyToDeduct > localStock) {
+                    deficits.push({
+                        item,
+                        pData,
+                        qtyToDeduct,
+                        localStock,
+                        branchStockMap,
+                        globalStock,
+                        deficit: qtyToDeduct - localStock
+                    });
+                }
+            }
+
+            if (deficits.length > 0) {
+                btn.disabled = false;
+                btn.innerHTML = "Guardar Alistamiento";
+
+                // Tomamos el primer deficit para solicitar el traslado
+                const def = deficits[0];
+                const branchesSnap = await getDocs(collection(db, "branches"));
+                const branchesList = [];
+                branchesSnap.forEach(d => {
+                    branchesList.push({ id: d.id, ...d.data() });
+                });
+
+                const branchesWithStock = [];
+                branchesList.forEach(br => {
+                    if (br.id !== activeBranchId) {
+                        const stockVal = def.branchStockMap[br.id] !== undefined
+                            ? (parseInt(def.branchStockMap[br.id]) || 0)
+                            : (br.id === 'sede_principal' ? def.globalStock : 0);
+                        if (stockVal > 0) {
+                            branchesWithStock.push({ id: br.id, name: br.name, stock: stockVal });
+                        }
+                    }
+                });
+
+                showTransferRequestModal(def, branchesWithStock, activeBranchId, activeBranchName);
+                return;
+            }
+
+            // Si todos tienen stock, procedemos a descontar
+            for (const item of updatedItems) {
+                const qtyToDeduct = parseInt(item.quantity) || 1;
+                await adjustStock(item.id, -qtyToDeduct, item.color, item.capacity, activeBranchId);
+            }
+        }
+
         await updateDoc(doc(db, "orders", currentOrderId), { items: updatedItems, status: 'ALISTADO', updatedAt: new Date() });
-        alert("✅ Orden Alistada");
+        alert("✅ Orden Alistada y existencias descontadas con éxito.");
         getEl('order-modal').classList.add('hidden');
         if(onSuccess) onSuccess();
-    } catch(e) { console.error(e); } finally { btn.disabled = false; btn.innerHTML = "Guardar Alistamiento"; }
+    } catch(e) {
+        console.error("Error al guardar alistamiento:", e);
+        alert("⚠️ Error al alistar la orden: " + (e.message || e));
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = "Guardar Alistamiento";
+    }
+}
+
+// --- MODAL DE TRASLADO DE STOCK DESDE ALISTAMIENTO ---
+function showTransferRequestModal(def, branchesWithStock, activeBranchId, activeBranchName) {
+    let modal = getEl('transfer-request-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'transfer-request-modal';
+        modal.className = 'fixed inset-0 z-[100] hidden flex items-center justify-center p-4';
+        modal.innerHTML = `
+            <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" id="tr-modal-backdrop"></div>
+            <div class="relative bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl animate-fadeIn text-center border border-gray-100">
+                <div class="w-16 h-16 rounded-full bg-orange-100 text-brand-orange flex items-center justify-center text-3xl mx-auto mb-4">
+                    <i class="fa-solid fa-truck-ramp-box"></i>
+                </div>
+                <h3 class="text-xl font-black text-brand-black uppercase mb-2">Solicitar Traslado</h3>
+                <p id="tr-modal-description" class="text-[11px] text-gray-500 font-bold uppercase tracking-wide mb-6">
+                    Stock insuficiente en tu sede.<br>Solicítalo a esta sede:
+                </p>
+                
+                <div class="space-y-4 mb-8 text-left">
+                    <div>
+                        <label class="block text-[8px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Sede de Origen (Con Stock)</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-map-pin absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                            <select id="tr-source-branch" class="w-full bg-slate-50 border border-gray-200 pl-10 pr-4 py-4 rounded-xl font-bold text-xs outline-none focus:border-brand-orange appearance-none text-brand-black cursor-pointer shadow-sm transition-all">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="bg-orange-50 border border-brand-orange/20 p-4 rounded-xl text-[10px] text-brand-orange font-bold">
+                        <i class="fa-solid fa-circle-info mr-1"></i> Se creará una solicitud de traslado pendiente de aprobación.
+                    </div>
+                </div>
+                
+                <div class="flex gap-3">
+                    <button id="tr-btn-cancel" class="flex-1 bg-white border border-gray-200 text-gray-500 font-black py-4 rounded-xl shadow-sm uppercase text-[10px] tracking-widest hover:bg-slate-50 transition">
+                        Cancelar
+                    </button>
+                    <button id="tr-btn-confirm" class="flex-1 bg-brand-black text-white font-black py-4 rounded-xl shadow-lg uppercase text-[10px] tracking-[0.2em] hover:bg-brand-orange hover:text-brand-black transition">
+                        Solicitar
+                    </button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        getEl('tr-modal-backdrop').onclick = () => modal.classList.add('hidden');
+        getEl('tr-btn-cancel').onclick = () => modal.classList.add('hidden');
+    }
+
+    const descEl = getEl('tr-modal-description');
+    const variantStr = def.item.color ? ` (${def.item.color})` : '';
+    descEl.innerHTML = `<span class="text-red-500 font-black text-[10px] uppercase">Faltante: ${def.deficit} und(s) de ${def.item.name || def.item.title}${variantStr}</span><br><br>Stock insuficiente en tu sede.<br>Solicítalo a esta sede:`;
+
+    const select = getEl('tr-source-branch');
+    select.innerHTML = '';
+
+    const btnConfirm = getEl('tr-btn-confirm');
+    
+    if (branchesWithStock.length === 0) {
+        select.innerHTML = '<option value="">Sin stock en otras sedes</option>';
+        select.disabled = true;
+        btnConfirm.disabled = true;
+        btnConfirm.className = 'flex-1 bg-gray-200 text-gray-400 font-black py-4 rounded-xl shadow-sm uppercase text-[10px] tracking-[0.2em] cursor-not-allowed';
+    } else {
+        select.disabled = false;
+        btnConfirm.disabled = false;
+        btnConfirm.className = 'flex-1 bg-brand-black text-white font-black py-4 rounded-xl shadow-lg uppercase text-[10px] tracking-[0.2em] hover:bg-brand-orange hover:text-brand-black transition';
+        branchesWithStock.forEach(br => {
+            select.innerHTML += `<option value="${br.id}">${br.name} (Stock: ${br.stock})</option>`;
+        });
+    }
+
+    btnConfirm.onclick = async () => {
+        const sourceBranchId = select.value;
+        if (!sourceBranchId) return;
+        const selectedBranch = branchesWithStock.find(b => b.id === sourceBranchId);
+        const sourceBranchName = selectedBranch ? selectedBranch.name : sourceBranchId;
+
+        btnConfirm.disabled = true;
+        btnConfirm.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Solicitando...';
+
+        try {
+            // 1. Reservar stock en la sede origen
+            await adjustStock(def.item.id, -def.deficit, def.item.color, def.item.capacity, sourceBranchId);
+
+            // 2. Crear documento de traslado pendiente
+            await addDoc(collection(db, "transfers"), {
+                productId: def.item.id,
+                productName: def.item.name || def.item.title,
+                color: def.item.color || null,
+                capacity: def.item.capacity || null,
+                quantity: def.deficit,
+                sourceBranchId,
+                sourceBranchName,
+                targetBranchId: activeBranchId,
+                targetBranchName: activeBranchName,
+                status: 'PENDING',
+                requestedBy: (sessionStorage.getItem('adminUserRole') || 'ventas') + ' - ' + (auth.currentUser ? auth.currentUser.email : 'Anónimo'),
+                requestedAt: new Date(),
+                resolvedBy: null,
+                resolvedAt: null,
+                orderId: currentOrderId
+            });
+
+            alert(`✅ Solicitud de traslado de ${def.deficit} und(s) enviada a ${sourceBranchName} con éxito.`);
+            modal.classList.add('hidden');
+            getEl('order-modal').classList.add('hidden');
+        } catch (err) {
+            console.error("Error al crear traslado desde alistamiento:", err);
+            alert("⚠️ Error al crear solicitud de traslado: " + err.message);
+        } finally {
+            btnConfirm.disabled = false;
+            btnConfirm.innerHTML = 'Solicitar';
+        }
+    };
+
+    modal.classList.remove('hidden');
 }
 
 export function openDispatchModal() { getEl('dispatch-modal').classList.remove('hidden'); }
@@ -750,7 +959,7 @@ export async function printRemission(orderId) {
                     .store-info p { margin: 0; color: #4b5563; font-size: 12px; }
                     .remission-info { text-align: right; }
                     .remission-info h2 { font-size: 22px; font-weight: 900; letter-spacing: 2px; }
-                    .remission-info .consecutivo { font-size: 18px; font-weight: 900; color: #00AEC7; margin-bottom: 5px; display: block;}
+                    .remission-info .consecutivo { font-size: 18px; font-weight: 900; color: #F05A28; margin-bottom: 5px; display: block;}
                     .remission-info p { margin: 2px 0; font-size: 12px; color: #4b5563; }
                     .badge { display: inline-block; background: #f3f4f6; padding: 4px 8px; border-radius: 4px; font-family: monospace; margin-top: 5px; font-weight: bold; font-size: 11px;}
                     .section-title { font-size: 10px; font-weight: 900; color: #9ca3af; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; border-bottom: 1px solid #e5e7eb; padding-bottom: 5px;}
@@ -778,7 +987,7 @@ export async function printRemission(orderId) {
             <body>
                 <div class="header">
                     <div class="store-info">
-                        <h1>PIXELTECH</h1>
+                        <h1>MI SMARTECH</h1>
                         <p>Lo mejor en tecnología</p>
                         <p>Bogotá, Colombia</p>
                     </div>
@@ -845,13 +1054,16 @@ export async function openPaymentModal(orderId, amountDue) {
     
     try {
         const selectAcc = getEl('pay-account-select');
-        if (selectAcc.options.length <= 1) { 
-            selectAcc.innerHTML = '<option value="">Cargando...</option>';
-            const accounts = await loadAccountsCached();
-            let ops = '<option value="">Seleccione Cuenta...</option>';
-            accounts.forEach(acc => ops += `<option value="${acc.id}">${acc.name} (${acc.type})</option>`);
-            selectAcc.innerHTML = ops;
-        }
+        const activeBranchId = sessionStorage.getItem('activeBranchId') || 'sede_principal';
+        selectAcc.innerHTML = '<option value="">Cargando...</option>';
+        const accounts = await loadAccountsCached();
+        let ops = '<option value="">Seleccione Cuenta...</option>';
+        accounts.forEach(acc => {
+            if (acc.branchId === activeBranchId) {
+                ops += `<option value="${acc.id}">${acc.name} (${acc.type})</option>`;
+            }
+        });
+        selectAcc.innerHTML = ops;
     } catch (e) {}
 
     modal.classList.remove('hidden');
@@ -901,7 +1113,7 @@ async function openRefundModal(orderInput) {
             
             const infoDiv = document.createElement('div');
             infoDiv.className = "info-badge mb-4 p-3 bg-blue-50 rounded-xl border border-blue-100 text-[10px] text-blue-800 flex justify-between";
-            infoDiv.innerHTML = `<span><strong>Total:</strong> $${totalPaid.toLocaleString()}</span><span><strong>Devuelto:</strong> $${alreadyRefunded.toLocaleString()}</span><span class="font-black text-brand-cyan"><strong>Disponible:</strong> $${moneyAvailable.toLocaleString()}</span>`;
+            infoDiv.innerHTML = `<span><strong>Total:</strong> $${totalPaid.toLocaleString()}</span><span><strong>Devuelto:</strong> $${alreadyRefunded.toLocaleString()}</span><span class="font-black text-brand-orange"><strong>Disponible:</strong> $${moneyAvailable.toLocaleString()}</span>`;
             getEl('refund-financial-section').prepend(infoDiv);
 
             const selectAcc = getEl('refund-account-select');
@@ -1142,17 +1354,17 @@ export function generateLabels(ordersArray) {
             return `
             <div class="label-box">
                 <div class="header-logo">
-                    <img src="https://pixeltechcol.com/img/logo.webp" alt="PixelTech">
+                    <img src="/img/logo.webp" alt="Mi Smartech">
                 </div>
                 <div class="company-info">
                     <div>
-                        PIXEL TECH COL SAS<br>
+                        MI SMARTECH SAS<br>
                         NIT: 901.561.037-7<br>
                         CL. 31 #13A-51 OFICINA 223<br>
-                        PIXELTECHSAS@GMAIL.COM
+                        admin@mismartech.com
                     </div>
                     <div style="text-align: right;">
-                        (PIXELTECH.COL)<br>
+                        (MI SMARTECH)<br>
                         TEL: 300 904 6450<br>
                         BOGOTÁ
                     </div>
@@ -1435,10 +1647,13 @@ export async function openBulkPaymentModal() {
     getEl('bulk-pay-total').textContent = `$${totalToCollect.toLocaleString('es-CO')}`;
     
     const selectAcc = getEl('bulk-pay-account-select');
+    const activeBranchId = sessionStorage.getItem('activeBranchId') || 'sede_principal';
     const accounts = await loadAccountsCached();
     let ops = '<option value="">Seleccione Cuenta...</option>';
     accounts.forEach(acc => {
-        ops += `<option value="${acc.id}">${acc.name} (${acc.type})</option>`;
+        if (acc.branchId === activeBranchId) {
+            ops += `<option value="${acc.id}">${acc.name} (${acc.type})</option>`;
+        }
     });
     selectAcc.innerHTML = ops;
     

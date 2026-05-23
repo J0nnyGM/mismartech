@@ -9,7 +9,7 @@ let editingAddressIndex = -1;
 let ordersCache = []; 
 let addressesCache = [];
 const ORDERS_PER_PAGE = 10;
-const STORAGE_KEY_ORDERS = 'pixeltech_user_orders';
+const STORAGE_KEY_ORDERS = 'smartech_user_orders';
 
 // Controladores de onSnapshot para poder apagarlos si cierra sesión
 let unsubscribeOrders = null;
@@ -48,12 +48,14 @@ onAuthStateChanged(auth, async (user) => {
 // 🧠 SMART REAL-TIME CACHE: USUARIO Y DIRECCIONES (onSnapshot)
 // ==========================================================================
 function initUserRealtimeSync() {
-    const cachedProfile = sessionStorage.getItem('pixeltech_user_profile');
+    const cachedProfile = sessionStorage.getItem('smartech_user_profile');
     if (cachedProfile) {
         try {
             const data = JSON.parse(cachedProfile);
-            fillProfileForm(data);
-            if (data.addresses) renderAddresses(data.addresses);
+            if (data) {
+                fillProfileForm(data);
+                if (data.addresses) renderAddresses(data.addresses);
+            }
         } catch(e){}
     }
 
@@ -63,7 +65,7 @@ function initUserRealtimeSync() {
     unsubscribeUser = onSnapshot(doc(db, "users", currentUserId), (snap) => {
         if (snap.exists()) {
             const data = snap.data();
-            sessionStorage.setItem('pixeltech_user_profile', JSON.stringify(data));
+            sessionStorage.setItem('smartech_user_profile', JSON.stringify(data));
             
             fillProfileForm(data);
             
@@ -80,6 +82,7 @@ function initUserRealtimeSync() {
 }
 
 function fillProfileForm(data) {
+    if (!data) return;
     // Si el usuario está escribiendo, no queremos sobreescribirle la letra, solo si está vacío o difiere y no tiene focus
     const updateInput = (id, val) => {
         const el = document.getElementById(id);
@@ -104,7 +107,7 @@ function renderAddresses(addresses) {
     list.innerHTML = addresses.map((addr, index) => {
         const isDef = addr.isDefault;
         return `
-            <div class="bg-white p-6 rounded-[2rem] border ${isDef ? 'border-brand-orange shadow-md shadow-cyan-500/10' : 'border-gray-100 hover:border-gray-200'} shadow-sm relative group transition-all">
+            <div class="bg-white p-6 rounded-[2rem] border ${isDef ? 'border-brand-orange shadow-md shadow-brand-orange/10' : 'border-gray-100 hover:border-gray-200'} shadow-sm relative group transition-all">
                 <div class="flex justify-between items-start mb-4">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl ${isDef ? 'bg-brand-orange text-brand-black' : 'bg-slate-100 text-gray-400'} flex items-center justify-center transition-colors"><i class="fa-solid ${isDef ? 'fa-star' : 'fa-location-dot'}"></i></div>
@@ -175,8 +178,14 @@ function initOrdersRealtimeSync() {
     }
 
     unsubscribeOrders = onSnapshot(q, (snapshot) => {
-        if (snapshot.empty && lastSyncTime !== 0) {
-            console.log("✅ [Orders] Historial al día.");
+        if (snapshot.empty) {
+            console.log("✅ [Orders] No se encontraron pedidos.");
+            ordersCache = [];
+            localStorage.setItem(STORAGE_KEY_ORDERS, JSON.stringify({
+                map: {},
+                lastSync: Date.now()
+            }));
+            renderOrdersList([]);
             return;
         }
 

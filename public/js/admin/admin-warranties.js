@@ -97,7 +97,7 @@ window.filterTab = (status) => {
     const activeBtn = document.getElementById(activeId);
     if(activeBtn) {
         let colorClass = "bg-brand-black text-white shadow-lg"; 
-        if(status === 'PENDING') colorClass = "bg-brand-orange text-white shadow-lg shadow-cyan-500/30 border-transparent";
+        if(status === 'PENDING') colorClass = "bg-brand-orange text-white shadow-lg shadow-orange-500/30 border-transparent";
         if(status === 'APPROVED') colorClass = "bg-green-500 text-white shadow-lg shadow-green-500/30 border-transparent";
         if(status === 'REJECTED') colorClass = "bg-red-500 text-white shadow-lg shadow-red-500/30 border-transparent";
         
@@ -202,7 +202,7 @@ window.openManageModal = async (id) => {
                     phoneEl.textContent = phone;
                     let cleanPhone = phone.replace(/\D/g, '');
                     if(cleanPhone.length === 10) cleanPhone = '57' + cleanPhone; 
-                    waLink.href = `https://wa.me/${cleanPhone}?text=Hola ${w.userName ? w.userName.split(' ')[0] : 'Cliente'}, te contactamos de PixelTech respecto a tu garantía #${w.id.slice(0,6)}`;
+                    waLink.href = `https://wa.me/${cleanPhone}?text=Hola ${w.userName ? w.userName.split(' ')[0] : 'Cliente'}, te contactamos de Mi Smartech respecto a tu garantía #${w.id.slice(0,6)}`;
                     waLink.classList.remove('hidden');
                 } else {
                     phoneEl.textContent = "Sin teléfono registrado";

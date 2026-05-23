@@ -102,8 +102,8 @@ exports.generateLocalInventoryFeed = onRequest({ timeoutSeconds: 60, cors: true 
         const feedXml = `<?xml version="1.0" encoding="UTF-8"?>
             <rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">
                 <channel>
-                    <title>Inventario Local - PixelTech Col</title>
-                    <link>https://pixeltechcol.com</link>
+                    <title>Inventario Local - MiSmartech</title>
+                    <link>https://mismartech.com</link>
                     <description>Inventario físico en la tienda de Bogotá</description>
                     ${allItemsXml}
                 </channel>

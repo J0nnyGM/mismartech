@@ -28,11 +28,11 @@ $cache_time = 7200; // 2 horas (7200 segundos)
 // Si el caché existe y tiene menos de 2 horas de antigüedad, lo servimos de inmediato
 if (file_exists($cache_file) && (time() - filemtime($cache_file)) < $cache_time) {
     // Le avisamos al navegador que esta versión está ultra-optimizada
-    header('X-PixelTech-Cache: HIT');
+    header('X-Smartech-Cache: HIT');
     echo file_get_contents($cache_file);
     exit;
 }
-header('X-PixelTech-Cache: MISS'); // Si no hay caché, avisamos que tuvimos que consultar
+header('X-Smartech-Cache: MISS'); // Si no hay caché, avisamos que tuvimos que consultar
 // -------------------------------------------------------------------
 
 // 2. Leemos el HTML original procesando el código PHP interno (Header/Footer)
@@ -42,7 +42,7 @@ $html = ob_get_clean(); // Guardamos el resultado ensamblado y limpiamos la memo
 
 // 3. API REST directa a Firebase
 $api_key = "AIzaSyALwLCRjRaWUE5yy5-TBjjxKehguNhb0GU"; 
-$api_url = "https://firestore.googleapis.com/v1/projects/pixeltechcol/databases/(default)/documents/products/" . urlencode($product_id) . "?key=" . $api_key;
+$api_url = "https://firestore.googleapis.com/v1/projects/mismartech/databases/(default)/documents/products/" . urlencode($product_id) . "?key=" . $api_key;
 
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, $api_url);
@@ -50,8 +50,8 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 curl_setopt($ch, CURLOPT_TIMEOUT, 4); 
 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 curl_setopt($ch, CURLOPT_HTTPHEADER, [
-    "Referer: https://pixeltechcol.com/",
-    "Origin: https://pixeltechcol.com"
+    "Referer: https://mismartech.com/",
+    "Origin: https://mismartech.com"
 ]);
 
 $response = curl_exec($ch);
@@ -91,7 +91,7 @@ if ($http_code == 200 && $response) {
             }
         }
 
-        $image = "https://pixeltechcol.com/img/logo.webp";
+        $image = "https://mismartech.com/img/logo.webp";
         if (isset($fields['mainImage']['stringValue'])) {
             $image = $fields['mainImage']['stringValue'];
         } elseif (isset($fields['image']['stringValue'])) {
@@ -100,19 +100,19 @@ if ($http_code == 200 && $response) {
             $image = $fields['images']['arrayValue']['values'][0]['stringValue'];
         }
         
-        $desc = "Compra $name al mejor precio en PixelTech Colombia. Envíos a todo el país y crédito ADDI.";
+        $desc = "Compra $name al mejor precio en MiSmartech Colombia. Envíos a todo el país y crédito ADDI.";
         if (isset($fields['description']['stringValue'])) {
             $clean_desc = strip_tags($fields['description']['stringValue']); 
             $clean_desc = trim(preg_replace('/\s\s+/', ' ', $clean_desc)); 
             $desc = mb_substr($clean_desc, 0, 150) . "..."; 
         }
         
-        $productUrl = "https://pixeltechcol.com/shop/product.html?id=" . urlencode($product_id);
+        $productUrl = "https://mismartech.com/shop/product.html?id=" . urlencode($product_id);
         
         if ($price > 0) {
-            $title = "$" . number_format($price, 0, ',', '.') . " - " . $name . " | PixelTech";
+            $title = "$" . number_format($price, 0, ',', '.') . " - " . $name . " | MiSmartech";
         } else {
-            $title = $name . " | PixelTech";
+            $title = $name . " | MiSmartech";
         }
 
         // --- 5. Construir Meta Etiquetas Dinámicas y Schema (SEO Instantáneo) ---
@@ -144,7 +144,7 @@ if ($http_code == 200 && $response) {
     <meta property=\"og:title\" content=\"$title\">
     <meta property=\"og:description\" content=\"$desc\">
     <meta property=\"og:image\" content=\"$image\">
-    <meta property=\"og:site_name\" content=\"PixelTech Col\">
+    <meta property=\"og:site_name\" content=\"MiSmartech Col\">
     <meta property=\"product:price:amount\" content=\"$price\">
     <meta property=\"product:price:currency\" content=\"COP\">
     <meta name=\"twitter:card\" content=\"summary_large_image\">

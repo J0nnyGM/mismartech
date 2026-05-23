@@ -21,7 +21,7 @@ const ADDI_AUDIENCE = "https://api.addi.com";
 
 const ADDI_CLIENT_ID = process.env.ADDI_CLIENT_ID;
 const ADDI_CLIENT_SECRET = process.env.ADDI_CLIENT_SECRET;
-const WEBHOOK_URL = "https://addiwebhook-muiondpggq-uc.a.run.app";
+const WEBHOOK_URL = "https://addiwebhook-wghz2bdqpq-uc.a.run.app";
 
 // ==========================================
 // HELPER: GET TOKEN
@@ -108,7 +108,7 @@ exports.createAddiCheckout = async (data, context) => {
             quantity: qty,
             color: item.color || "",
             capacity: item.capacity || "",
-            mainImage: pData.mainImage || pData.image || "https://pixeltechcol.com/img/logo.webp"
+            mainImage: pData.mainImage || pData.image || "https://mismartech.com/img/logo.webp"
         });
     }
 
@@ -194,7 +194,7 @@ exports.createAddiCheckout = async (data, context) => {
             tax: 0,
             pictureUrl: i.mainImage || i.image,
             category: "technology", // Categoría genérica segura
-            brand: "PixelTech"
+            brand: "MiSmartech"
         })),
         client: {
             idType: "CC",
@@ -209,9 +209,9 @@ exports.createAddiCheckout = async (data, context) => {
         shippingAddress: addressObj,
         billingAddress: addressObj,
         allyUrlRedirection: {
-            logoUrl: "https://pixeltechcol.com/img/logo.webp",
+            logoUrl: "https://mismartech.com/img/logo.webp",
             callbackUrl: WEBHOOK_URL,
-            redirectionUrl: `https://pixeltechcol.com/shop/success.html?order=${firebaseOrderId}`
+            redirectionUrl: `https://mismartech.com/shop/success.html?order=${firebaseOrderId}`
         }
     };
 
@@ -222,7 +222,7 @@ exports.createAddiCheckout = async (data, context) => {
             headers: {
                 'Authorization': `Bearer ${addiToken}`,
                 'Content-Type': 'application/json',
-                'User-Agent': 'PixelTechStore/1.0'
+                'User-Agent': 'MiSmartech/1.0'
             },
             maxRedirects: 0,
             validateStatus: status => status >= 200 && status < 400

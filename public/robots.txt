@@ -11,4 +11,4 @@ Disallow: /auth/
 Disallow: /antiguo/
 
 # Indicar donde está el sitemap
-Sitemap: https://pixeltechcol.com/sitemap.xml
+Sitemap: https://mismartech.com/sitemap.xml

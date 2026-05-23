@@ -24,7 +24,8 @@ onAuthStateChanged(auth, async (user) => {
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
-            const role = docSnap.data().role || 'customer';
+            const userData = docSnap.data();
+            const role = userData.role || 'customer';
             const staffRoles = ['admin', 'contabilidad', 'ventas', 'logistica'];
 
             // 1. Verificar si es empleado
@@ -34,14 +35,26 @@ onAuthStateChanged(auth, async (user) => {
                 return;
             }
 
+            // Guardar datos de sede y rol en sessionStorage
+            const assignedBranchId = userData.assignedBranchId || (role === 'admin' ? 'ALL' : 'sede_principal');
+            sessionStorage.setItem('adminUserRole', role);
+            sessionStorage.setItem('adminUserBranchId', assignedBranchId);
+            
+            // Si activeBranchId no está inicializado, o es inválido para el usuario, lo definimos
+            let activeBranch = sessionStorage.getItem('activeBranchId');
+            if (!activeBranch) {
+                activeBranch = assignedBranchId === 'ALL' ? 'sede_principal' : assignedBranchId;
+                sessionStorage.setItem('activeBranchId', activeBranch);
+            }
+
             // 2. Definir permisos de rutas por rol
             const path = window.location.pathname.split('/').pop() || 'index.html';
             
             const allowedRoutes = {
                 'admin': ['all'], // Todo permitido
-                'contabilidad': ['index.html', 'invoices.html', 'cartera.html', 'treasury.html', 'expenses.html', 'profitability.html'],
-                'ventas': ['index.html', 'whatsapp.html', 'orders.html', 'clients.html', 'warranties.html', 'products.html', 'categories.html', 'promotions.html'],
-                'logistica': ['index.html', 'orders.html', 'products.html', 'inventory-entry.html', 'warranty-inventory.html', 'shipping-config.html']
+                'contabilidad': ['index.html', 'invoices.html', 'cartera.html', 'treasury.html', 'expenses.html', 'profitability.html', 'branches.html'],
+                'ventas': ['index.html', 'whatsapp.html', 'orders.html', 'clients.html', 'warranties.html', 'products.html', 'categories.html', 'promotions.html', 'branches.html'],
+                'logistica': ['index.html', 'orders.html', 'products.html', 'inventory-entry.html', 'warranty-inventory.html', 'shipping-config.html', 'branches.html']
             };
 
             // 3. Proteger las rutas estrictamente

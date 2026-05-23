@@ -2,42 +2,43 @@
 <html lang="es">
 <head>
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#00AEC7">
+    <meta name="theme-color" content="#F05A28">
     <link rel="apple-touch-icon" href="/img/icons/icon-192x192.webp">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Envíos y Devoluciones | PixelTech</title>
-    <link rel="canonical" href="https://pixeltechcol.com/shiping.html" />
+    <title>Política de Envíos y Tiempos de Entrega | MiSmartech</title>
     <link rel="stylesheet" href="../css/styles.css">
+    <link rel="canonical" href="https://mismartech.com/policies/shipping.html" />
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
     <style>.no-scrollbar::-webkit-scrollbar { display: none; }</style>
 </head>
 <body class="bg-white font-sans text-brand-black antialiased flex flex-col min-h-screen">
 
-    <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php'; ?>
+    <div id="header-placeholder"></div>
 
     <main class="flex-grow w-full max-w-4xl mx-auto px-6 py-12 md:py-20">
         
         <div class="text-center mb-12">
             <h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-brand-black mb-4">
-                Envíos y <span class="text-brand-orange">Devoluciones</span>
+                Envíos y <span class="text-brand-orange">Despachos</span>
             </h1>
             <div class="h-1 w-20 bg-brand-orange mx-auto rounded-full"></div>
+            <p class="mt-4 text-xs text-gray-500 font-bold uppercase tracking-widest">Mi Smartech • Cobertura Nacional</p>
         </div>
 
         <div class="space-y-10 text-sm md:text-base text-gray-600 leading-relaxed text-justify">
             
             <div class="flex items-start gap-4">
-                <div class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center shrink-0 text-brand-orange">
-                    <i class="fa-solid fa-coins"></i>
+                <div class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center shrink-0 text-brand-orange border border-gray-100">
+                    <i class="fa-solid fa-hand-holding-dollar"></i>
                 </div>
                 <div>
                     <h3 class="font-black text-brand-black uppercase tracking-widest mb-1 text-xs md:text-sm">Costos de Envío</h3>
-                    <p>El costo de envío para cualquier ciudad de Colombia es asumido por el cliente.</p>
+                    <p>El costo de envío para cualquier ciudad de Colombia es asumido por el cliente al momento de realizar la transacción o contraentrega, según aplique el método de pago seleccionado.</p>
                     
                     <div id="free-shipping-policy" class="mt-3 p-3 bg-brand-orange/10 border border-brand-orange/20 rounded-xl hidden">
-                        <p class="font-bold text-brand-orange flex items-center gap-2">
+                        <p class="font-bold text-brand-orange flex items-center gap-2 text-xs md:text-sm">
                             <i class="fa-solid fa-gift"></i> 
                             <span>¡Disfruta de envío GRATIS por compras superiores a <strong id="free-shipping-amount" class="text-brand-black">$--</strong>!</span>
                         </p>
@@ -46,63 +47,64 @@
             </div>
 
             <div class="flex items-start gap-4">
-                <div class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center shrink-0 text-brand-orange">
+                <div class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center shrink-0 text-brand-orange border border-gray-100">
                     <i class="fa-solid fa-truck-fast"></i>
                 </div>
                 <div>
-                    <h3 class="font-black text-brand-black uppercase tracking-widest mb-1 text-xs md:text-sm">Transportadoras</h3>
-                    <p>Las transportadoras con las cuales trabajamos son <strong>Interrapidísimo, Coordinadora y Envía</strong> (Es aleatoria la transportadora). Si desea que el envío se realice por una transportadora diferente, debe avisarnos con anticipación.</p>
+                    <h3 class="font-black text-brand-black uppercase tracking-widest mb-1 text-xs md:text-sm">Transportadoras Aliadas</h3>
+                    <p>
+                        Trabajamos en alianza con las mejores transportadoras del país: <strong>Interrapidísimo, Coordinadora y Envía</strong> para asegurar que tu tecnología llegue de forma rápida y segura. La asignación de la transportadora es aleatoria según cobertura; si tienes preferencia por alguna, por favor avísanos con anticipación vía WhatsApp.
+                    </p>
                 </div>
             </div>
 
             <div class="bg-slate-50 p-6 rounded-3xl border border-gray-100 flex flex-col md:flex-row gap-6">
                 <div class="flex-1">
                     <h3 class="font-black text-brand-black uppercase tracking-widest mb-3 text-xs md:text-sm flex items-center gap-2">
-                        <i class="fa-solid fa-location-dot text-brand-red"></i> Envíos Bogotá (Contraentrega)
+                        <i class="fa-solid fa-location-dot text-brand-red"></i> Envíos Medellín (Contraentrega)
                     </h3>
-                    <p class="text-sm">
-                        Si el pedido es confirmado de lunes a viernes antes de las <strong id="dispatch-time-bogota">3:00pm</strong> o el sábado antes de las <strong>1:30pm</strong>; el producto llegará el mismo día, de lo contrario llegará el día siguiente (Esta condición NO aplica para el día domingo).
+                    <p class="text-xs md:text-sm text-gray-700">
+                        Si tu pedido contraentrega en el Valle de Aburrá es confirmado de lunes a viernes antes de las <strong id="dispatch-time-medellin">3:00pm</strong> o el sábado antes de las <strong>1:30pm</strong>, el producto te llegará el mismo día; de lo contrario llegará al día siguiente (Esta condición NO aplica para domingos y festivos).
                     </p>
                 </div>
                 <div class="flex-1 border-t md:border-t-0 md:border-l border-gray-200 pt-6 md:pt-0 md:pl-6">
                     <h3 class="font-black text-brand-black uppercase tracking-widest mb-3 text-xs md:text-sm flex items-center gap-2">
                         <i class="fa-solid fa-earth-americas text-brand-orange"></i> Envíos Nacionales
                     </h3>
-                    <p class="text-sm">
-                        El envío se realizará el mismo día si la compra es confirmada antes de las <strong id="dispatch-time-national">3:00pm</strong>. El tiempo de llegada es de 2 a 5 días hábiles dependiendo de la ciudad (Ciudades principales usualmente es 2 días). Se realiza envío de la guía para seguimiento.
+                    <p class="text-xs md:text-sm text-gray-700">
+                        El despacho a nivel nacional se realizará el mismo día si tu compra es confirmada y validada antes de las <strong id="dispatch-time-national">3:00pm</strong>. El tiempo de llegada oscila entre 2 a 5 días hábiles (ciudades principales usualmente toma solo 2 días hábiles). Se te enviará la guía de seguimiento de forma inmediata.
                     </p>
                 </div>
             </div>
 
             <div class="bg-yellow-50 border-l-4 border-yellow-400 p-5 rounded-r-xl">
-                <h3 class="font-black text-brand-black uppercase tracking-widest mb-2 text-xs md:text-sm">Importante: Devoluciones por Entrega Fallida</h3>
+                <h3 class="font-black text-brand-black uppercase tracking-widest mb-2 text-xs md:text-sm">⚠️ Entrega Fallida por Datos Erróneos</h3>
                 <p class="text-sm text-gray-700">
-                    Se hará confirmación de la dirección antes de realizar el envío. En caso de que se realice el envío y la transportadora realice varios intentos de entrega que no sean exitosos causando que el producto sea devuelto a nuestras oficinas, se dará cancelación a la orden y se devolverá el dinero (descontando los costos logísticos incurridos).
+                    Realizaremos la confirmación telefónica o vía WhatsApp de tu dirección de entrega antes de realizar el despacho. Si la transportadora realiza múltiples intentos de entrega fallidos y el producto es retornado a nuestras oficinas en Medellín, procederemos a la cancelación de la orden y reembolso del dinero (descontando los costos de transporte de ida y vuelta incurridos).
                 </p>
             </div>
 
-            <section class="bg-slate-900 text-gray-300 p-6 rounded-3xl mt-8">
-                <h3 class="font-black text-white uppercase tracking-widest mb-2 text-sm">Derecho de Retracto y Devoluciones</h3>
+            <section class="bg-slate-900 text-gray-300 p-8 rounded-3xl mt-8">
+                <h3 class="font-black text-white uppercase tracking-widest mb-3 text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-rotate-left text-brand-orange"></i>
+                    Retractos y Cambios
+                </h3>
                 <p class="text-xs md:text-sm mb-3">
-                    De acuerdo con la ley colombiana, el cliente tiene derecho a ejercer el retracto de su compra dentro de los <strong>cinco (5) días hábiles</strong> siguientes a la entrega del producto. 
+                    Tienes un plazo máximo de <strong>5 días hábiles</strong> desde la entrega del producto para ejercer tu derecho de retracto. El producto debe devolverse sin usar, en su empaque original sellado e intacto y con la totalidad de sus manuales y accesorios.
                 </p>
-                <ul class="list-disc pl-5 space-y-2 text-xs md:text-sm mb-3">
-                    <li>El producto debe ser devuelto en las mismas condiciones en que se recibió (nuevo, sin uso, con sellos, empaques originales y accesorios completos).</li>
-                    <li>Los costos de transporte para la devolución del producto por retracto deben ser asumidos por el cliente.</li>
-                </ul>
-                <h3 class="font-black text-white uppercase tracking-widest mt-4 mb-2 text-sm">Política de Reembolsos</h3>
                 <p class="text-xs md:text-sm">
-                    Una vez recibido el producto en nuestras instalaciones y verificado su perfecto estado, se procederá con el reembolso del dinero. El tiempo estimado para que el dinero se vea reflejado en la cuenta del cliente es de <strong>5 a 15 días hábiles</strong>, dependiendo del método de pago utilizado (PSE, Tarjeta de Crédito, etc.).
+                    Todos los costos logísticos y de transporte para la devolución de artículos por retracto de compra correrán por cuenta del cliente.
                 </p>
             </section>
 
         </div>
     </main>
 
-    <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php'; ?>
+    <div id="footer-placeholder"></div>
 
     <script type="module">
-        import { loadGlobalHeader, loadGlobalFooter } from '../js/global-components.js';        import { db, doc, onSnapshot } from '../js/firebase-init.js'; // Importamos onSnapshot
+        import { loadGlobalHeader, loadGlobalFooter } from '../js/global-components.js';
+        import { db, doc, onSnapshot } from '../js/firebase-init.js';
 
         // 1. Cargar componentes visuales estáticos
         loadGlobalHeader();
@@ -112,7 +114,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             const freeShippingPolicy = document.getElementById('free-shipping-policy');
             const freeShippingAmount = document.getElementById('free-shipping-amount');
-            const timeBogota = document.getElementById('dispatch-time-bogota');
+            const timeMedellin = document.getElementById('dispatch-time-medellin');
             const timeNational = document.getElementById('dispatch-time-national');
 
             // Función para renderizar los datos
@@ -137,14 +139,14 @@
                         h = h ? h : 12; // el '0' debe ser '12'
                         const formattedTime = `${h}:${minutes}${ampm}`;
                         
-                        timeBogota.textContent = formattedTime;
-                        timeNational.textContent = formattedTime;
+                        if (timeMedellin) timeMedellin.textContent = formattedTime;
+                        if (timeNational) timeNational.textContent = formattedTime;
                     } catch(e) {}
                 }
             };
 
             // Paso A: Leer de Caché Local (Instantáneo)
-            const cachedConfigStr = sessionStorage.getItem('pixeltech_shipping_config');
+            const cachedConfigStr = sessionStorage.getItem('mismartech_shipping_config');
             if (cachedConfigStr) {
                 try {
                     renderPolicies(JSON.parse(cachedConfigStr));
@@ -157,10 +159,10 @@
                     const data = snap.data();
                     
                     // Solo actualizamos si cambió para ahorrar recursos
-                    const currentCache = sessionStorage.getItem('pixeltech_shipping_config');
+                    const currentCache = sessionStorage.getItem('mismartech_shipping_config');
                     if (currentCache !== JSON.stringify(data)) {
                         console.log("🚚 [Políticas] Reglas de envío actualizadas en tiempo real.");
-                        sessionStorage.setItem('pixeltech_shipping_config', JSON.stringify(data));
+                        sessionStorage.setItem('mismartech_shipping_config', JSON.stringify(data));
                         renderPolicies(data);
                     }
                 }

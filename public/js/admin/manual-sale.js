@@ -10,7 +10,7 @@ const MODAL_HTML = `
         
         <div class="px-8 py-6 border-b border-gray-100 flex justify-between items-center bg-slate-50/80 shrink-0">
             <div>
-                <h3 class="text-2xl font-black tracking-tighter uppercase text-brand-black leading-none">Nueva <span class="text-brand-cyan">Venta Directa</span></h3>
+                <h3 class="text-2xl font-black tracking-tighter uppercase text-brand-black leading-none">Nueva <span class="text-brand-orange">Venta Directa</span></h3>
                 <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Módulo de facturación manual</p>
             </div>
             <button class="w-10 h-10 rounded-full bg-white border border-gray-200 text-gray-400 hover:bg-brand-red hover:border-brand-red hover:text-white transition-colors flex items-center justify-center shadow-sm" id="btn-close-x"><i class="fa-solid fa-xmark"></i></button>
@@ -24,7 +24,7 @@ const MODAL_HTML = `
                     <label class="text-[9px] font-black uppercase text-gray-400 tracking-widest mb-2 block ml-1">Buscar Cliente Registrado *</label>
                     <div class="relative">
                         <i class="fa-solid fa-user absolute left-4 top-1/2 -translate-y-1/2 text-gray-300"></i>
-                        <input type="text" id="m-cust-search" autocomplete="off" placeholder="Buscar por nombre, teléfono o cédula..." class="w-full bg-slate-50 border border-gray-100 py-4 pl-11 pr-4 rounded-2xl text-sm font-bold outline-none focus:border-brand-cyan focus:bg-white transition-colors text-brand-black shadow-sm">
+                        <input type="text" id="m-cust-search" autocomplete="off" placeholder="Buscar por nombre, teléfono o cédula..." class="w-full bg-slate-50 border border-gray-100 py-4 pl-11 pr-4 rounded-2xl text-sm font-bold outline-none focus:border-brand-orange focus:bg-white transition-colors text-brand-black shadow-sm">
                     </div>
                     <div id="m-cust-results" class="absolute z-50 w-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-xl hidden max-h-56 overflow-y-auto p-2 custom-scroll"></div>
                 </div>
@@ -38,41 +38,41 @@ const MODAL_HTML = `
                     <button id="btn-clear-client" class="w-10 h-10 bg-white border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-200 rounded-full flex items-center justify-center transition shadow-sm shrink-0" title="Cambiar Cliente"><i class="fa-solid fa-rotate-right"></i></button>
                 </div>
 
-                <div id="m-new-client-section" class="hidden bg-cyan-50/30 p-6 rounded-[2rem] border border-cyan-100 relative animate-in fade-in slide-in-from-top-2 shadow-sm">
+                <div id="m-new-client-section" class="hidden bg-orange-50/30 p-6 rounded-[2rem] border border-orange-100 relative animate-in fade-in slide-in-from-top-2 shadow-sm">
                     <button id="btn-cancel-new-client" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:bg-white hover:text-red-500 transition shadow-sm border border-transparent hover:border-gray-200" title="Cancelar"><i class="fa-solid fa-xmark"></i></button>
                     
                     <div class="mb-5">
-                        <span class="bg-brand-cyan text-brand-black px-3 py-1 rounded-md text-[9px] font-black uppercase tracking-widest shadow-sm">Registrar Nuevo Cliente</span>
+                        <span class="bg-brand-orange text-brand-black px-3 py-1 rounded-md text-[9px] font-black uppercase tracking-widest shadow-sm">Registrar Nuevo Cliente</span>
                     </div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div class="md:col-span-2">
                             <label class="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1 block ml-1">Nombre Completo *</label>
-                            <input type="text" id="m-nc-name" placeholder="Ej: Juan Pérez" class="w-full bg-white border border-cyan-100 p-3.5 rounded-xl text-sm font-bold outline-none focus:border-brand-cyan shadow-sm">
+                            <input type="text" id="m-nc-name" placeholder="Ej: Juan Pérez" class="w-full bg-white border border-orange-100 p-3.5 rounded-xl text-sm font-bold outline-none focus:border-brand-orange shadow-sm">
                         </div>
                         <div>
                             <label class="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1 block ml-1">Teléfono / WhatsApp *</label>
-                            <input type="text" id="m-nc-phone" placeholder="Ej: 3001234567" class="w-full bg-white border border-cyan-100 p-3.5 rounded-xl text-sm font-bold outline-none focus:border-brand-cyan shadow-sm">
+                            <input type="text" id="m-nc-phone" placeholder="Ej: 3001234567" class="w-full bg-white border border-orange-100 p-3.5 rounded-xl text-sm font-bold outline-none focus:border-brand-orange shadow-sm">
                         </div>
                         <div>
                             <label class="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1 block ml-1">Cédula / NIT</label>
-                            <input type="text" id="m-nc-doc" placeholder="Opcional" class="w-full bg-white border border-cyan-100 p-3.5 rounded-xl text-sm font-bold outline-none focus:border-brand-cyan shadow-sm">
+                            <input type="text" id="m-nc-doc" placeholder="Opcional" class="w-full bg-white border border-orange-100 p-3.5 rounded-xl text-sm font-bold outline-none focus:border-brand-orange shadow-sm">
                         </div>
                         <div class="md:col-span-2">
                             <label class="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1 block ml-1">Email</label>
-                            <input type="email" id="m-nc-email" placeholder="cliente@correo.com" class="w-full bg-white border border-cyan-100 p-3.5 rounded-xl text-sm font-bold outline-none focus:border-brand-cyan shadow-sm">
+                            <input type="email" id="m-nc-email" placeholder="cliente@correo.com" class="w-full bg-white border border-orange-100 p-3.5 rounded-xl text-sm font-bold outline-none focus:border-brand-orange shadow-sm">
                         </div>
                     </div>
                 </div>
             </div>
 
             <div class="bg-slate-50 p-6 rounded-[2rem] border border-gray-100 space-y-5 relative">
-                <div class="absolute -top-3 left-6 bg-brand-cyan text-brand-black px-3 py-1 rounded-md text-[9px] font-black uppercase tracking-widest shadow-sm">
+                <div class="absolute -top-3 left-6 bg-brand-orange text-brand-black px-3 py-1 rounded-md text-[9px] font-black uppercase tracking-widest shadow-sm">
                     Datos de Entrega
                 </div>
                 
                 <div class="grid grid-cols-1 gap-4 pt-2">
-                    <select id="m-shipping-mode" class="w-full bg-white border border-gray-200 p-4 rounded-2xl text-xs font-bold outline-none focus:border-brand-cyan appearance-none cursor-pointer text-brand-black shadow-sm">
+                    <select id="m-shipping-mode" class="w-full bg-white border border-gray-200 p-4 rounded-2xl text-xs font-bold outline-none focus:border-brand-orange appearance-none cursor-pointer text-brand-black shadow-sm">
                         <option value="pickup">📍 Recogida en Local / Contraentrega</option>
                         <option value="new" selected>🚚 Nueva Dirección Nacional</option>
                         <option value="saved" disabled id="opt-saved-addr">🏠 Dirección Guardada (Seleccione Cliente)</option>
@@ -80,7 +80,7 @@ const MODAL_HTML = `
                 </div>
 
                 <div id="container-saved-addr" class="hidden animate-in fade-in slide-in-from-top-2">
-                    <select id="m-saved-addr-select" class="w-full bg-white border border-gray-200 p-4 rounded-2xl text-xs font-bold outline-none focus:border-brand-cyan appearance-none cursor-pointer text-brand-black shadow-sm">
+                    <select id="m-saved-addr-select" class="w-full bg-white border border-gray-200 p-4 rounded-2xl text-xs font-bold outline-none focus:border-brand-orange appearance-none cursor-pointer text-brand-black shadow-sm">
                         <option value="">Seleccione...</option>
                     </select>
                 </div>
@@ -89,16 +89,16 @@ const MODAL_HTML = `
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="text-[9px] font-black uppercase text-gray-400 tracking-widest mb-2 block ml-1">Departamento</label>
-                            <select id="m-dept-manual" class="w-full bg-white border border-gray-200 p-4 rounded-2xl text-xs font-bold outline-none focus:border-brand-cyan appearance-none cursor-pointer text-brand-black shadow-sm"><option value="">Seleccionar...</option></select>
+                            <select id="m-dept-manual" class="w-full bg-white border border-gray-200 p-4 rounded-2xl text-xs font-bold outline-none focus:border-brand-orange appearance-none cursor-pointer text-brand-black shadow-sm"><option value="">Seleccionar...</option></select>
                         </div>
                         <div>
                             <label class="text-[9px] font-black uppercase text-gray-400 tracking-widest mb-2 block ml-1">Ciudad</label>
-                            <select id="m-city-manual" class="w-full bg-white border border-gray-200 p-4 rounded-2xl text-xs font-bold outline-none focus:border-brand-cyan appearance-none cursor-pointer text-brand-black shadow-sm" disabled><option value="">Seleccione Depto primero</option></select>
+                            <select id="m-city-manual" class="w-full bg-white border border-gray-200 p-4 rounded-2xl text-xs font-bold outline-none focus:border-brand-orange appearance-none cursor-pointer text-brand-black shadow-sm" disabled><option value="">Seleccione Depto primero</option></select>
                         </div>
                     </div>
                     <div>
                         <label class="text-[9px] font-black uppercase text-gray-400 tracking-widest mb-2 block ml-1">Dirección Exacta</label>
-                        <input type="text" id="m-address-manual" placeholder="Ej: Calle 123 # 45 - 67, Barrio..." class="w-full bg-white border border-gray-200 p-4 rounded-2xl text-sm font-bold outline-none focus:border-brand-cyan text-brand-black shadow-sm">
+                        <input type="text" id="m-address-manual" placeholder="Ej: Calle 123 # 45 - 67, Barrio..." class="w-full bg-white border border-gray-200 p-4 rounded-2xl text-sm font-bold outline-none focus:border-brand-orange text-brand-black shadow-sm">
                     </div>
                 </div>
             </div>
@@ -109,7 +109,7 @@ const MODAL_HTML = `
                         <h4 class="text-xs font-black text-brand-black uppercase tracking-widest">Productos</h4>
                         <p class="text-[9px] text-gray-400 font-bold uppercase mt-0.5">Añade los items a vender</p>
                     </div>
-                    <button id="btn-add-item-row" class="text-brand-cyan hover:text-white hover:bg-brand-cyan bg-cyan-50 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors flex items-center gap-2 border border-brand-cyan/20">
+                    <button id="btn-add-item-row" class="text-brand-orange hover:text-white hover:bg-brand-orange bg-orange-50 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors flex items-center gap-2 border border-brand-orange/20">
                         <i class="fa-solid fa-circle-plus text-sm"></i> Añadir Línea
                     </button>
                 </div>
@@ -127,16 +127,16 @@ const MODAL_HTML = `
                     </div>
                 </div>
                 
-                <div class="bg-brand-cyan/5 border border-brand-cyan/20 p-4 rounded-2xl flex items-center justify-between shadow-sm mt-[22px]">
+                <div class="bg-brand-orange/5 border border-brand-orange/20 p-4 rounded-2xl flex items-center justify-between shadow-sm mt-[22px]">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-white text-brand-cyan flex items-center justify-center text-sm shadow-sm border border-brand-cyan/20">
+                        <div class="w-10 h-10 rounded-full bg-white text-brand-orange flex items-center justify-center text-sm shadow-sm border border-brand-orange/20">
                             <i class="fa-solid fa-file-invoice"></i>
                         </div>
                         <p class="text-[10px] font-black uppercase tracking-widest text-brand-black">¿Factura Electrónica?</p>
                     </div>
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" id="m-requires-invoice" class="sr-only peer">
-                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-cyan"></div>
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-orange"></div>
                     </label>
                 </div>
             </div>
@@ -147,11 +147,11 @@ const MODAL_HTML = `
                 <label class="text-[9px] font-black uppercase text-gray-400 tracking-widest mb-2 block ml-1">Costo de Envío Extra</label>
                 <div class="relative">
                     <i class="fa-solid fa-truck-fast absolute left-4 top-1/2 -translate-y-1/2 text-gray-300"></i>
-                    <input type="text" id="m-shipping-cost" value="$ 0" class="currency-input w-full bg-slate-50 border border-gray-100 py-4 pl-11 pr-4 rounded-2xl text-sm font-black outline-none focus:border-brand-cyan text-brand-black transition-colors shadow-inner">
+                    <input type="text" id="m-shipping-cost" value="$ 0" class="currency-input w-full bg-slate-50 border border-gray-100 py-4 pl-11 pr-4 rounded-2xl text-sm font-black outline-none focus:border-brand-orange text-brand-black transition-colors shadow-inner">
                 </div>
                 <!-- 🔥 NUEVO: Checkbox 4x1000 -->
                 <label class="flex items-center gap-2 mt-3 cursor-pointer ml-1 select-none">
-                    <input type="checkbox" id="m-apply-4x1000" class="w-4 h-4 rounded text-brand-cyan border-gray-300 focus:ring-brand-cyan">
+                    <input type="checkbox" id="m-apply-4x1000" class="w-4 h-4 rounded text-brand-orange border-gray-300 focus:ring-brand-orange">
                     <span class="text-[10px] font-black uppercase text-brand-black tracking-widest">Cobrar 4x1000 Cliente</span>
                 </label>
             </div>
@@ -162,7 +162,7 @@ const MODAL_HTML = `
             </div>
             
             <div class="md:col-span-4 h-full">
-                <button id="btn-save-manual" class="w-full h-full min-h-[60px] bg-brand-black text-white font-black px-6 py-4 rounded-2xl shadow-xl shadow-brand-black/20 uppercase text-xs tracking-widest hover:bg-brand-cyan hover:text-brand-black hover:shadow-brand-cyan/30 transition-all duration-300 transform active:scale-95 flex items-center justify-center gap-3">
+                <button id="btn-save-manual" class="w-full h-full min-h-[60px] bg-brand-black text-white font-black px-6 py-4 rounded-2xl shadow-xl shadow-brand-black/20 uppercase text-xs tracking-widest hover:bg-brand-orange hover:text-brand-black hover:shadow-brand-orange/30 transition-all duration-300 transform active:scale-95 flex items-center justify-center gap-3">
                     <i class="fa-solid fa-check-double text-lg"></i> <span class="mt-0.5">Generar Venta</span>
                 </button>
             </div>
@@ -185,6 +185,71 @@ let onSuccessCallback = null;
 const formatCurrency = (num) => '$ ' + num.toLocaleString('es-CO');
 const parseCurrency = (str) => Number(str.replace(/[^0-9-]/g, '')) || 0;
 const normalizeText = (str) => str ? str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
+
+let manualBranchesList = [];
+async function loadBranchesForManualSale() {
+    if (manualBranchesList.length > 0) return manualBranchesList;
+    try {
+        const snap = await getDocs(collection(db, "branches"));
+        manualBranchesList = [];
+        snap.forEach(d => {
+            manualBranchesList.push({ id: d.id, ...d.data() });
+        });
+        return manualBranchesList;
+    } catch (e) {
+        console.error("Error cache branches manual sale:", e);
+        return [];
+    }
+}
+
+function getOtherBranchesStockDetails(product, activeBranchId, selectedColor = null, selectedCap = null) {
+    let branchStockMap = {};
+    let globalStock = 0;
+    
+    if (product.combinations && product.combinations.length > 0) {
+        if (selectedColor || selectedCap) {
+            const combo = product.combinations.find(c => {
+                const matchColor = selectedColor ? c.color === selectedColor : true;
+                const matchCap = selectedCap ? c.capacity === selectedCap : true;
+                return matchColor && matchCap;
+            });
+            if (combo) {
+                branchStockMap = combo.branchStock || {};
+                globalStock = combo.stock || 0;
+            }
+        } else {
+            // Sum global combinations stock by branch if no specific variant is selected yet
+            let totalOtherStock = 0;
+            manualBranchesList.forEach(br => {
+                let brSum = 0;
+                product.combinations.forEach(combo => {
+                    brSum += combo.branchStock ? (combo.branchStock[br.id] || 0) : (br.id === 'sede_principal' ? combo.stock || 0 : 0);
+                });
+                if (br.id !== activeBranchId && brSum > 0) {
+                    totalOtherStock += brSum;
+                }
+            });
+            return `Otras: ${totalOtherStock}`;
+        }
+    } else {
+        branchStockMap = product.branchStock || {};
+        globalStock = product.stock || 0;
+    }
+
+    let totalOtherStock = 0;
+    manualBranchesList.forEach(br => {
+        if (br.id !== activeBranchId) {
+            const qty = branchStockMap[br.id] !== undefined 
+                ? (branchStockMap[br.id] || 0) 
+                : (br.id === 'sede_principal' ? globalStock : 0);
+            if (qty > 0) {
+                totalOtherStock += qty;
+            }
+        }
+    });
+
+    return `Otras: ${totalOtherStock}`;
+}
 
 function setupCurrencyInput(input) {
     input.addEventListener('input', (e) => {
@@ -256,7 +321,8 @@ export async function openManualSaleModal() {
 
     await Promise.all([
         loadPaymentAccounts(), 
-        loadManualDepartments()
+        loadManualDepartments(),
+        loadBranchesForManualSale()
     ]);
     
     addManualItemRow();
@@ -305,7 +371,7 @@ function addManualItemRow() {
             <div class="md:col-span-4 relative focus-within:z-[70]">
                 <label class="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-1">Producto</label>
                 <div class="relative">
-                    <input type="text" autocomplete="off" placeholder="Buscar por nombre o SKU..." class="p-search w-full bg-white border border-gray-200 rounded-xl py-3 px-4 text-xs font-bold outline-none focus:border-brand-cyan text-brand-black pr-8 shadow-sm relative z-10">
+                    <input type="text" autocomplete="off" placeholder="Buscar por nombre o SKU..." class="p-search w-full bg-white border border-gray-200 rounded-xl py-3 px-4 text-xs font-bold outline-none focus:border-brand-orange text-brand-black pr-8 shadow-sm relative z-10">
                     <i class="fa-solid fa-magnifying-glass absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 text-xs pointer-events-none z-20"></i>
                 </div>
                 <div class="p-results absolute top-full left-0 z-[100] w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-2xl hidden max-h-56 overflow-y-auto custom-scroll"></div>
@@ -315,14 +381,14 @@ function addManualItemRow() {
             
              <div class="md:col-span-3">
                 <label class="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-2 block text-center">Precio Unitario</label>
-                <input type="text" class="p-price-display currency-input w-full bg-white border border-gray-200 rounded-xl py-3 px-2 text-xs font-bold text-center outline-none focus:border-brand-cyan text-brand-black shadow-sm">
+                <input type="text" class="p-price-display currency-input w-full bg-white border border-gray-200 rounded-xl py-3 px-2 text-xs font-bold text-center outline-none focus:border-brand-orange text-brand-black shadow-sm">
             </div>
             
             <div class="md:col-span-2 flex items-start gap-2">
-                <div class="w-full relative pb-4">
+                <div class="w-full relative">
                     <label class="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-2 block text-center">Cant.</label>
-                    <input type="number" value="1" min="1" class="p-qty w-full bg-white border border-gray-200 rounded-xl py-3 px-1 text-sm font-black text-center outline-none focus:border-brand-cyan text-brand-black shadow-sm">
-                    <p class="text-[8px] font-black text-center mt-1 stock-display text-gray-400 absolute bottom-0 left-0 w-full">---</p>
+                    <input type="number" value="1" min="1" class="p-qty w-full bg-white border border-gray-200 rounded-xl py-3 px-1 text-sm font-black text-center outline-none focus:border-brand-orange text-brand-black shadow-sm mb-1">
+                    <p class="text-[8px] font-black text-center stock-display text-gray-400 whitespace-normal">---</p>
                 </div>
                 <div class="pt-[22px] shrink-0">
                     <button class="w-11 h-11 rounded-xl bg-white border border-gray-200 text-gray-400 hover:bg-brand-red hover:border-brand-red hover:text-white transition-colors flex items-center justify-center btn-remove-row shadow-sm">
@@ -339,16 +405,18 @@ function addManualItemRow() {
     setupCurrencyInput(priceInput);
     
     const qtyInput = div.querySelector('.p-qty');
-    qtyInput.onchange = () => {
-        const max = parseInt(div.querySelector('.p-max-stock').value) || 0;
-        const current = parseInt(qtyInput.value) || 1;
-        if (current > max) {
-            alert(`⚠️ Solo quedan ${max} unidades disponibles de esta variante.`);
-            qtyInput.value = max > 0 ? max : 1;
+    qtyInput.oninput = () => {
+        let current = parseInt(qtyInput.value) || 1;
+        if (current < 1) { qtyInput.value = 1; current = 1; }
+        
+        const pId = div.querySelector('.p-id').value;
+        if (pId) {
+            const product = manualProductsCache.find(p => p.id === pId);
+            if (product) updateRowStock(div, product);
         }
-        if (current < 1) qtyInput.value = 1;
         calculateManualTotal();
     };
+    qtyInput.onchange = qtyInput.oninput;
 
     div.querySelector('.btn-remove-row').onclick = () => { div.remove(); calculateManualTotal(); };
     setupProductSearch(div);
@@ -368,30 +436,30 @@ function setupProductSearch(row) {
             return searchStr.includes(term);
         });
 
+        const activeBranchId = sessionStorage.getItem('activeBranchId') || 'sede_principal';
+
         if (filtered.length === 0) {
             resultsDiv.innerHTML = `<div class="p-3 text-[10px] text-gray-400 text-center uppercase font-bold">No encontrado</div>`;
         } else {
             filtered.slice(0, 15).forEach(p => {
-                const isOutOfStock = p.stock <= 0;
+                const branchStockVal = (p.branchStock && p.branchStock[activeBranchId] !== undefined) ? (p.branchStock[activeBranchId] || 0) : (p.stock || 0);
+                const otherBranchesText = getOtherBranchesStockDetails(p, activeBranchId);
+                const isOutOfStock = branchStockVal <= 0;
                 const d = document.createElement('div');
-                d.className = `p-3 flex items-center justify-between border-b border-gray-50 last:border-0 ${isOutOfStock ? 'bg-gray-50 opacity-60 cursor-not-allowed' : 'hover:bg-cyan-50 cursor-pointer transition'}`;
-                d.innerHTML = `<div class="flex-1 min-w-0 pr-2"><p class="text-[10px] font-black uppercase text-brand-black line-clamp-1 ${isOutOfStock ? 'line-through text-gray-400' : ''}">${p.name}</p><p class="text-[9px] font-bold text-gray-400 mt-0.5">SKU: ${p.sku || '--'} | Stock: <span class="${isOutOfStock ? 'text-red-500' : 'text-brand-cyan'}">${p.stock || 0}</span></p></div><div class="text-right shrink-0"><p class="text-[10px] font-black text-brand-black">${formatCurrency(p.price)}</p></div>`;
+                d.className = "p-3 flex items-center justify-between border-b border-gray-50 last:border-0 hover:bg-orange-50 cursor-pointer transition";
+                d.innerHTML = `<div class="flex-1 min-w-0 pr-2"><p class="text-[10px] font-black uppercase text-brand-black line-clamp-1">${p.name}</p><p class="text-[9px] font-bold text-gray-400 mt-0.5">SKU: ${p.sku || '--'} | Sede: <span class="${isOutOfStock ? 'text-red-500 font-bold' : 'text-brand-orange'}">${branchStockVal}</span> | ${otherBranchesText}</p></div><div class="text-right shrink-0"><p class="text-[10px] font-black text-brand-black">${formatCurrency(p.price)}</p></div>`;
 
-                if (!isOutOfStock) {
-                    d.onmousedown = (e) => {
-                        e.preventDefault(); 
-                        searchInput.value = p.name;
-                        row.querySelector('.p-id').value = p.id;
-                        row.querySelector('.p-price-display').value = formatCurrency(p.price);
-                        row.querySelector('.p-img').value = p.mainImage || p.image || (p.images ? p.images[0] : '');
-                        
-                        resultsDiv.classList.add('hidden');
-                        renderVariants(row, p);
-                        calculateManualTotal();
-                    };
-                } else {
-                    d.onmousedown = (e) => { e.preventDefault(); alert("Este producto está completamente agotado."); };
-                }
+                d.onmousedown = (e) => {
+                    e.preventDefault(); 
+                    searchInput.value = p.name;
+                    row.querySelector('.p-id').value = p.id;
+                    row.querySelector('.p-price-display').value = formatCurrency(p.price);
+                    row.querySelector('.p-img').value = p.mainImage || p.image || (p.images ? p.images[0] : '');
+                    
+                    resultsDiv.classList.add('hidden');
+                    renderVariants(row, p);
+                    calculateManualTotal();
+                };
                 resultsDiv.appendChild(d);
             });
         }
@@ -404,32 +472,167 @@ function setupProductSearch(row) {
 }
 
 function updateRowStock(row, product) {
-    let currentStock = parseInt(product.stock) || 0;
+    const activeBranchId = sessionStorage.getItem('activeBranchId') || 'sede_principal';
+    const activeBranchName = sessionStorage.getItem('activeBranchName') || 'Sede Principal';
+
     const colorSel = row.querySelector('.p-color');
     const capSel = row.querySelector('.p-capacity');
     const selectedColor = colorSel ? colorSel.value : null;
     const selectedCap = capSel ? capSel.value : null;
 
+    let hasSelectedAllRequiredVariants = true;
     if (product.combinations && product.combinations.length > 0) {
-        if (selectedColor || selectedCap) {
+        if (colorSel && colorSel.value === "") hasSelectedAllRequiredVariants = false;
+        if (capSel && capSel.value === "") hasSelectedAllRequiredVariants = false;
+    }
+
+    if (!hasSelectedAllRequiredVariants) {
+        row.querySelector('.p-max-stock').value = 0;
+        const display = row.querySelector('.stock-display');
+        if (display) {
+            display.innerHTML = `<span class="text-orange-500 font-black">Seleccionar Variante</span>`;
+        }
+        const transferContainer = row.querySelector('.transfer-auto-container');
+        if (transferContainer) transferContainer.classList.add('hidden');
+        return;
+    }
+
+    const hasBranchStock = product.branchStock && Object.keys(product.branchStock).length > 0;
+    let currentStock = hasBranchStock ? (parseInt(product.branchStock[activeBranchId]) || 0) : (parseInt(product.stock) || 0);
+    let totalStock = parseInt(product.stock) || 0;
+
+    if (product.combinations && product.combinations.length > 0) {
+        const combo = product.combinations.find(c => {
+            const matchColor = selectedColor ? c.color === selectedColor : true;
+            const matchCap = selectedCap ? c.capacity === selectedCap : true;
+            return matchColor && matchCap;
+        });
+        if (combo) {
+            const hasComboBranchStock = combo.branchStock && Object.keys(combo.branchStock).length > 0;
+            currentStock = hasComboBranchStock ? (parseInt(combo.branchStock[activeBranchId]) || 0) : (parseInt(combo.stock) || 0);
+            totalStock = parseInt(combo.stock) || 0;
+        } else {
+            currentStock = 0;
+            totalStock = 0;
+        }
+    }
+
+    const otherBranchesText = getOtherBranchesStockDetails(product, activeBranchId, selectedColor, selectedCap);
+
+    row.querySelector('.p-max-stock').value = currentStock;
+    const display = row.querySelector('.stock-display');
+    if (display) {
+        display.innerHTML = currentStock > 0 
+            ? `Sede: <span class="text-brand-orange">${currentStock}</span> <span class="text-gray-400 font-normal">| ${otherBranchesText}</span>` 
+            : `<span class="text-red-500">Agotado Sede</span> <span class="text-xs text-gray-400 font-normal">| ${otherBranchesText}</span>`;
+    }
+
+    const qtyInput = row.querySelector('.p-qty');
+    let currentQty = parseInt(qtyInput.value) || 1;
+
+    // 🔥 PREVENIR VENDER MÁS DEL STOCK GLOBAL DISPONIBLE
+    if (currentQty > totalStock) {
+        alert(`🚨 No puedes vender más del stock global disponible de este producto/variante (${totalStock} unds).`);
+        qtyInput.value = totalStock;
+        currentQty = totalStock;
+    }
+
+    // --- DETECTAR DÉFICIT Y MOSTRAR CONTENEDOR DE TRASLADO AUTOMÁTICO ---
+    let transferContainer = row.querySelector('.transfer-auto-container');
+    
+    if (currentQty > currentStock) {
+        if (!transferContainer) {
+            transferContainer = document.createElement('div');
+            transferContainer.className = "transfer-auto-container mt-3 text-[10px] bg-orange-50 border border-brand-orange/20 p-3 rounded-2xl flex items-center justify-between gap-3 animate-in slide-in-from-top-1 duration-200 w-full z-10 relative";
+            row.appendChild(transferContainer);
+        }
+
+        let branchStockMap = {};
+        let globalStock = 0;
+        if (product.combinations && product.combinations.length > 0) {
             const combo = product.combinations.find(c => {
                 const matchColor = selectedColor ? c.color === selectedColor : true;
                 const matchCap = selectedCap ? c.capacity === selectedCap : true;
                 return matchColor && matchCap;
             });
-            currentStock = combo ? (parseInt(combo.stock) || 0) : 0;
+            if (combo) {
+                branchStockMap = combo.branchStock || {};
+                globalStock = combo.stock || 0;
+            }
+        } else {
+            branchStockMap = product.branchStock || {};
+            globalStock = product.stock || 0;
         }
-    }
 
-    row.querySelector('.p-max-stock').value = currentStock;
-    const display = row.querySelector('.stock-display');
-    if (display) display.innerHTML = currentStock > 0 ? `Disp: <span class="text-brand-cyan">${currentStock}</span>` : `<span class="text-red-500">Agotado</span>`;
+        const branchesWithStock = [];
+        manualBranchesList.forEach(br => {
+            if (br.id !== activeBranchId) {
+                const qty = branchStockMap[br.id] !== undefined 
+                    ? (branchStockMap[br.id] || 0) 
+                    : (br.id === 'sede_principal' ? globalStock : 0);
+                if (qty > 0) {
+                    branchesWithStock.push({ id: br.id, name: br.name, stock: qty });
+                }
+            }
+        });
 
-    const qtyInput = row.querySelector('.p-qty');
-    let currentQty = parseInt(qtyInput.value) || 1;
-    if (currentStock > 0 && currentQty > currentStock) {
-        qtyInput.value = currentStock;
-        calculateManualTotal();
+        const deficit = currentQty - currentStock;
+
+        if (branchesWithStock.length === 0) {
+            transferContainer.innerHTML = `<span class="text-red-500 font-black uppercase flex items-center gap-2"><i class="fa-solid fa-triangle-exclamation animate-bounce"></i> Sin stock disponible en otras sedes para cubrir faltante de ${deficit} und(s).</span>`;
+            transferContainer.classList.remove('hidden');
+            qtyInput.classList.add('border-red-300', 'bg-red-50/30');
+        } else {
+            qtyInput.classList.remove('border-red-300', 'bg-red-50/30');
+            
+            let selectOptions = '';
+            branchesWithStock.forEach(br => {
+                selectOptions += `<option value="${br.id}" data-stock="${br.stock}" ${br.stock >= deficit ? 'selected' : ''}>${br.name.replace(/Sede\s+Zona\s+|Sede\s+/i, '')} (Stock: ${br.stock})</option>`;
+            });
+
+            transferContainer.innerHTML = `
+                <div class="flex flex-col gap-0.5 max-w-[50%]">
+                    <span class="text-brand-orange font-black uppercase flex items-center gap-1"><i class="fa-solid fa-truck-ramp-box mr-1"></i> Faltante: ${deficit} und(s) en ${activeBranchName.replace(/Sede\s+/i, '')}</span>
+                    <span class="text-gray-400 font-bold text-[8px] uppercase">Solicitud de traslado automática desde:</span>
+                </div>
+                <div class="flex items-center gap-2 grow justify-end">
+                    <select class="p-transfer-source-select text-[9px] font-black uppercase tracking-wider bg-white border border-brand-orange/20 rounded-lg px-2 py-1.5 outline-none focus:border-brand-orange text-brand-black shadow-sm">
+                        ${selectOptions}
+                    </select>
+                    <span class="text-brand-orange font-bold uppercase text-[9px]">Cant:</span>
+                    <input type="number" min="1" max="${deficit}" value="${deficit}" class="p-transfer-qty w-12 text-center text-[9px] font-black bg-white border border-brand-orange/20 rounded-lg py-1 shadow-sm outline-none focus:border-brand-orange">
+                </div>
+            `;
+            transferContainer.classList.remove('hidden');
+
+            const trSelect = transferContainer.querySelector('.p-transfer-source-select');
+            const trQtyInput = transferContainer.querySelector('.p-transfer-qty');
+
+            const updateTrQtyLimits = () => {
+                const opt = trSelect.options[trSelect.selectedIndex];
+                if (!opt) return;
+                const maxBranchStock = parseInt(opt.dataset.stock) || 0;
+                // El máximo a solicitar de esta sede es el menor entre el stock de esa sede y la cantidad pedida
+                const maxLimit = Math.min(maxBranchStock, currentQty);
+                trQtyInput.max = maxLimit;
+                if (parseInt(trQtyInput.value) > maxLimit) trQtyInput.value = maxLimit;
+            };
+
+            trSelect.onchange = updateTrQtyLimits;
+            trQtyInput.oninput = () => {
+                let val = parseInt(trQtyInput.value) || 1;
+                const opt = trSelect.options[trSelect.selectedIndex];
+                const maxBranchStock = opt ? (parseInt(opt.dataset.stock) || 0) : currentQty;
+                const maxLimit = Math.min(maxBranchStock, currentQty);
+                if (val < 1) trQtyInput.value = 1;
+                if (val > maxLimit) trQtyInput.value = maxLimit;
+            };
+
+            updateTrQtyLimits();
+        }
+    } else {
+        if (transferContainer) transferContainer.classList.add('hidden');
+        qtyInput.classList.remove('border-red-300', 'bg-red-50/30');
     }
 }
 
@@ -534,7 +737,7 @@ async function setupCustomerSearch() {
         });
 
         if (filtered.length === 0) {
-            results.innerHTML = `<div class="p-4 text-[10px] text-gray-400 font-bold text-center uppercase border-b border-gray-100">Cliente no encontrado</div><div class="p-2 bg-gray-50 rounded-b-2xl"><button type="button" id="btn-m-inline-create" class="w-full bg-brand-cyan text-brand-black font-black text-[10px] py-3 rounded-xl uppercase tracking-widest hover:bg-cyan-400 transition shadow-sm flex items-center justify-center gap-2"><i class="fa-solid fa-user-plus"></i> Registrar Nuevo Cliente</button></div>`;
+            results.innerHTML = `<div class="p-4 text-[10px] text-gray-400 font-bold text-center uppercase border-b border-gray-100">Cliente no encontrado</div><div class="p-2 bg-gray-50 rounded-b-2xl"><button type="button" id="btn-m-inline-create" class="w-full bg-brand-orange text-brand-black font-black text-[10px] py-3 rounded-xl uppercase tracking-widest hover:bg-orange-400 transition shadow-sm flex items-center justify-center gap-2"><i class="fa-solid fa-user-plus"></i> Registrar Nuevo Cliente</button></div>`;
             document.getElementById('btn-m-inline-create').onmousedown = (ev) => {
                 ev.preventDefault(); 
                 isCreatingNewClient = true;
@@ -556,9 +759,9 @@ async function setupCustomerSearch() {
         } else {
             filtered.slice(0, 8).forEach(u => {
                 const div = document.createElement('div');
-                div.className = "p-3 hover:bg-cyan-50 cursor-pointer rounded-xl transition flex justify-between items-center border-b border-gray-50 last:border-0 group";
+                div.className = "p-3 hover:bg-orange-50 cursor-pointer rounded-xl transition flex justify-between items-center border-b border-gray-50 last:border-0 group";
                 const displayName = u.name || u.userName || 'Cliente sin nombre';
-                div.innerHTML = `<div><span class="block font-black text-xs uppercase text-brand-black">${displayName}</span><span class="text-[9px] font-bold text-gray-400">${u.phone || 'Sin teléfono'} ${u.document ? ` | Doc: ${u.document}` : ''}</span></div><button class="bg-white border border-gray-200 text-brand-cyan w-6 h-6 rounded-full flex items-center justify-center group-hover:bg-brand-cyan group-hover:text-white transition shadow-sm"><i class="fa-solid fa-check text-[10px]"></i></button>`;
+                div.innerHTML = `<div><span class="block font-black text-xs uppercase text-brand-black">${displayName}</span><span class="text-[9px] font-bold text-gray-400">${u.phone || 'Sin teléfono'} ${u.document ? ` | Doc: ${u.document}` : ''}</span></div><button class="bg-white border border-gray-200 text-brand-orange w-6 h-6 rounded-full flex items-center justify-center group-hover:bg-brand-orange group-hover:text-white transition shadow-sm"><i class="fa-solid fa-check text-[10px]"></i></button>`;
                 
                 div.onmousedown = (ev) => {
                     ev.preventDefault(); 
@@ -605,14 +808,23 @@ async function setupCustomerSearch() {
     });
 }
 
-async function loadPaymentAccounts() {
+function loadPaymentAccounts() {
     const sel = document.getElementById('m-payment-account');
-    sel.innerHTML = `<option value="credit">⏳ Cartera (Pendiente de Cobro)</option>`;
-    try {
-        const q = query(collection(db, "accounts"), orderBy("name", "asc"));
-        const snap = await getDocs(q);
-        snap.forEach(d => sel.innerHTML += `<option value="${d.id}">🏦 PAGO RECIBIDO EN: ${d.data().name}</option>`);
-    } catch(e) { console.error(e); }
+    if (!sel) return;
+    const activeBranchId = sessionStorage.getItem('activeBranchId') || 'sede_principal';
+    
+    if (window._manualAccountsSubscribed) return;
+    window._manualAccountsSubscribed = true;
+
+    AdminStore.subscribeToAccounts((accs) => {
+        sel.innerHTML = `<option value="credit">⏳ Cartera (Pendiente de Cobro)</option>`;
+        accs.forEach(acc => {
+            const accBranchId = acc.branchId || 'ALL';
+            if (accBranchId === 'ALL' || accBranchId === activeBranchId) {
+                sel.innerHTML += `<option value="${acc.id}">🏦 ${acc.name}</option>`;
+            }
+        });
+    });
 }
 
 async function loadManualDepartments() {
@@ -631,7 +843,9 @@ async function loadManualDepartments() {
 async function saveOrder() {
     const btn = document.getElementById('btn-save-manual');
     
-    if (!selectedUserId && !isCreatingNewClient) { return alert("🚨 Por favor, busca un cliente existente o registra uno nuevo."); }
+    if (!selectedUserId && !isCreatingNewClient) { 
+        return alert("🚨 Por favor, busca un cliente existente o registra uno nuevo."); 
+    }
 
     const items = [];
     let hasStockError = false;
@@ -642,15 +856,45 @@ async function saveOrder() {
         const maxStock = parseInt(row.querySelector('.p-max-stock').value) || 0;
         
         if(id && qty > 0) {
-            if (qty > maxStock) hasStockError = true;
+            const colorEl = row.querySelector('.p-color');
+            const capEl = row.querySelector('.p-capacity');
+            if (colorEl && colorEl.value === "") {
+                alert(`🚨 Por favor, selecciona un Color para el producto: ${row.querySelector('.p-search').value}`);
+                hasStockError = true;
+                return;
+            }
+            if (capEl && capEl.value === "") {
+                alert(`🚨 Por favor, selecciona una Capacidad para el producto: ${row.querySelector('.p-search').value}`);
+                hasStockError = true;
+                return;
+            }
+
+            const transferSelect = row.querySelector('.p-transfer-source-select');
+            const sourceBranchId = transferSelect ? transferSelect.value : null;
+
+            const transferQtyEl = row.querySelector('.p-transfer-qty');
+            const qtyToTransfer = transferQtyEl ? (parseInt(transferQtyEl.value) || 0) : 0;
+
+            if (qty > maxStock && !sourceBranchId) {
+                hasStockError = true;
+            }
+
             items.push({
-                id, name: row.querySelector('.p-search').value, price: parseCurrency(row.querySelector('.p-price-display').value),
-                quantity: qty, image: row.querySelector('.p-img').value, color: row.querySelector('.p-color')?.value || null, capacity: row.querySelector('.p-capacity')?.value || null
+                id, 
+                name: row.querySelector('.p-search').value, 
+                price: parseCurrency(row.querySelector('.p-price-display').value),
+                quantity: qty, 
+                image: row.querySelector('.p-img').value, 
+                color: row.querySelector('.p-color')?.value || null, 
+                capacity: row.querySelector('.p-capacity')?.value || null,
+                maxStock,
+                sourceBranchId,
+                qtyToTransfer
             });
         }
     });
 
-    if (hasStockError) return alert("🚨 Uno de los productos excede el stock disponible.");
+    if (hasStockError) return alert("🚨 Uno de los productos excede el stock disponible localmente y no se ha seleccionado ninguna sede de origen con inventario para solicitar el traslado.");
     if (items.length === 0) return alert("🚨 Debes agregar al menos un producto a la venta.");
 
     const shippingMode = document.getElementById('m-shipping-mode').value;
@@ -676,6 +920,9 @@ async function saveOrder() {
     btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Procesando Venta...';
 
     try {
+        const activeBranchId = sessionStorage.getItem('activeBranchId') || 'sede_principal';
+        const activeBranchName = sessionStorage.getItem('activeBranchName') || 'Sede Principal';
+
         let finalUserId = selectedUserId;
         let custName = selectedUserName;
         let custPhone = selectedUserPhone;
@@ -713,8 +960,6 @@ async function saveOrder() {
 
         if (total <= 0) throw new Error("El total de la venta no puede ser cero.");
 
-        for (const item of items) { await adjustStock(item.id, -(item.quantity), item.color, item.capacity); }
-
         let paymentStatus = 'PENDING';
         let paymentMethodName = 'Crédito / Cartera';
         let amountPaid = 0;
@@ -729,7 +974,7 @@ async function saveOrder() {
              });
              await addDoc(collection(db, "expenses"), { amount: total, category: "Ingreso Ventas Manual", description: `Cobro Inmediato - Venta a ${custName || 'Cliente'}`, paymentMethod: paymentMethodName, supplierName: custName || "Cliente Directo", date: new Date(), createdAt: new Date(), type: 'INCOME' });
              paymentStatus = 'PAID'; amountPaid = total;
-        }
+         }
 
         const orderData = {
             userId: finalUserId, userName: custName, phone: custPhone, clientDoc: custDoc, 
@@ -737,13 +982,58 @@ async function saveOrder() {
             subtotal, shippingCost, tax4x1000, total, // 🔥 SE GUARDA EL 4x1000
             status: 'PENDIENTE', source: 'MANUAL', requiresInvoice: document.getElementById('m-requires-invoice').checked,
             paymentStatus, amountPaid, paymentAccountId: accountId === 'credit' ? null : accountId, paymentMethodName,
-            createdAt: new Date(), updatedAt: new Date(), shippingData, buyerInfo: { name: custName, email: emailVal || "", phone: custPhone, document: custDoc }
+            createdAt: new Date(), updatedAt: new Date(), shippingData, buyerInfo: { name: custName, email: emailVal || "", phone: custPhone, document: custDoc },
+            branchId: activeBranchId,
+            branchName: activeBranchName
         };
         
         const orderRef = await addDoc(collection(db, "orders"), orderData);
         await setDoc(doc(db, "remissions", orderRef.id), { ...orderData, orderId: orderRef.id, status: 'PENDIENTE_ALISTAMIENTO', type: 'DIRECTA' });
 
-        alert(`✅ Venta Exitosa.\nLa orden #${orderRef.id.slice(0,6)} ha sido enviada al centro logístico.`);
+        // --- DESCONTAR INVENTARIO LOCAL Y CREAR TRASLADOS AUTOMÁTICOS ---
+        for (const item of items) {
+            const qtyToTransfer = item.qtyToTransfer || 0;
+
+            if (qtyToTransfer === 0) {
+                // Hay stock suficiente localmente
+                await adjustStock(item.id, -item.quantity, item.color, item.capacity, activeBranchId);
+            } else {
+                // Hay déficit: descontar lo disponible en la sede activa si es mayor a cero
+                const localDeduction = item.quantity - qtyToTransfer;
+                if (localDeduction > 0) {
+                    await adjustStock(item.id, -localDeduction, item.color, item.capacity, activeBranchId);
+                }
+                
+                // Reservar el excedente en la sede origen elegida y registrar solicitud de traslado
+                const sourceBranchId = item.sourceBranchId;
+                const srcBr = manualBranchesList.find(b => b.id === sourceBranchId);
+                const sourceBranchName = srcBr ? srcBr.name : sourceBranchId;
+
+                // Descontar del origen (reservar)
+                await adjustStock(item.id, -qtyToTransfer, item.color, item.capacity, sourceBranchId);
+
+                // Crear solicitud de traslado
+                await addDoc(collection(db, "transfers"), {
+                    productId: item.id,
+                    productName: item.name,
+                    color: item.color,
+                    capacity: item.capacity,
+                    quantity: qtyToTransfer,
+                    sourceBranchId: sourceBranchId,
+                    sourceBranchName: sourceBranchName,
+                    targetBranchId: activeBranchId,
+                    targetBranchName: activeBranchName,
+                    status: 'PENDING',
+                    requestedBy: 'Traslado Automático por Venta Manual - ' + (auth.currentUser ? auth.currentUser.email : 'Sistema'),
+                    requestedAt: new Date(),
+                    resolvedBy: null,
+                    resolvedAt: null,
+                    associatedOrderId: orderRef.id
+                });
+            }
+        }
+
+        alert(`✅ Venta Exitosa.\nLa orden #${orderRef.id.slice(0,6)} ha sido enviada al centro logístico y se registraron las solicitudes de traslado correspondientes.`);
         document.getElementById('manual-modal').classList.add('hidden');
         if (onSuccessCallback) onSuccessCallback();
 

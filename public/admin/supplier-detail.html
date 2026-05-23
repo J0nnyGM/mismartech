@@ -3,11 +3,11 @@
 
 <head>
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#00AEC7">
+    <meta name="theme-color" content="#F05A28">
     <link rel="apple-touch-icon" href="/img/icons/icon-192x192.webp">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Expediente de Aliado | PixelTech Col</title>
+    <title>Expediente de Aliado | Mi Smartech</title>
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
@@ -15,7 +15,7 @@
         .hidden { display: none !important; }
         .custom-scroll::-webkit-scrollbar { width: 6px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 10px; }
-        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #00AEC7; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #F05A28; }
         
         .fade-in { animation: fadeIn 0.4s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -37,7 +37,7 @@
                     <p class="text-xs font-bold text-brand-black uppercase">Detalle de Cuenta</p>
                 </div>
             </div>
-            <button id="btn-edit-supplier" class="bg-brand-black text-white px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-orange hover:shadow-lg hover:shadow-cyan-500/20 transition-all duration-300 flex items-center gap-2 transform active:scale-95">
+            <button id="btn-edit-supplier" class="bg-brand-black text-white px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-orange hover:shadow-lg hover:shadow-orange-500/20 transition-all duration-300 flex items-center gap-2 transform active:scale-95">
                 <i class="fa-solid fa-pen-to-square"></i> <span>Editar Perfil</span>
             </button>
         </header>
@@ -56,7 +56,7 @@
                 
                 <div class="flex flex-wrap gap-4 w-full lg:w-auto">
                     <div class="bg-white border border-gray-100 p-6 rounded-[2rem] shadow-sm flex-1 min-w-[160px] hover:shadow-xl transition-shadow duration-300">
-                        <div class="w-10 h-10 bg-cyan-50 rounded-full flex items-center justify-center mb-3 text-brand-orange">
+                        <div class="w-10 h-10 bg-orange-50 rounded-full flex items-center justify-center mb-3 text-brand-orange">
                             <i class="fa-solid fa-chart-line"></i>
                         </div>
                         <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Inversión Total</p>
@@ -267,10 +267,10 @@
                     <div><label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Teléfono / WhatsApp</label><input type="text" id="e-phone" required class="w-full bg-slate-50 border border-gray-200 rounded-xl p-4 text-sm font-bold outline-none focus:border-brand-orange transition-all"></div>
                     <div><label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Contacto Directo</label><input type="text" id="e-contact" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-4 text-sm font-bold outline-none focus:border-brand-orange transition-all"></div>
                     <div><label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Email</label><input type="email" id="e-email" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-4 text-sm font-bold outline-none focus:border-brand-orange transition-all"></div>
-                    <div class="md:col-span-2 pt-4 border-t border-gray-100 mt-2"><span class="text-[10px] font-black uppercase tracking-widest text-brand-orange bg-cyan-50 px-2 py-1 rounded">Información Financiera</span></div>
+                    <div class="md:col-span-2 pt-4 border-t border-gray-100 mt-2"><span class="text-[10px] font-black uppercase tracking-widest text-brand-orange bg-orange-50 px-2 py-1 rounded">Información Financiera</span></div>
                     <div><label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Banco</label><input type="text" id="e-bank" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-4 text-sm font-bold outline-none focus:border-brand-orange transition-all"></div>
                     <div><label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Cuenta</label><input type="text" id="e-account" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-4 text-sm font-bold outline-none focus:border-brand-orange transition-all"></div>
-                    <button type="submit" class="md:col-span-2 mt-4 bg-brand-black text-white py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-brand-orange hover:shadow-cyan-500/30 hover:-translate-y-1 transition-all duration-300">Guardar Cambios</button>
+                    <button type="submit" class="md:col-span-2 mt-4 bg-brand-black text-white py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-brand-orange hover:shadow-orange-500/30 hover:-translate-y-1 transition-all duration-300">Guardar Cambios</button>
                 </form>
             </div>
         </div>
@@ -279,6 +279,7 @@
 <script type="module">
         import { db, doc, getDoc, getDocs, collection, query, where, orderBy, limit, updateDoc, addDoc, Timestamp, runTransaction, startAfter, getAggregateFromServer, sum } from '../js/firebase-init.js';
         import { loadAdminSidebar } from '../js/admin/admin-ui.js';
+        import { AdminStore } from '../js/admin/admin-store.js';
 
         loadAdminSidebar();
 
@@ -463,42 +464,24 @@
             } catch(e) { console.error(e); }
         }
 
-        // --- 4. CUENTAS (Caché) ---
+        // --- 4. CUENTAS (Caché interactivo en tiempo real) ---
         async function loadAccounts() {
-            const CACHE_KEY = 'admin_accounts_cache';
-            const TTL = 10 * 60 * 1000; 
-
-            const cached = sessionStorage.getItem(CACHE_KEY);
-            const cachedTime = sessionStorage.getItem(CACHE_KEY + '_time');
-            const now = Date.now();
-
-            if (cached && cachedTime && (now - parseInt(cachedTime) < TTL)) {
-                renderAccountsSelect(JSON.parse(cached));
-                return;
-            }
-
             try {
-                const q = query(collection(db, "accounts"), orderBy("name", "asc"));
-                const snap = await getDocs(q);
-                
-                let list = [];
-                snap.forEach(d => list.push({ id: d.id, ...d.data() }));
-                
-                sessionStorage.setItem(CACHE_KEY, JSON.stringify(list));
-                sessionStorage.setItem(CACHE_KEY + '_time', now.toString());
-
-                renderAccountsSelect(list);
-            } catch (e) { console.error("Error accounts:", e); }
-        }
-
-        function renderAccountsSelect(list) {
-            const select = document.getElementById('pay-account');
-            select.innerHTML = '<option value="">Seleccione cuenta...</option>';
-            accountsList = list;
-            
-            list.forEach(acc => {
-                select.innerHTML += `<option value="${acc.id}">${acc.name} (Saldo: $${(acc.balance || 0).toLocaleString()})</option>`;
-            });
+                const activeBranchId = sessionStorage.getItem('activeBranchId') || 'sede_principal';
+                AdminStore.subscribeToAccounts((accs) => {
+                    accountsList = accs;
+                    const select = document.getElementById('pay-account');
+                    if (select) {
+                        select.innerHTML = '<option value="">Seleccione cuenta...</option>';
+                        accs.forEach(acc => {
+                            const accBranchId = acc.branchId || 'sede_principal';
+                            if (accBranchId === activeBranchId) {
+                                select.innerHTML += `<option value="${acc.id}">${acc.name} (Saldo: $${(acc.balance || 0).toLocaleString()})</option>`;
+                            }
+                        });
+                    }
+                });
+            } catch (e) { console.error("Error loading accounts:", e); }
         }
 
         function renderHeader(s) {
@@ -704,14 +687,14 @@
         document.querySelectorAll('.crm-tab-btn').forEach(btn => {
             btn.onclick = (e) => {
                 document.querySelectorAll('.crm-tab-btn').forEach(b => {
-                    b.classList.remove('active', 'border-brand-orange', 'bg-cyan-50/20', 'border-blue-500', 'bg-blue-50/20', 'border-emerald-500', 'bg-emerald-50/20');
+                    b.classList.remove('active', 'border-brand-orange', 'bg-orange-50/20', 'border-blue-500', 'bg-blue-50/20', 'border-emerald-500', 'bg-emerald-50/20');
                     b.classList.add('border-transparent');
                 });
                 document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
                 const target = e.currentTarget.dataset.tab;
                 e.currentTarget.classList.remove('border-transparent');
                 
-                if(target === 'generales') e.currentTarget.classList.add('active', 'border-brand-orange', 'bg-cyan-50/20');
+                if(target === 'generales') e.currentTarget.classList.add('active', 'border-brand-orange', 'bg-orange-50/20');
                 if(target === 'historial') e.currentTarget.classList.add('active', 'border-blue-500', 'bg-blue-50/20');
                 if(target === 'pagos') e.currentTarget.classList.add('active', 'border-emerald-500', 'bg-emerald-50/20');
                 

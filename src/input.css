@@ -38,3 +38,67 @@ body {
     font-size: 16px !important;
   }
 }
+
+/* ==========================================================================
+   ESTILOS GLOBALES PARA EL BUSCADOR AUTO-SUGERIDO
+   ========================================================================== */
+.search-dropdown { 
+    position: absolute; 
+    top: 100%; 
+    left: 0; 
+    width: 100%; 
+    background: white; 
+    border-radius: 0 0 20px 20px; 
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1); 
+    z-index: 50; 
+    overflow: hidden; 
+    display: none; 
+    margin-top: 2px; 
+    border: 1px solid #f3f4f6; 
+}
+.search-dropdown.active { 
+    display: block; 
+    animation: slideDown 0.2s ease-out; 
+}
+@keyframes slideDown { 
+    from { opacity: 0; transform: translateY(-10px); } 
+    to { opacity: 1; transform: translateY(0); } 
+}
+.search-result-item { 
+    display: flex; 
+    align-items: center; 
+    gap: 12px; 
+    padding: 12px 20px; 
+    border-bottom: 1px solid #f9fafb; 
+    cursor: pointer; 
+    transition: background 0.2s; 
+}
+.search-result-item:hover { 
+    background-color: #fff7ed; 
+} 
+.search-result-item:last-child { 
+    border-bottom: none; 
+}
+
+/* ==========================================================================
+   ESTILOS PREMIUM PARA PLACEHOLDER EN CONTENTEDITABLE
+   ========================================================================== */
+[contenteditable="true"][placeholder]:empty::before {
+    content: attr(placeholder);
+    color: #94a3b8; /* slate-400 */
+    font-style: italic;
+    cursor: text;
+    pointer-events: none;
+    display: block;
+}
+
+/* ==========================================================================
+   SPACING PARA LA BARRA DE NAVEGACIÓN INFERIOR EN MÓVIL
+   ========================================================================== */
+@media (max-width: 767px) {
+    main.overflow-y-auto {
+        padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px)) !important;
+    }
+}
+
+

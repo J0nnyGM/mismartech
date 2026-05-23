@@ -52,8 +52,8 @@ exports.renderProductMeta = async (req, res) => {
         const priceFormatted = price.toLocaleString('es-CO');
         
         // --- 2. PREPARAR TEXTOS ---
-        const finalTitle = `$${priceFormatted} - ${p.name} | PixelTech`;
-        let cleanDesc = `Compra ${p.name} al mejor precio en PixelTech Colombia. Envíos a todo el país.`;
+        const finalTitle = `$${priceFormatted} - ${p.name} | MiSmartech`;
+        let cleanDesc = `Compra ${p.name} al mejor precio en MiSmartech. Envíos a todo el país.`;
         
         if (p.description) {
             cleanDesc = p.description.replace(/<[^>]*>?/gm, ''); // Quita HTML
@@ -62,7 +62,7 @@ exports.renderProductMeta = async (req, res) => {
         }
         
         // --- 3. EXTRAER IMAGEN ---
-        let image = "https://pixeltechcol.com/img/logo.webp";
+        let image = "https://mismartech.com/img/logo.webp";
         if (p.mainImage) {
             image = p.mainImage;
         } else if (p.image) {
@@ -71,7 +71,7 @@ exports.renderProductMeta = async (req, res) => {
             image = p.images[0];
         }
         
-        const productUrl = `https://pixeltechcol.com/shop/product.html?id=${id}`;
+        const productUrl = `https://mismartech.com/shop/product.html?id=${id}`;
 
         // --- 4. GENERAR HTML (OPEN GRAPH) ---
         const html = `<!DOCTYPE html>
@@ -86,7 +86,7 @@ exports.renderProductMeta = async (req, res) => {
             <meta property="og:title" content="${finalTitle}">
             <meta property="og:description" content="${cleanDesc}">
             <meta property="og:image" content="${image}">
-            <meta property="og:site_name" content="PixelTech Col">
+            <meta property="og:site_name" content="MiSmartech">
             
             <meta name="twitter:card" content="summary_large_image">
             <meta name="twitter:title" content="${finalTitle}">

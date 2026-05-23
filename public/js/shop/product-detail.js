@@ -1,6 +1,6 @@
 import { db, doc, collection, query, where, limit, getDocs, onSnapshot } from '../firebase-init.js';
 import { addToCart } from './cart.js'; 
-import { trackEcommerceEvent } from './global-components.js';
+import { trackEcommerceEvent } from '../global-components.js';
 
 // Estado local
 let state = {
@@ -34,12 +34,20 @@ const els = {
 
     optionsContainer: document.getElementById('p-options'),
     btnAdd: document.getElementById('btn-add-main'),
-    whatsappBtn: document.getElementById('whatsapp-buy'),
+    whatsappCard: document.getElementById('whatsapp-card-btn'),
     discountTag: document.getElementById('p-discount-tag'),
     addiContainer: document.getElementById('addi-widget-container'),
     warrantyText: document.getElementById('p-warranty-text'),
     stockText: document.getElementById('p-stock-text'),
     shippingText: document.getElementById('p-shipping-text'),
+
+    // Nuevos selectores para Price Box
+    boxStatusDot: document.getElementById('p-box-status-dot'),
+    boxStatusText: document.getElementById('p-box-status-text'),
+    boxDiscountBadge: document.getElementById('p-box-discount-badge'),
+    oldPriceContainer: document.getElementById('p-old-price-container'),
+    savingsContainer: document.getElementById('p-savings-container'),
+    savingsAmount: document.getElementById('p-savings-amount'),
 
     stickyBar: document.getElementById('sticky-bar'),
     stickyPrice: document.getElementById('sticky-price'),
@@ -58,9 +66,20 @@ function getResizedImageUrl(url) {
     return url.replace(/(\.jpg|\.jpeg|\.png|\.webp)(\?alt=media)/i, '_200x200$1$2');
 }
 
+// Expose switchTab globally
+window.switchTab = (tabName) => {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+    const selectedContent = document.getElementById(`tab-content-${tabName}`);
+    if (selectedContent) selectedContent.classList.remove('hidden');
+
+    document.querySelectorAll('.info-tab-btn').forEach(btn => btn.classList.remove('active'));
+    const selectedBtn = document.getElementById(`tab-btn-${tabName}`);
+    if (selectedBtn) selectedBtn.classList.add('active');
+};
+
 function getProductFromCache(id) {
     try {
-        const cachedRaw = localStorage.getItem('pixeltech_master_catalog');
+        const cachedRaw = localStorage.getItem('smartech_master_catalog');
         if (!cachedRaw) return null;
         const cachedData = JSON.parse(cachedRaw);
         const map = cachedData.map || {};
@@ -146,11 +165,122 @@ export async function initProductDetail() {
     } else {
         setTimeout(startFirebaseSync, 50);
     }
+    
+    initTrustCardsCarouselDots();
+    initLightboxModal();
+}
+
+
+function initTrustCardsCarouselDots() {
+    const container = document.getElementById('trust-cards-container');
+    const dotsContainer = document.getElementById('trust-cards-dots');
+    if (!container || !dotsContainer) return;
+
+    const dots = dotsContainer.querySelectorAll('span');
+    const cards = container.children;
+
+    // Sincronizar dots con scroll
+    container.addEventListener('scroll', () => {
+        const scrollLeft = container.scrollLeft;
+        const containerCenter = scrollLeft + (container.clientWidth / 2);
+        
+        let closestIndex = 0;
+        let minDiff = Infinity;
+        
+        for (let i = 0; i < Math.min(cards.length, dots.length); i++) {
+            const card = cards[i];
+            const cardCenter = card.offsetLeft + (card.clientWidth / 2);
+            const diff = Math.abs(containerCenter - cardCenter);
+            if (diff < minDiff) {
+                minDiff = diff;
+                closestIndex = i;
+            }
+        }
+
+        dots.forEach((dot, idx) => {
+            if (idx === closestIndex) {
+                dot.className = "w-2.5 h-2.5 rounded-full bg-brand-orange transition-all duration-300 cursor-pointer";
+            } else {
+                dot.className = "w-2 h-2 rounded-full bg-gray-200 transition-all duration-300 cursor-pointer";
+            }
+        });
+    }, { passive: true });
+
+    // Hacer los dots clickeables
+    dots.forEach((dot, index) => {
+        dot.onclick = () => {
+            if (cards[index]) {
+                const card = cards[index];
+                const cardOffset = card.offsetLeft - (container.clientWidth - card.clientWidth) / 2;
+                container.scrollTo({
+                    left: cardOffset,
+                    behavior: 'smooth'
+                });
+            }
+        };
+    });
+}
+
+window.openLightbox = (src) => {
+    const modal = document.getElementById('image-lightbox-modal');
+    const modalImg = document.getElementById('lightbox-image');
+    const content = document.getElementById('lightbox-content');
+    if (!modal || !modalImg || !content) return;
+    
+    modalImg.src = src;
+    modal.classList.remove('opacity-0', 'pointer-events-none');
+    modal.classList.add('opacity-100', 'pointer-events-auto');
+    content.classList.remove('scale-95');
+    content.classList.add('scale-100');
+    document.body.style.overflow = 'hidden';
+};
+
+window.closeLightbox = () => {
+    const modal = document.getElementById('image-lightbox-modal');
+    const content = document.getElementById('lightbox-content');
+    if (!modal || !content) return;
+    
+    modal.classList.remove('opacity-100', 'pointer-events-auto');
+    modal.classList.add('opacity-0', 'pointer-events-none');
+    content.classList.remove('scale-100');
+    content.classList.add('scale-95');
+    document.body.style.overflow = '';
+};
+
+function initLightboxModal() {
+    const modal = document.getElementById('image-lightbox-modal');
+    const closeBtn = document.getElementById('lightbox-close-btn');
+    const content = document.getElementById('lightbox-content');
+    const mainImg = document.getElementById('p-main-image');
+
+    if (!modal || !closeBtn || !content || !mainImg) return;
+
+    mainImg.style.cursor = 'zoom-in';
+
+    mainImg.addEventListener('click', () => {
+        if (state.currentImage) {
+            window.openLightbox(state.currentImage);
+        }
+    });
+
+    closeBtn.addEventListener('click', window.closeLightbox);
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal || e.target === content) {
+            window.closeLightbox();
+        }
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !modal.classList.contains('opacity-0')) {
+            window.closeLightbox();
+        }
+    });
 }
 
 function updateLocalCacheWith(productData) {
     try {
-        const STORAGE_KEY = 'pixeltech_master_catalog';
+        const STORAGE_KEY = 'smartech_master_catalog';
         const cachedRaw = localStorage.getItem(STORAGE_KEY);
         if (cachedRaw) {
             const parsed = JSON.parse(cachedRaw);
@@ -203,7 +333,7 @@ async function renderProductData(p, productId) {
         state.currentImage = p.mainImage || (p.images && p.images.length > 0 ? p.images[0] : 'https://placehold.co/500');
     }
 
-    document.title = `${p.name} | PixelTech`;
+    document.title = `${p.name} | Smartech`;
     els.name.textContent = p.name;
     els.desc.innerHTML = p.description || '';
 
@@ -241,7 +371,30 @@ async function renderProductData(p, productId) {
     els.mainImg.alt = `Comprar ${p.name} - ${p.category} en Colombia`;
     await updateShippingText();
 
-    els.whatsappBtn.href = `https://wa.me/573009046450?text=Hola PixelTech, me interesa este producto: ${p.name} (Ref: ${productId})`;
+    if (els.whatsappCard) {
+        els.whatsappCard.onclick = () => {
+            window.open(`https://wa.me/573196276426?text=Hola Smartech, me interesa este producto: ${p.name} (Ref: ${productId})`, '_blank');
+        };
+    }
+
+    // Actualizar textos dentro de las pestañas dinámicamente
+    const shippingTabText = document.getElementById('p-shipping-tab-text');
+    if (shippingTabText) {
+        if (p.shippingText) {
+            shippingTabText.textContent = p.shippingText;
+        } else {
+            shippingTabText.textContent = "Despacho inmediato a Bogotá, Medellín, Cali y toda Colombia.";
+        }
+    }
+    const warrantyTabText = document.getElementById('p-warranty-tab-text');
+    if (warrantyTabText && p.warranty) {
+        const units = { months: 'Meses', days: 'Días', years: 'Años' };
+        const unitText = units[p.warranty.unit] || p.warranty.unit || 'Meses';
+        warrantyTabText.textContent = `Soporte y reclamación directa durante ${p.warranty.time} ${unitText}.`;
+    }
+
+    updateSpecifications(p);
+
     if (els.loader) els.loader.classList.add('hidden');
     if (els.content) els.content.classList.remove('hidden');
     els.btnAdd.onclick = handleAddToCart;
@@ -258,7 +411,7 @@ async function loadRelatedProductsOptimized(category, currentId) {
     if (!els.relatedSection) return;
     let related = [];
     
-    const cachedRaw = localStorage.getItem('pixeltech_master_catalog');
+    const cachedRaw = localStorage.getItem('smartech_master_catalog');
     if (cachedRaw) {
         try {
             const allProducts = Object.values(JSON.parse(cachedRaw).map || {});
@@ -291,23 +444,29 @@ async function loadRelatedProductsOptimized(category, currentId) {
         const originalImg = p.mainImage || (p.images && p.images.length > 0 ? p.images[0] : 'https://placehold.co/150');
         const miniaturaImg = getResizedImageUrl(originalImg);
         const hasDiscount = p.originalPrice && p.originalPrice > p.price;
-        const discountBadge = hasDiscount ? `<span class="absolute top-3 left-3 bg-brand-red text-white text-[8px] font-black px-2 py-1 rounded shadow-sm z-10">OFERTA</span>` : '';
+        const discountPercent = hasDiscount ? Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100) : 0;
+        const discountBadge = hasDiscount ? `<span class="absolute top-3.5 left-3.5 bg-gradient-to-r from-brand-red to-orange-500 text-white text-[8px] font-black px-2.5 py-1 rounded-full shadow-sm tracking-wider uppercase z-10">-${discountPercent}%</span>` : '';
 
         return `
-            <div class="w-[70vw] sm:w-[calc(50%-8px)] lg:w-[calc(25%-12px)] shrink-0 bg-white rounded-[1.5rem] md:rounded-[2rem] p-3 md:p-4 border border-gray-100 shadow-sm hover:border-brand-orange/30 hover:shadow-md transition-all cursor-pointer group relative snap-start" onclick="window.location.href='/shop/product.html?id=${p.id}'">
+            <div class="w-[72vw] sm:w-[calc(50%-8px)] lg:w-[calc(25%-12px)] shrink-0 bg-gradient-to-br from-white/95 to-slate-50/40 backdrop-blur-md rounded-[2.2rem] p-4 border border-slate-100/80 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:border-brand-orange/45 hover:shadow-[0_20px_40px_rgba(240,90,40,0.06)] hover:-translate-y-1.5 transform transition-all duration-300 cursor-pointer group relative snap-start" onclick="window.location.href='/shop/product.html?id=${p.id}'">
                 ${discountBadge}
-                <div class="h-32 md:h-36 mb-3 md:mb-4 flex items-center justify-center p-3 bg-slate-50 rounded-[1.2rem] md:rounded-[1.5rem] group-hover:bg-cyan-50/30 transition-colors">
-                    <img src="${miniaturaImg}" width="224" height="224" onerror="this.onerror=null; this.src='${originalImg}';" class="max-w-full max-h-full object-contain group-hover:scale-110 transition duration-500 mix-blend-multiply" loading="lazy" alt="${p.name}">
+                <div class="h-36 md:h-40 mb-4 flex items-center justify-center p-4 bg-gradient-to-tr from-slate-100/50 to-white/90 rounded-[1.8rem] relative overflow-hidden group-hover:from-orange-50/30 group-hover:to-white/90 transition-all duration-500">
+                    <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(240,90,40,0.06)_0%,transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+                    <img src="${miniaturaImg}" width="224" height="224" onerror="this.onerror=null; this.src='${originalImg}';" class="max-w-full max-h-full object-contain group-hover:scale-108 group-hover:-rotate-2 transition-all duration-500 mix-blend-multiply" loading="lazy" alt="${p.name}">
                 </div>
                 <div class="px-1 md:px-2">
-                    <p class="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-widest truncate mb-1">${p.category}</p>
-                    <h4 class="text-[11px] md:text-xs font-black text-brand-black uppercase leading-tight line-clamp-2 h-8 mb-2 group-hover:text-brand-orange transition">${p.name}</h4>
-                    <div class="flex justify-between items-end border-t border-gray-50 pt-2 md:pt-3">
+                    <p class="text-[8px] md:text-[9px] font-black text-brand-orange/85 uppercase tracking-[0.18em] mb-1.5 truncate">${p.category}</p>
+                    <h4 class="text-[11px] md:text-xs font-black text-brand-black uppercase leading-tight line-clamp-2 h-8 mb-3.5 group-hover:text-brand-orange transition-colors duration-200">${p.name}</h4>
+                    <div class="flex justify-between items-center border-t border-slate-100/80 pt-3 md:pt-4">
                         <div class="flex flex-col">
-                            ${hasDiscount ? `<span class="text-[8px] md:text-[9px] text-gray-300 line-through mb-0.5">$${p.originalPrice.toLocaleString('es-CO')}</span>` : ''}
-                            <span class="text-sm md:text-base font-black ${hasDiscount ? 'text-brand-red' : 'text-brand-black'} tracking-tight">$${price}</span>
+                            ${hasDiscount ? `
+                                <span class="text-[10px] md:text-xs font-extrabold text-gray-400 mb-1 tracking-tight leading-none">
+                                    Antes <span class="line-through">$${p.originalPrice.toLocaleString('es-CO')}</span>
+                                </span>
+                            ` : ''}
+                            <span class="text-base sm:text-lg md:text-xl font-black ${hasDiscount ? 'text-brand-red' : 'text-brand-black'} tracking-tight leading-none">$${price}</span>
                         </div>
-                        <button class="w-7 h-7 md:w-8 md:h-8 rounded-full bg-brand-black text-white flex items-center justify-center hover:bg-brand-orange hover:scale-110 transition shadow-lg shadow-black/10"><i class="fa-solid fa-plus text-[10px]"></i></button>
+                        <button class="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-brand-black text-white flex items-center justify-center hover:bg-brand-orange hover:text-brand-black hover:scale-110 active:scale-95 transition-all shadow-md hover:shadow-brand-orange/20"><i class="fa-solid fa-plus text-xs"></i></button>
                     </div>
                 </div>
             </div>`;
@@ -353,11 +512,11 @@ function initStickyBar() {
 
 function saveToHistory(product) {
     try {
-        let history = JSON.parse(localStorage.getItem('pixeltech_view_history')) || [];
+        let history = JSON.parse(localStorage.getItem('smartech_view_history')) || [];
         history = history.filter(item => item.id !== product.id);
         history.unshift({ id: product.id, name: product.name, price: product.price, image: product.mainImage || product.image, category: product.category });
         if (history.length > 15) history.pop();
-        localStorage.setItem('pixeltech_view_history', JSON.stringify(history));
+        localStorage.setItem('smartech_view_history', JSON.stringify(history));
     } catch (e) {}
 }
 
@@ -374,6 +533,50 @@ async function updateShippingText() {
         if (now < cutoffDate) els.shippingText.innerHTML = `<span class="text-green-600 font-black">¡Despacho HOY!</span> <span class="text-brand-black font-bold">si compras antes de las ${cutoffTime}</span>`;
         else els.shippingText.innerHTML = `<span class="text-brand-orange font-black">Despacho MAÑANA</span> <span class="text-brand-black font-bold">(Compras después de las ${cutoffTime})</span>`;
     } catch (e) { els.shippingText.textContent = "Envío prioritario a nivel nacional."; }
+}
+
+function updateSpecifications(p) {
+    const specsBody = document.getElementById('specs-table-body');
+    if (!specsBody) return;
+    
+    const specs = [
+        { key: 'Marca', value: p.brand || 'Smartech' },
+        { key: 'Categoría', value: p.category || 'General' }
+    ];
+    if (p.subcategory) specs.push({ key: 'Subcategoría', value: p.subcategory });
+    
+    let activeSku = p.sku || 'N/A';
+    if (!p.isSimple && p.combinations) {
+        const variant = p.combinations.find(c => 
+            (c.color === state.selectedColor || (!c.color && !state.selectedColor)) &&
+            (c.capacity === state.selectedCapacity || (!c.capacity && !state.selectedCapacity))
+        );
+        if (variant && variant.sku) activeSku = variant.sku;
+    }
+    specs.push({ key: 'Referencia / SKU', value: activeSku });
+
+    if (p.warranty) {
+        const units = { months: 'Meses', days: 'Días', years: 'Años' };
+        const unitText = units[p.warranty.unit] || p.warranty.unit || 'Meses';
+        specs.push({ key: 'Garantía', value: `${p.warranty.time} ${unitText} (Directa de fábrica)` });
+    }
+
+    let stock = p.stock || 0;
+    if (!p.isSimple && p.combinations) {
+        const variant = p.combinations.find(c => 
+            (c.color === state.selectedColor || (!c.color && !state.selectedColor)) &&
+            (c.capacity === state.selectedCapacity || (!c.capacity && !state.selectedCapacity))
+        );
+        if (variant) stock = variant.stock;
+    }
+    specs.push({ key: 'Disponibilidad', value: stock > 0 ? `${stock} unidades` : 'Agotado' });
+
+    specsBody.innerHTML = specs.map(spec => `
+        <tr class="hover:bg-slate-50/50 transition">
+            <td class="py-3.5 px-4 font-black uppercase text-[10px] tracking-wider text-gray-500 w-1/3">${spec.key}</td>
+            <td class="py-3.5 px-4 font-bold text-brand-black">${spec.value}</td>
+        </tr>
+    `).join('');
 }
 
 function getStockForVariant(product, color, capacity) {
@@ -424,9 +627,32 @@ function updatePriceDisplay() {
     if (p.originalPrice && p.originalPrice > price) {
         const disc = Math.round(((p.originalPrice - price) / p.originalPrice) * 100);
         const formattedOld = `$${p.originalPrice.toLocaleString('es-CO')}`;
+        const savings = p.originalPrice - price;
+        const formattedSavings = `$${savings.toLocaleString('es-CO')}`;
+
         els.price.classList.add('text-brand-red');
         els.oldPrice.textContent = formattedOld;
-        els.oldPrice.classList.remove('hidden');
+        if(els.oldPriceContainer) els.oldPriceContainer.classList.remove('hidden');
+
+        if (els.boxDiscountBadge) {
+            els.boxDiscountBadge.textContent = `-${disc}% DTO`;
+            els.boxDiscountBadge.classList.remove('hidden');
+        }
+
+        if (els.savingsContainer && els.savingsAmount) {
+            els.savingsAmount.textContent = formattedSavings;
+            els.savingsContainer.classList.remove('hidden');
+            els.savingsContainer.classList.add('flex');
+        }
+
+        if (els.boxStatusText) {
+            els.boxStatusText.textContent = "Oferta Imperdible";
+            els.boxStatusText.className = "text-[9px] font-black uppercase tracking-[0.2em] text-brand-red";
+        }
+        if (els.boxStatusDot) {
+            els.boxStatusDot.className = "w-1.5 h-1.5 rounded-full bg-brand-red animate-ping";
+        }
+
         if(els.discountTag) { els.discountTag.textContent = `-${disc}%`; els.discountTag.classList.remove('hidden'); }
         if(els.stickyDiscountRow) {
             els.stickyDiscountRow.classList.remove('hidden');
@@ -437,7 +663,22 @@ function updatePriceDisplay() {
         }
     } else {
         els.price.classList.remove('text-brand-red');
-        els.oldPrice.classList.add('hidden');
+        if(els.oldPriceContainer) els.oldPriceContainer.classList.add('hidden');
+
+        if (els.boxDiscountBadge) els.boxDiscountBadge.classList.add('hidden');
+        if (els.savingsContainer) {
+            els.savingsContainer.classList.add('hidden');
+            els.savingsContainer.classList.remove('flex');
+        }
+
+        if (els.boxStatusText) {
+            els.boxStatusText.textContent = "Precio Especial";
+            els.boxStatusText.className = "text-[9px] font-black uppercase tracking-[0.2em] text-slate-400";
+        }
+        if (els.boxStatusDot) {
+            els.boxStatusDot.className = "w-1.5 h-1.5 rounded-full bg-brand-orange";
+        }
+
         if(els.discountTag) els.discountTag.classList.add('hidden');
         if(els.stickyDiscountRow) {
             els.stickyDiscountRow.classList.add('hidden');
@@ -463,8 +704,9 @@ function updatePriceDisplay() {
             els.btnAdd.textContent = "Sin Stock";
         }
     }
-    renderAddiWidget(price); // <-- AGREGA ESTA LÍNEA AQUÍ
+    // renderAddiWidget(price); // (Comentado temporalmente)
     injectProductSchema(p);
+    updateSpecifications(p);
 }
 
 function updateGallery() {
@@ -484,6 +726,7 @@ function updateGallery() {
     }
 
     currentGalleryImages.forEach((src) => {
+        const wrapper = document.createElement('div');
         const img = document.createElement('img');
         
         img.src = getResizedImageUrl(src); 
@@ -494,8 +737,13 @@ function updateGallery() {
             }
         };
         
-        const activateImage = () => {
-            if (state.currentImage === src) return; 
+        const activateImage = (openModal = false) => {
+            if (state.currentImage === src) {
+                if (openModal) {
+                    window.openLightbox(src);
+                }
+                return; 
+            }
             state.currentImage = src;
             els.mainImg.src = src; 
             
@@ -507,23 +755,32 @@ function updateGallery() {
                 child.classList.remove('thumb-active'); 
                 child.classList.add('thumb-inactive'); 
             });
-            img.classList.remove('thumb-inactive'); 
-            img.classList.add('thumb-active');
+            wrapper.classList.remove('thumb-inactive'); 
+            wrapper.classList.add('thumb-active');
             
-            img.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            wrapper.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+
+            if (openModal) {
+                window.openLightbox(src);
+            }
         };
 
         const isActive = state.currentImage === src;
         
-        img.className = `min-w-[80px] w-20 md:w-full h-20 object-contain bg-white border rounded-xl cursor-pointer transition-all duration-200 shrink-0 snap-center ${isActive ? 'thumb-active' : 'thumb-inactive'}`;
+        wrapper.className = `min-w-[80px] w-20 md:w-full h-20 bg-white border rounded-2xl cursor-pointer transition-all duration-200 shrink-0 snap-center flex items-center justify-center p-1 ${isActive ? 'thumb-active' : 'thumb-inactive'}`;
+        img.className = "max-w-full max-h-full object-contain rounded-xl";
         
         img.width = 80;
         img.height = 80;
         
-        img.onmouseenter = activateImage; 
-        img.onclick = activateImage;      
+        wrapper.onmouseenter = () => activateImage(false); 
+        wrapper.onclick = () => {
+            const isDesktop = window.innerWidth >= 768;
+            activateImage(isDesktop);
+        };
         
-        els.thumbsContainer.appendChild(img);
+        wrapper.appendChild(img);
+        els.thumbsContainer.appendChild(wrapper);
     });
     
     initSwipeGallery();
@@ -583,7 +840,7 @@ function renderOptions(p) {
     if (p.hasVariants && p.variants?.length > 0) {
         hasOptions = true; 
         const colorDiv = document.createElement('div');
-        colorDiv.innerHTML = `<label class="block text-[8px] font-black text-gray-400 uppercase tracking-widest mb-2 text-center md:text-left">Color</label>`;
+        colorDiv.innerHTML = `<label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.15em] mb-2.5 text-center md:text-left">Color</label>`;
         const btnContainer = document.createElement('div');
         btnContainer.className = "flex flex-wrap gap-3 justify-center md:justify-start";
         
@@ -592,11 +849,11 @@ function renderOptions(p) {
             let isOut = p.hasCapacities ? !p.combinations.some(c => c.color === v.color && c.stock > 0) : getStockForVariant(p, v.color, null) <= 0;
             const btn = document.createElement('button');
             let classes = "px-6 py-3 rounded-xl border-2 text-xs font-bold uppercase transition-all duration-200 relative ";
-            if (isOut) { classes += "bg-gray-100 text-gray-400 border-gray-100 cursor-not-allowed opacity-60 "; btn.disabled = true; }
-            else if (isSelected) classes += "bg-brand-orange text-brand-black border-brand-orange shadow-lg shadow-cyan-500/20 ";
-            else classes += "bg-white text-gray-500 border-gray-100 hover:border-brand-orange hover:text-brand-black ";
+            if (isOut) { classes += "bg-gray-50/50 text-gray-400 border-gray-100/50 cursor-not-allowed opacity-50 "; btn.disabled = true; }
+            else if (isSelected) classes += "bg-brand-orange text-brand-black border-brand-orange shadow-lg shadow-brand-orange/20 scale-[1.03] ";
+            else classes += "bg-white/95 backdrop-blur-sm text-gray-500 border-gray-100/80 hover:border-brand-orange hover:text-brand-black ";
             btn.className = classes;
-            btn.innerHTML = v.color + (isOut ? `<span class="absolute -top-2 -right-2 bg-red-500 text-white text-[8px] px-1.5 rounded-full">AGOTADO</span>` : '');
+            btn.innerHTML = v.color + (isOut ? `<span class="absolute -top-2 -right-2 bg-red-500 text-white text-[8px] px-1.5 rounded-full font-bold">AGOTADO</span>` : '');
             if (!isOut) btn.onclick = () => {
                 state.selectedColor = v.color;
                 if (p.hasCapacities) {
@@ -617,7 +874,7 @@ function renderOptions(p) {
     if (p.hasCapacities && p.capacities?.length > 0) {
         hasOptions = true; 
         const capDiv = document.createElement('div');
-        capDiv.innerHTML = `<label class="block text-[8px] font-black text-gray-400 uppercase tracking-widest mb-2 text-center md:text-left">Capacidad</label>`;
+        capDiv.innerHTML = `<label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.15em] mb-2.5 text-center md:text-left">Capacidad</label>`;
         const btnContainer = document.createElement('div');
         btnContainer.className = "flex flex-wrap gap-3 justify-center md:justify-start";
         
@@ -626,9 +883,9 @@ function renderOptions(p) {
             const isOut = state.selectedColor ? getStockForVariant(p, state.selectedColor, c.label) <= 0 : false; 
             const btn = document.createElement('button');
             let classes = `px-6 py-3 rounded-xl border-2 text-xs font-bold uppercase transition-all duration-200 flex flex-col items-center min-w-[100px] relative `;
-            if (isOut) { classes += "bg-gray-100 text-gray-400 border-gray-100 cursor-not-allowed opacity-60 "; btn.disabled = true; }
-            else if (isSelected) classes += "bg-brand-orange text-brand-black border-brand-orange shadow-lg shadow-cyan-500/20 ";
-            else classes += "bg-white text-gray-500 border-gray-100 hover:border-brand-orange hover:text-brand-black ";
+            if (isOut) { classes += "bg-gray-50/50 text-gray-400 border-gray-100/50 cursor-not-allowed opacity-50 "; btn.disabled = true; }
+            else if (isSelected) classes += "bg-brand-orange text-brand-black border-brand-orange shadow-lg shadow-brand-orange/20 scale-[1.03] ";
+            else classes += "bg-white/95 backdrop-blur-sm text-gray-500 border-gray-100/80 hover:border-brand-orange hover:text-brand-black ";
             btn.className = classes;
             
             let comboPrice = c.price; 
@@ -640,7 +897,7 @@ function renderOptions(p) {
                 if(combos.length > 0) comboPrice = Math.min(...combos.map(x => x.price));
             }
 
-            btn.innerHTML = `<span>${c.label}</span><span class="text-[9px] font-normal mt-1 ${isSelected ? 'text-brand-black' : 'text-gray-400'}">$${comboPrice.toLocaleString('es-CO')}</span>${isOut ? `<span class="absolute -top-2 -right-2 bg-red-500 text-white text-[8px] px-1.5 rounded-full">AGOTADO</span>` : ''}`;
+            btn.innerHTML = `<span>${c.label}</span><span class="text-[9px] font-normal mt-1 ${isSelected ? 'text-brand-black' : 'text-gray-400'}">$${comboPrice.toLocaleString('es-CO')}</span>${isOut ? `<span class="absolute -top-2 -right-2 bg-red-500 text-white text-[8px] px-1.5 rounded-full font-bold">AGOTADO</span>` : ''}`;
             if (!isOut) btn.onclick = () => { state.selectedCapacity = c.label; updatePriceDisplay(); renderOptions(p); };
             btnContainer.appendChild(btn);
         });
@@ -727,7 +984,7 @@ function injectProductSchema(p) {
         "@type": "Product",
         "name": schemaProductName,
         "image": [state.currentImage || p.mainImage || p.image].filter(Boolean),
-        "description": p.description ? p.description.replace(/<[^>]*>?/gm, '') : `Compra ${p.name} en PixelTech.`,
+        "description": p.description ? p.description.replace(/<[^>]*>?/gm, '') : `Compra ${p.name} en Smartech.`,
         "sku": currentSku,
         "productID": currentVariantId, // 👈 ESTO EVITA EL ERROR DE DISCREPANCIA
         "brand": { "@type": "Brand", "name": p.brand || "Genérico" },
@@ -766,7 +1023,7 @@ function injectProductSchema(p) {
 }
 
 function updateMetaTags(p) {
-    document.title = `${p.name} | Compra en PixelTech`;
+    document.title = `${p.name} | Compra en Smartech`;
     const setMeta = (name, content, attribute = 'name') => {
         let element = document.querySelector(`meta[${attribute}="${name}"]`);
         if (!element) { element = document.createElement('meta'); element.setAttribute(attribute, name); document.head.appendChild(element); }
@@ -775,7 +1032,7 @@ function updateMetaTags(p) {
     const currentUrl = window.location.href;
     const image = p.mainImage || p.image;
     const description = (p.description || '').replace(/<[^>]*>?/gm, '').substring(0, 150);
-    setMeta('og:site_name', 'PixelTech Col', 'property');
+    setMeta('og:site_name', 'Smartech', 'property');
     setMeta('description', `Compra ${p.name} al mejor precio. ${description}`);
     setMeta('og:type', 'product', 'property');
     setMeta('og:title', p.name, 'property');
@@ -815,9 +1072,9 @@ function renderAddiWidget(price) {
 
         const widget = document.createElement('addi-widget');
         widget.setAttribute('price', price);
-        widget.setAttribute('ally-slug', 'pixeltechcolombia-ecommerce');
+        widget.setAttribute('ally-slug', 'smartechcolombia-ecommerce');
         widget.setAttribute('text-color', '#111827');
-        widget.setAttribute('logo-color', '#00AEC7');
+        widget.setAttribute('logo-color', '#F05A28');
         
         // Quitamos el esqueleto gris de carga
         const skeleton = document.getElementById('addi-skeleton');

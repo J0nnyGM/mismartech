@@ -3,11 +3,11 @@
 
 <head>
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#00AEC7">
+    <meta name="theme-color" content="#F05A28">
     <link rel="apple-touch-icon" href="/img/icons/icon-192x192.webp">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Detalle de Orden | PixelTech</title>
+    <title>Detalle de Orden | MiSmartech</title>
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
@@ -31,7 +31,7 @@
 
 <body class="bg-slate-50 font-sans text-brand-black flex flex-col min-h-screen">
 
-    <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php'; ?>
+    <div id="header-placeholder"></div>
 
     <main class="flex-grow p-4 md:p-10 lg:p-14 max-w-7xl mx-auto w-full animate-in">
         
@@ -193,7 +193,7 @@
                 </div>
 
                 <div class="text-center pt-2">
-                    <a href="https://wa.me/573009046450" target="_blank" class="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-orange transition bg-white px-5 py-3 rounded-full border border-gray-100 hover:border-brand-orange shadow-sm hover:shadow-md">
+                    <a id="wa-help-btn" href="https://wa.me/573196276426" target="_blank" class="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-orange transition bg-white px-5 py-3 rounded-full border border-gray-100 hover:border-brand-orange shadow-sm hover:shadow-md">
                         <i class="fa-brands fa-whatsapp text-lg text-emerald-500"></i> ¿Necesitas ayuda con este pedido?
                     </a>
                 </div>
@@ -303,7 +303,7 @@
         </div>
     </div>
 
-        <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php'; ?>
+        <div id="footer-placeholder"></div>
 
 
     <script type="module">

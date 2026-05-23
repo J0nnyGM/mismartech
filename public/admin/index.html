@@ -3,11 +3,11 @@
 
 <head>
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#00AEC7">
+    <meta name="theme-color" content="#F05A28">
     <link rel="apple-touch-icon" href="/img/icons/icon-192x192.webp">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Admin - PixelTech</title>
+    <title>Dashboard Admin - Mi Smartech</title>
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
@@ -15,7 +15,7 @@
         .hidden { display: none !important; }
         .custom-scroll::-webkit-scrollbar { width: 6px; }
         .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #00AEC7; border-radius: 10px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #F05A28; border-radius: 10px; }
         .fade-in { animation: fadeIn 0.4s ease-out forwards; opacity: 0; transform: translateY(10px); }
         @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -34,7 +34,7 @@
     </script>
 </head>
 
-<body class="bg-slate-50 font-sans text-brand-black flex h-screen overflow-hidden selection:bg-brand-cyan selection:text-white" style="display: none;">
+<body class="bg-slate-50 font-sans text-brand-black flex h-screen overflow-hidden selection:bg-brand-orange selection:text-white" style="display: none;">
 
     <div id="admin-sidebar"></div>
 
@@ -42,13 +42,13 @@
         <header class="bg-white/90 backdrop-blur-xl border-b border-gray-100 px-8 py-5 flex justify-between items-center sticky top-0 z-20 shadow-sm">
             <h2 class="font-black text-brand-black text-[9px] uppercase tracking-[0.3em]">Resumen de Operaciones</h2>
             <div class="flex items-center gap-4">
-                <button id="btn-open-manual" class="bg-brand-black text-white px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-cyan hover:text-brand-black hover:shadow-lg transition-all flex items-center gap-2 transform active:scale-95">
+                <button id="btn-open-manual" class="bg-brand-black text-white px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-orange hover:text-brand-black hover:shadow-lg transition-all flex items-center gap-2 transform active:scale-95">
                     <i class="fa-solid fa-plus"></i> Nueva Venta
                 </button>
                 
                 <div class="flex items-center gap-3 border-l border-gray-100 pl-4">
                     <span id="admin-name" class="text-xs font-bold text-brand-black hidden md:block">Cargando...</span>
-                    <div class="w-10 h-10 bg-slate-100 text-brand-cyan rounded-xl flex items-center justify-center font-bold shadow-sm">
+                    <div class="w-10 h-10 bg-slate-100 text-brand-orange rounded-xl flex items-center justify-center font-bold shadow-sm">
                         <i class="fa-solid fa-user-tie"></i>
                     </div>
                 </div>
@@ -57,10 +57,10 @@
 
         <div class="p-8 max-w-[1800px] mx-auto pb-20">
             <div class="mb-8">
-                <h1 class="text-4xl font-black text-brand-black tracking-tighter uppercase leading-none mb-2">Panel de <span class="text-brand-cyan" id="header-role-name">Control</span></h1>
+                <h1 class="text-4xl font-black text-brand-black tracking-tighter uppercase leading-none mb-2">Panel de <span class="text-brand-orange" id="header-role-name">Control</span></h1>
                 <div class="flex items-center gap-3">
                     <p class="text-sm text-gray-400 font-bold tracking-wide" id="header-role-desc">Cargando métricas de tu área...</p>
-                    <span id="app-version-badge" class="bg-brand-cyan/10 text-brand-cyan border border-brand-cyan/20 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-widest" title="Versión instalada">v--</span>
+                    <span id="app-version-badge" class="bg-brand-orange/10 text-brand-orange border border-brand-orange/20 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-widest" title="Versión instalada">v--</span>
                 </div>
             </div>
 
@@ -115,8 +115,8 @@
                     <div class="absolute -right-6 -top-6 w-24 h-24 rounded-full bg-gray-800 z-0 group-hover:scale-150 transition-transform duration-500"></div>
                     <div class="relative z-10">
                         <div class="flex justify-between items-start mb-4">
-                            <div class="w-10 h-10 rounded-xl bg-gray-800 text-brand-cyan flex items-center justify-center text-lg border border-gray-700"><i class="fa-solid fa-box-open"></i></div>
-                            <span class="bg-brand-cyan text-brand-black text-[8px] font-black px-2 py-1 rounded uppercase">Prioridad</span>
+                            <div class="w-10 h-10 rounded-xl bg-gray-800 text-brand-orange flex items-center justify-center text-lg border border-gray-700"><i class="fa-solid fa-box-open"></i></div>
+                            <span class="bg-brand-orange text-brand-black text-[8px] font-black px-2 py-1 rounded uppercase">Prioridad</span>
                         </div>
                         <p class="text-[9px] text-gray-400 uppercase font-black tracking-widest mb-1">Por Alistar</p>
                         <h3 id="stat-packing" class="text-2xl font-black text-white tracking-tight">0</h3>
@@ -162,9 +162,9 @@
             <div id="table-section" class="hidden bg-white rounded-[2.5rem] shadow-xl border border-gray-100 overflow-hidden fade-in" style="animation-delay: 100ms;">
                 <div class="p-8 border-b border-gray-50 flex justify-between items-center bg-slate-50/50">
                     <h3 id="table-title" class="font-black text-brand-black uppercase text-xs tracking-widest flex items-center gap-2">
-                        <i class="fa-solid fa-list-check text-brand-cyan"></i> Pendientes por Atender
+                        <i class="fa-solid fa-list-check text-brand-orange"></i> Pendientes por Atender
                     </h3>
-                    <a href="orders.html" class="text-[10px] font-black uppercase text-gray-400 hover:text-brand-cyan transition">Ver Historial Completo</a>
+                    <a href="orders.html" class="text-[10px] font-black uppercase text-gray-400 hover:text-brand-orange transition">Ver Historial Completo</a>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm min-w-[900px]">
@@ -180,7 +180,7 @@
                             </tr>
                         </thead>
                         <tbody id="orders-table-body" class="divide-y divide-gray-50">
-                            <tr><td colspan="7" class="p-10 text-center"><i class="fa-solid fa-circle-notch fa-spin text-brand-cyan"></i> Buscando pedidos...</td></tr>
+                            <tr><td colspan="7" class="p-10 text-center"><i class="fa-solid fa-circle-notch fa-spin text-brand-orange"></i> Buscando pedidos...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -213,19 +213,19 @@
                         <div id="modal-payment-info" class="hidden bg-white border border-gray-100 p-6 rounded-[2rem] shadow-sm animate-fadeIn"></div>
 
                         <div class="bg-white border border-gray-100 p-6 rounded-[2rem] shadow-sm">
-                            <h4 class="text-[9px] font-black uppercase tracking-[0.2em] text-brand-black mb-4 flex items-center gap-2"><i class="fa-solid fa-user-tag text-brand-cyan"></i> Cliente</h4>
+                            <h4 class="text-[9px] font-black uppercase tracking-[0.2em] text-brand-black mb-4 flex items-center gap-2"><i class="fa-solid fa-user-tag text-brand-orange"></i> Cliente</h4>
                             <p id="modal-client-name" class="font-black text-brand-black uppercase text-sm mb-1">...</p>
                             <p id="modal-client-doc" class="text-[10px] font-bold text-gray-500 uppercase mb-1">...</p>
                             <p id="modal-client-contact" class="text-xs text-brand-black font-bold break-all">...</p>
                         </div>
                         
                         <div class="bg-white border border-gray-100 p-6 rounded-[2rem] shadow-sm">
-                            <h4 class="text-[9px] font-black uppercase tracking-[0.2em] text-brand-black mb-4 flex items-center gap-2"><i class="fa-solid fa-map-location-dot text-brand-cyan"></i> Envío</h4>
+                            <h4 class="text-[9px] font-black uppercase tracking-[0.2em] text-brand-black mb-4 flex items-center gap-2"><i class="fa-solid fa-map-location-dot text-brand-orange"></i> Envío</h4>
                             <p id="modal-delivery-address" class="text-xs font-bold text-brand-black mb-1">...</p>
                             <p id="modal-delivery-city" class="text-[10px] text-gray-500 font-black uppercase">...</p>
                             
-                            <div id="modal-tracking-info" class="mt-4 p-4 bg-brand-cyan/5 rounded-xl border border-brand-cyan/20 hidden animate-fadeIn">
-                                <p class="text-[9px] font-black text-brand-cyan uppercase tracking-widest mb-1">Datos de Despacho</p>
+                            <div id="modal-tracking-info" class="mt-4 p-4 bg-brand-orange/5 rounded-xl border border-brand-orange/20 hidden animate-fadeIn">
+                                <p class="text-[9px] font-black text-brand-orange uppercase tracking-widest mb-1">Datos de Despacho</p>
                                 <p class="text-xs font-bold text-brand-black uppercase"><i class="fa-solid fa-truck-fast mr-1 text-gray-400"></i> <span id="modal-carrier"></span></p>
                                 <p class="text-[10px] font-mono font-bold text-gray-500 mt-1">Guía: <span id="modal-tracking-number" class="select-all text-brand-black"></span></p>
                             </div>
@@ -233,8 +233,8 @@
                             <div id="modal-order-notes" class="mt-4 p-4 bg-yellow-50 rounded-xl text-[10px] text-yellow-900 font-bold border border-yellow-100 hidden"><i class="fa-regular fa-note-sticky mr-1"></i> <span id="note-text"></span></div>
                         </div>
 
-                        <div id="modal-billing-section" class="hidden bg-brand-cyan/5 border border-brand-cyan/10 p-6 rounded-[2rem]">
-                            <h4 class="text-[9px] font-black uppercase tracking-[0.2em] text-brand-cyan mb-4 flex items-center gap-2"><i class="fa-solid fa-file-invoice-dollar"></i> Facturación</h4>
+                        <div id="modal-billing-section" class="hidden bg-brand-orange/5 border border-brand-orange/10 p-6 rounded-[2rem]">
+                            <h4 class="text-[9px] font-black uppercase tracking-[0.2em] text-brand-orange mb-4 flex items-center gap-2"><i class="fa-solid fa-file-invoice-dollar"></i> Facturación</h4>
                             <div class="space-y-2 text-xs font-bold text-brand-black">
                                 <p id="bill-modal-name">--</p>
                                 <p id="bill-modal-id">--</p>
@@ -244,7 +244,7 @@
                     </div>
                     
                     <div class="lg:col-span-2">
-                        <h4 class="text-[9px] font-black uppercase tracking-[0.2em] text-brand-black mb-4 flex items-center gap-2"><i class="fa-solid fa-boxes-packing text-brand-cyan"></i> Picking List & Seriales</h4>
+                        <h4 class="text-[9px] font-black uppercase tracking-[0.2em] text-brand-black mb-4 flex items-center gap-2"><i class="fa-solid fa-boxes-packing text-brand-orange"></i> Picking List & Seriales</h4>
                         <div class="bg-slate-50 rounded-[2rem] border border-gray-100 overflow-hidden" id="modal-items-list-responsive"></div>
                     </div>
                 </div>
@@ -257,8 +257,8 @@
                         <p id="modal-order-subtotal" class="text-sm font-bold text-brand-black">---</p>
                     </div>
                     <div>
-                        <p class="text-[9px] font-black text-brand-cyan uppercase tracking-widest">Envío</p>
-                        <p id="modal-order-shipping" class="text-sm font-bold text-brand-cyan">---</p>
+                        <p class="text-[9px] font-black text-brand-orange uppercase tracking-widest">Envío</p>
+                        <p id="modal-order-shipping" class="text-sm font-bold text-brand-orange">---</p>
                     </div>
                     <div id="modal-total-container" class="pl-4 md:pl-8 border-l border-gray-200 min-w-[120px] md:min-w-[150px] text-right">
                         <p class="text-[9px] font-black text-brand-black uppercase tracking-widest">Total Neto</p>
@@ -269,7 +269,7 @@
                 <div class="flex items-center gap-4 w-full md:w-auto justify-end">
                     <div id="modal-footer-msg" class="text-xs font-bold uppercase tracking-widest hidden"></div>
                     <div id="modal-footer-actions" class="flex flex-col md:flex-row gap-3 w-full md:w-auto hidden">
-                        <button id="btn-save-alistado" onclick="window.saveAlistamiento(() => window.location.reload())" class="flex-1 md:flex-none bg-brand-black text-white px-8 py-4 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-brand-cyan hover:text-brand-black transition-all shadow-xl hidden">Guardar Alistamiento</button>
+                        <button id="btn-save-alistado" onclick="window.saveAlistamiento(() => window.location.reload())" class="flex-1 md:flex-none bg-brand-black text-white px-8 py-4 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-brand-orange hover:text-brand-black transition-all shadow-xl hidden">Guardar Alistamiento</button>
                         <button id="btn-set-despachado" onclick="window.openDispatchModal()" class="flex-1 md:flex-none bg-green-500 text-white px-8 py-4 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-green-600 transition-all shadow-xl hidden"><i class="fa-solid fa-truck-fast mr-2"></i> Marcar Despachado</button>
                     </div>
                 </div>
@@ -307,10 +307,10 @@
                 
                 <div>
                     <label class="text-[9px] font-black uppercase text-gray-500 tracking-widest mb-1 block">Monto a Registrar</label>
-                    <input type="text" id="pay-amount" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-3 text-xl font-black text-brand-cyan outline-none" required>
+                    <input type="text" id="pay-amount" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-3 text-xl font-black text-brand-orange outline-none" required>
                 </div>
                 
-                <button type="submit" class="w-full bg-brand-black text-white font-black py-4 mt-4 rounded-xl shadow-lg uppercase text-xs tracking-widest hover:bg-brand-cyan hover:text-brand-black transition">Confirmar Pago</button>
+                <button type="submit" class="w-full bg-brand-black text-white font-black py-4 mt-4 rounded-xl shadow-lg uppercase text-xs tracking-widest hover:bg-brand-orange hover:text-brand-black transition">Confirmar Pago</button>
             </form>
         </div>
     </div>
@@ -318,7 +318,7 @@
     <script type="module">
         import '../js/admin/admin-guard.js';
         import { db, collection, getDocs, orderBy, query, limit, auth, doc, getDoc, where, getAggregateFromServer, sum, onSnapshot } from '../js/firebase-init.js';
-        import { loadAdminSidebar } from '../js/admin/admin-ui.js?v=2.0.0';
+        import { loadAdminSidebar } from '../js/admin/admin-ui.js';
         import { initManualSale, openManualSaleModal } from '../js/admin/manual-sale.js';
         import { AdminStore } from '../js/admin/admin-store.js'; // 🔥 EL CEREBRO
         import '../js/admin/order-actions.js';
@@ -378,13 +378,13 @@
                 headerName.textContent = "Comercial";
                 headerDesc.textContent = "Gestión de pedidos, soporte y clientes.";
                 [els.packing, els.dispatch, els.warranties, els.chats, els.tableSection].forEach(e => e.classList.remove('hidden'));
-                document.getElementById('table-title').innerHTML = `<i class="fa-solid fa-box-open text-brand-cyan"></i> Pedidos Activos`;
+                document.getElementById('table-title').innerHTML = `<i class="fa-solid fa-box-open text-brand-orange"></i> Pedidos Activos`;
             } 
             else if (role === 'logistica') {
                 headerName.textContent = "Logística";
                 headerDesc.textContent = "Despachos y control de inventario.";
                 [els.packing, els.dispatch, els.warranties, els.tableSection].forEach(e => e.classList.remove('hidden'));
-                document.getElementById('table-title').innerHTML = `<i class="fa-solid fa-truck-fast text-brand-cyan"></i> Operaciones Logísticas`;
+                document.getElementById('table-title').innerHTML = `<i class="fa-solid fa-truck-fast text-brand-orange"></i> Operaciones Logísticas`;
             }
         }
 
@@ -559,7 +559,7 @@
                         <div class="text-[9px] text-gray-500 font-bold">${o.buyerInfo?.phone || o.phone || ''}</div>
                     </td>
                     <td class="px-8 py-6 text-center">
-                        <span class="text-[8px] font-black px-2 py-0.5 rounded shadow-sm ${isTienda ? 'bg-brand-cyan text-brand-black' : 'bg-brand-black text-white'}">${isTienda ? 'WEB' : 'MANUAL'}</span>
+                        <span class="text-[8px] font-black px-2 py-0.5 rounded shadow-sm ${isTienda ? 'bg-brand-orange text-brand-black' : 'bg-brand-black text-white'}">${isTienda ? 'WEB' : 'MANUAL'}</span>
                     </td>
                     <td class="px-8 py-6 text-center">${pBadge}</td>
                     <td class="px-8 py-6 text-center">
@@ -579,9 +579,9 @@
         // Mostrar Versión de Caché PWA
         if ('caches' in window) {
             caches.keys().then(keys => {
-                const cacheName = keys.find(k => k.startsWith('pixeltech-shell-v'));
+                const cacheName = keys.find(k => k.startsWith('mismartech-shell-v'));
                 if (cacheName) {
-                    const version = cacheName.replace('pixeltech-shell-', '');
+                    const version = cacheName.replace('mismartech-shell-', '');
                     const badge = document.getElementById('app-version-badge');
                     if (badge) badge.textContent = version;
                 }

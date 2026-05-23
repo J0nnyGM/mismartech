@@ -147,7 +147,7 @@ function renderProducts(products, emptyMsg) {
                     <div>
                         <p class="font-bold text-sm text-brand-black uppercase tracking-tighter line-clamp-1">${p.name}</p>
                         <div class="flex gap-2 mt-1">
-                            <span class="text-[9px] font-black text-brand-orange uppercase bg-cyan-50 px-2 py-0.5 rounded">${p.brand || 'Genérico'}</span>
+                            <span class="text-[9px] font-black text-brand-orange uppercase bg-orange-50 px-2 py-0.5 rounded">${p.brand || 'Genérico'}</span>
                             <span class="text-[9px] font-bold text-gray-400 uppercase border border-gray-100 px-2 py-0.5 rounded">${p.category || 'Varios'}</span>
                         </div>
                     </div>

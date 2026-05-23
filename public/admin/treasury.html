@@ -2,11 +2,11 @@
 <html lang="es">
 <head>
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#00AEC7">
+    <meta name="theme-color" content="#F05A28">
     <link rel="apple-touch-icon" href="/img/icons/icon-192x192.webp">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tesorería y Cuentas | PixelTech Admin</title>
+    <title>Tesorería y Cuentas | Mi Smartech Admin</title>
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
@@ -54,6 +54,13 @@
                 <div>
                     <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-1">Nombre Identificador *</label>
                     <input type="text" id="acc-name" required placeholder="Ej: PayU Latam" class="w-full bg-slate-50 border border-gray-200 p-3 rounded-xl font-bold text-sm outline-none focus:border-brand-orange transition-all">
+                </div>
+                
+                <div>
+                    <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-1">Sede Asociada (Método de Pago)</label>
+                    <select id="acc-branch-id" class="w-full bg-slate-50 border border-gray-200 p-3 rounded-xl font-bold text-sm outline-none focus:border-brand-orange transition-all">
+                        <option value="ALL">Global (Disponible en Todas las Sedes)</option>
+                    </select>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
@@ -146,9 +153,9 @@
                         </div>
                     </div>
 
-                    <div class="bg-cyan-50/50 p-4 rounded-xl border border-cyan-100">
+                    <div class="bg-orange-50/50 p-4 rounded-xl border border-orange-100">
                         <label class="text-[9px] font-black text-brand-orange uppercase tracking-widest block mb-2">Vincular a Pasarela de Pagos</label>
-                        <select id="acc-gateway-link" class="w-full bg-white border border-cyan-200 text-brand-black font-bold text-xs p-3 rounded-lg outline-none focus:border-brand-orange">
+                        <select id="acc-gateway-link" class="w-full bg-white border border-orange-200 text-brand-black font-bold text-xs p-3 rounded-lg outline-none focus:border-brand-orange">
                             <option value="">-- Ninguna (Cuenta Normal) --</option>
                             <option value="MERCADOPAGO">MercadoPago (Tarjetas)</option>
                             <!-- 🔥 CAMBIO: Aclaramos que ADDI maneja el débito PSE -->
@@ -366,7 +373,7 @@
         // 🧠 1. SMART REAL-TIME CACHE: CUENTAS Y TESORERÍA
         // =========================================================
         function initSmartAccounts() {
-            const CACHE_KEY = 'pixeltech_admin_accounts_cache';
+            const CACHE_KEY = 'mismartech_admin_accounts_cache';
             
             // 1. Carga Rápida desde Caché
             const cachedAccounts = sessionStorage.getItem(CACHE_KEY);
@@ -484,6 +491,10 @@
                 } else if (acc.gatewayLink === 'BOLD') {
                     linkBadge = `<span class="absolute top-4 right-4 bg-red-500 text-white text-[8px] font-black px-2 py-1 rounded shadow-md uppercase tracking-widest z-20">BOLD</span>`;
                 }
+                const branchObj = branchesList.find(b => b.id === acc.branchId);
+                const branchName = acc.branchId === 'ALL' || !acc.branchId ? 'Global' : (branchObj ? branchObj.name : acc.branchId);
+                const branchBadge = `<span class="inline-flex items-center gap-1 bg-orange-50 text-brand-orange border border-orange-100 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider mt-1"><i class="fa-solid fa-store text-[7px]"></i> ${branchName}</span>`;
+
                 grid.innerHTML += `
                     <div class="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden flex flex-col justify-between ${acc.gatewayLink ? 'ring-2 ring-brand-orange/20' : ''} fade-in">
                         ${linkBadge}
@@ -497,7 +508,13 @@
                                 </div>
                             </div>
                             <div class="relative z-10">
-                                <div class="flex items-center gap-2"><h3 class="font-bold text-gray-600 text-xs uppercase tracking-widest">${acc.name}</h3>${acc.isExempt ? '<i class="fa-solid fa-shield-halved text-green-500 text-xs" title="Exenta 4x1000"></i>' : ''}</div>
+                                <div class="flex items-center justify-between gap-2 flex-wrap">
+                                    <h3 class="font-bold text-gray-600 text-xs uppercase tracking-widest">${acc.name}</h3>
+                                    ${acc.isExempt ? '<i class="fa-solid fa-shield-halved text-green-500 text-xs" title="Exenta 4x1000"></i>' : ''}
+                                </div>
+                                <div class="flex items-center gap-1.5 mt-1 flex-wrap">
+                                    ${branchBadge}
+                                </div>
                                 ${subInfo}
                                 <p class="text-3xl font-black text-brand-black tracking-tighter mt-2">${formatMoney(totalBalanceInt)}</p>
                                 <p class="text-[9px] font-bold text-gray-400 mt-1">Disponible: <span class="text-gray-600">${formatMoney(available)}</span></p>
@@ -877,6 +894,7 @@
         window.openAccountModal = () => {
             accForm.reset();
             document.getElementById('edit-id').value = "";
+            document.getElementById('acc-branch-id').value = "ALL";
             document.getElementById('modal-title').innerHTML = `Nueva <span class="text-brand-orange">Cuenta</span>`;
             const balInput = document.getElementById('acc-balance');
             balInput.disabled = false;
@@ -905,6 +923,7 @@
             
             document.getElementById('acc-exempt').checked = acc.isExempt || false;
             document.getElementById('acc-gateway-link').value = acc.gatewayLink || "";
+            document.getElementById('acc-branch-id').value = acc.branchId || "ALL";
             
             if(acc.type === 'banco') {
                 document.getElementById('acc-number').value = acc.accountNumber || '';
@@ -940,6 +959,7 @@
                 name: document.getElementById('acc-name').value,
                 type: type,
                 balance: newBalance, // Guardamos el saldo ya sea nuevo o editado
+                branchId: document.getElementById('acc-branch-id').value || "ALL",
                 updatedAt: Timestamp.now(),
                 isExempt: document.getElementById('acc-exempt').checked,
                 gatewayLink: document.getElementById('acc-gateway-link').value
@@ -998,8 +1018,31 @@
             document.getElementById('transfer-modal').classList.remove('hidden');
         };
 
+        let branchesList = [];
+        async function loadBranchesForAccounts() {
+            try {
+                const snap = await getDocs(collection(db, "branches"));
+                const select = document.getElementById('acc-branch-id');
+                if (select) {
+                    select.innerHTML = '<option value="ALL">Global (Todas las Sedes)</option>';
+                    branchesList = [];
+                    snap.forEach(d => {
+                        const b = d.data();
+                        branchesList.push({ id: d.id, ...b });
+                        select.innerHTML += `<option value="${d.id}">${b.name || d.id}</option>`;
+                    });
+                }
+            } catch (err) {
+                console.error("Error loading branches for accounts:", err);
+            }
+        }
+
         // INICIAR
-        initSmartAccounts();
+        async function startTreasury() {
+            await loadBranchesForAccounts();
+            initSmartAccounts();
+        }
+        startTreasury();
     </script>
 <script type="module" src="../js/admin/admin-guard.js"></script>
 </body>

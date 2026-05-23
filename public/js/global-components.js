@@ -13,7 +13,168 @@ async function loadComponent(elementId, componentPath) {
     }
 }
 
+// --- 🔥 INTERCEPTOR GLOBAL DE USUARIO (Header Sync) ---
+const staffRoles = ['admin', 'contabilidad', 'ventas', 'logistica'];
+
+export function initUserHeaderAuth() {
+    onAuthStateChanged(auth, async (user) => {
+        const userInfo = document.getElementById("user-info-global");
+        const mobileProfileLink = document.getElementById("mobile-profile-link");
+
+        const updateMobileLink = (isStaff, isLoggedIn) => {
+            if (!mobileProfileLink) return;
+            if (isLoggedIn) {
+                mobileProfileLink.href = isStaff ? '/admin/index.html' : '/profile.html';
+                const labelSpan = mobileProfileLink.querySelector('span');
+                const iconI = mobileProfileLink.querySelector('i');
+                if (labelSpan) labelSpan.textContent = isStaff ? 'Admin' : 'Perfil';
+                if (iconI) {
+                    iconI.className = isStaff ? 'fa-solid fa-user-shield text-xl mb-1 text-brand-orange' : 'fa-regular fa-user text-xl mb-1';
+                    if (isStaff) {
+                        labelSpan.classList.add('text-brand-orange');
+                    } else {
+                        labelSpan.classList.remove('text-brand-orange');
+                    }
+                }
+            } else {
+                mobileProfileLink.href = '/auth/login.html';
+                const labelSpan = mobileProfileLink.querySelector('span');
+                const iconI = mobileProfileLink.querySelector('i');
+                if (labelSpan) labelSpan.textContent = 'Perfil';
+                if (iconI) {
+                    iconI.className = 'fa-regular fa-user text-xl mb-1';
+                    labelSpan.classList.remove('text-brand-orange');
+                }
+            }
+        };
+
+        const updateMobileMenuDrawer = (isStaff) => {
+            const drawerLinks = document.getElementById("mobile-user-panel-links");
+            if (!drawerLinks) return;
+            
+            // Remove existing dynamic admin link if any, to avoid duplication
+            const existingAdminLink = drawerLinks.querySelector('.dynamic-admin-link');
+            if (existingAdminLink) {
+                existingAdminLink.remove();
+            }
+            
+            if (isStaff) {
+                const adminLink = document.createElement('a');
+                adminLink.href = '/admin/index.html';
+                adminLink.className = 'dynamic-admin-link flex items-center gap-4 p-3 rounded-xl bg-orange-50 border border-orange-100 hover:border-brand-orange/30 transition group';
+                adminLink.innerHTML = `
+                    <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-brand-orange shadow-sm border border-gray-50">
+                        <i class="fa-solid fa-user-shield text-xs"></i>
+                    </div>
+                    <span class="font-bold text-xs text-brand-black uppercase tracking-tight group-hover:text-brand-orange transition">Panel Administración</span>
+                `;
+                
+                const titleNode = drawerLinks.querySelector('p');
+                if (titleNode && titleNode.nextSibling) {
+                    drawerLinks.insertBefore(adminLink, titleNode.nextSibling);
+                } else {
+                    drawerLinks.appendChild(adminLink);
+                }
+            }
+        };
+
+        if (user) {
+            const cachedRole = sessionStorage.getItem(`role_${user.uid}`);
+            if (cachedRole) {
+                const isStaff = staffRoles.includes(cachedRole);
+                if (userInfo) renderUserButton(isStaff, userInfo);
+                updateMobileLink(isStaff, true);
+                updateMobileMenuDrawer(isStaff);
+            } else {
+                try {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    const role = userDoc.exists() ? userDoc.data().role || 'customer' : 'customer';
+                    sessionStorage.setItem(`role_${user.uid}`, role);
+                    const isStaff = staffRoles.includes(role);
+                    if (userInfo) renderUserButton(isStaff, userInfo);
+                    updateMobileLink(isStaff, true);
+                    updateMobileMenuDrawer(isStaff);
+                } catch (e) {
+                    if (userInfo) renderUserButton(false, userInfo);
+                    updateMobileLink(false, true);
+                    updateMobileMenuDrawer(false);
+                }
+            }
+        } else {
+            if (userInfo) {
+                userInfo.innerHTML = `
+                    <a href="/auth/login.html" class="flex flex-col items-center gap-1 group w-14 cursor-pointer">
+                        <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center group-hover:bg-brand-orange transition duration-300 shadow-sm">
+                            <i class="fa-regular fa-user text-lg text-gray-500 group-hover:text-white"></i>
+                        </div>
+                        <span class="hidden md:block text-[8px] font-black uppercase tracking-widest text-gray-500 group-hover:text-brand-orange text-center">Ingresar</span>
+                    </a>`;
+            }
+            updateMobileLink(false, false);
+            updateMobileMenuDrawer(false);
+        }
+    });
+}
+
+function renderUserButton(isStaff, userInfoNode) {
+    const targetPath = isStaff ? '/admin/index.html' : '/profile.html';
+    const label = isStaff ? 'Admin' : 'Cuenta';
+    userInfoNode.innerHTML = `
+        <a href="${targetPath}" class="flex flex-col items-center gap-1 group w-14">
+            <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-brand-orange text-white flex items-center justify-center shadow-md transition duration-300 hover:shadow-lg hover:-translate-y-1">
+                <i class="fa-solid ${isStaff ? 'fa-user-shield' : 'fa-user-check'} text-lg"></i>
+            </div>
+            <span class="hidden md:block text-[8px] font-black uppercase tracking-widest text-brand-orange text-center">${label}</span>
+        </a>`;
+}
+
 export async function loadGlobalHeader() {
+    // Inyectar estilos globales de componentes del header, buscador y notificaciones toast
+    if (!document.getElementById('global-header-component-styles')) {
+        const style = document.createElement('style');
+        style.id = 'global-header-component-styles';
+        style.textContent = `
+            .no-scrollbar::-webkit-scrollbar { display: none; }
+            .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+            
+            .mask-fade {
+                -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+                mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+            }
+
+            .drawer-shadow { box-shadow: -10px 0 30px rgba(0,0,0,0.2); }
+            .menu-tab-btn.active { border-color: var(--color-brand-orange, #F05A28); color: var(--color-brand-orange, #F05A28); }
+            .menu-tab-content.hidden { display: none; }
+            .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+            .animate-bounce-slow { animation: bounce 3s infinite; }
+            .animate-in-up { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+            @keyframes slideUp { from { transform: translateY(20px) scale(0.95); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
+            .smooth-drawer { transition-property: transform, opacity, visibility; transition-duration: 500ms; transition-timing-function: cubic-bezier(0.19, 1, 0.22, 1); will-change: transform; }
+            
+            #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+            .toast { pointer-events: auto; background: white; padding: 12px 20px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; transform: translateX(100%); opacity: 0; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); border-left: 4px solid var(--color-brand-orange, #F05A28); max-width: 350px; }
+            .toast.show { transform: translateX(0); opacity: 1; }
+            .toast.error { border-left-color: #EF4444; }
+            .toast-icon { font-size: 18px; }
+            .toast-msg { font-size: 12px; font-weight: 800; color: #0F0F0F; text-transform: uppercase; letter-spacing: 0.05em; }
+
+            .search-dropdown { position: absolute; top: 100%; left: 0; width: 100%; background: white; border-radius: 0 0 20px 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); z-index: 50; overflow: hidden; display: none; margin-top: 2px; border: 1px solid #f3f4f6; }
+            .search-dropdown.active { display: block; animation: slideDown 0.2s ease-out; }
+            @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+            .search-result-item { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 1px solid #f9fafb; cursor: pointer; transition: background 0.2s; }
+            .search-result-item:hover { background-color: #fff7ed; } 
+            .search-result-item:last-child { border-bottom: none; }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // Inicializar SmartCache globalmente para poblar menús en todas las páginas
+    try {
+        await SmartCache.init();
+    } catch (e) {
+        console.warn("⚠️ No se pudo inicializar SmartCache en el header:", e);
+    }
+
     const headerPlaceholder = document.getElementById('header-placeholder');
     if (headerPlaceholder) {
         await loadComponent('header-placeholder', '/includes/header.html');
@@ -23,6 +184,7 @@ export async function loadGlobalHeader() {
     initHeaderLogic();
     initSearchLogic();
     populateMegaMenus(); 
+    initUserHeaderAuth(); // 🔥 Activado globalmente para todas las páginas de la tienda
 }
 
 export async function loadGlobalFooter() {
@@ -158,11 +320,11 @@ export function injectCartDrawerHTML() {
     const drawerHTML = `
     <div id="cart-drawer-container" class="fixed inset-0 z-[100] pointer-events-none">
         <div id="cart-overlay" class="absolute inset-0 bg-black/60 backdrop-blur-sm opacity-0 transition-opacity duration-500 pointer-events-auto" style="display: none;" onclick="window.toggleCartDrawer()"></div>
-        <div id="cart-drawer" class="absolute right-0 top-0 w-full max-w-[420px] h-full bg-white shadow-2xl flex flex-col drawer-shadow translate-x-full smooth-drawer pointer-events-auto">
+        <div id="cart-drawer" class="absolute right-0 top-0 w-full max-w-[420px] h-full bg-white shadow-2xl flex flex-col drawer-shadow translate-x-full smooth-drawer pointer-events-auto invisible">
             
             <div class="p-6 bg-white flex justify-between items-center z-10 relative border-b border-gray-100">
                 <h3 class="font-black text-lg uppercase tracking-tight flex items-center gap-3 text-brand-black">
-                    <i class="fa-solid fa-bag-shopping text-[#00AEC7]"></i> MI CARRITO
+                    <i class="fa-solid fa-bag-shopping text-brand-orange"></i> MI CARRITO
                 </h3>
                 <button onclick="window.toggleCartDrawer()" aria-label="Cerrar carrito" class="w-8 h-8 rounded-full bg-gray-50 text-gray-400 flex items-center justify-center hover:bg-gray-200 transition">
                     <i class="fa-solid fa-xmark"></i>
@@ -172,7 +334,7 @@ export function injectCartDrawerHTML() {
             <div id="cart-shipping-bar" class="px-8 pt-6 pb-2 bg-white hidden">
                 <p id="shipping-msg-drawer" class="text-[9px] font-bold text-gray-500 uppercase tracking-wide text-center mb-2">Calculando envío...</p>
                 <div class="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                    <div id="shipping-progress-drawer" class="h-full bg-[#00AEC7] transition-all duration-500 w-0"></div>
+                    <div id="shipping-progress-drawer" class="h-full bg-brand-orange transition-all duration-500 w-0"></div>
                 </div>
             </div>
 
@@ -195,8 +357,19 @@ export function injectCartDrawerHTML() {
     document.body.insertAdjacentHTML('beforeend', drawerHTML);
 }
 
-
 export async function initHeaderLogic() {
+    // Inyectar estilos globales de marquee para evitar duplicación en HTMLs
+    if (!document.getElementById('global-marquee-styles')) {
+        const style = document.createElement('style');
+        style.id = 'global-marquee-styles';
+        style.textContent = `
+            .animate-marquee { display: flex; width: max-content; animation: marquee 45s linear infinite; }
+            .marquee-container:hover .animate-marquee { animation-play-state: paused; }
+            @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+        `;
+        document.head.appendChild(style);
+    }
+
     const topBanner = document.getElementById('top-banner-dynamic');
 
     if (topBanner) {
@@ -205,13 +378,11 @@ export async function initHeaderLogic() {
             if (data && data.freeThreshold > 0) {
                 freeHTML = `<span class="mx-8 flex items-center gap-2 text-brand-orange"><i class="fa-solid fa-gift animate-pulse"></i> ENVÍO GRATIS DESDE $${parseInt(data.freeThreshold).toLocaleString('es-CO')}</span>`;
             }
-            // Mensajes base que siempre se mostrarán
-            const baseContent = `<span class="mx-8 flex items-center gap-2"><i class="fa-solid fa-truck-fast text-brand-orange"></i> Envíos a toda Colombia</span><span class="mx-8 flex items-center gap-2"><i class="fa-solid fa-hand-holding-dollar text-brand-orange"></i> Contra entrega disponible</span><span class="mx-8 flex items-center gap-2"><i class="fa-solid fa-credit-card text-brand-orange"></i> Paga con ADDI o SISTECREDITO</span>${freeHTML}`;
+            const baseContent = `<span class="mx-8 flex items-center gap-2"><i class="fa-solid fa-truck-fast text-brand-orange"></i> Envíos a toda Colombia</span><span class="mx-8 flex items-center gap-2"><i class="fa-solid fa-hand-holding-dollar text-brand-orange"></i> Contra entrega disponible</span><span class="mx-8 flex items-center gap-2"><i class="fa-solid fa-credit-card text-brand-orange"></i> Paga con MERCADOPAGO o SISTECREDITO</span>${freeHTML}`;
             
             topBanner.innerHTML = `<div class="flex items-center animate-marquee font-black uppercase tracking-[0.3em]">${baseContent} ${baseContent} ${baseContent}</div>`;
         };
 
-        // Cambiamos el nombre del caché a mismartech
         const currentCacheStr = sessionStorage.getItem('mismartech_shipping_config');
         if (currentCacheStr) {
             renderBanner(JSON.parse(currentCacheStr));
@@ -221,7 +392,7 @@ export async function initHeaderLogic() {
 
         const fetchShipping = async () => {
             if (!navigator.onLine) {
-                renderBanner(null); // PLAN B: Si no hay internet, muestra los textos normales
+                renderBanner(null);
                 return;
             }
             try {
@@ -229,31 +400,22 @@ export async function initHeaderLogic() {
                 if (snap.exists()) {
                     const data = snap.data();
                     const newDataStr = JSON.stringify(data);
-                    const oldDataStr = sessionStorage.getItem('mismartech_shipping_config');
-
-                    // Siempre renderizamos para asegurar que se quite el "Cargando..."
                     renderBanner(data);
-
-                    if (oldDataStr !== newDataStr) {
-                        sessionStorage.setItem('mismartech_shipping_config', newDataStr);
-                        window.dispatchEvent(new Event('shippingConfigUpdated'));
-                    }
+                    sessionStorage.setItem('mismartech_shipping_config', newDataStr);
+                    window.dispatchEvent(new Event('shippingConfigUpdated'));
                 } else {
-                    // PLAN B: Si no creaste el documento en Firebase, muestra los textos normales
                     renderBanner(null);
                 }
             } catch (error) { 
                 console.warn("No se pudo cargar la config de envíos, usando default:", error);
-                // PLAN B: Si Firebase da error, muestra los textos normales
                 renderBanner(null);
             }
         };
 
-        // Ejecutar
         if ('requestIdleCallback' in window) {
             requestIdleCallback(fetchShipping);
         } else {
-            setTimeout(fetchShipping, 1000);
+            setTimeout(fetchShipping, 1000); 
         }
     }
 
@@ -267,7 +429,6 @@ export async function initHeaderLogic() {
         }
     };
 
-    // Lógica para Abrir/Cerrar el Carrito
     let isDrawerAnimating = false;
     window.toggleCartDrawer = (forceOpen = false) => {
         const cartDrawer = document.getElementById('cart-drawer');
@@ -278,6 +439,8 @@ export async function initHeaderLogic() {
         isDrawerAnimating = true;
 
         if (isClosed || forceOpen) {
+            cartDrawer.classList.remove('invisible');
+            void cartDrawer.offsetWidth; // Force reflow
             cartOverlay.style.display = 'block';
             void cartOverlay.offsetWidth;
             cartOverlay.classList.remove('opacity-0');
@@ -289,11 +452,14 @@ export async function initHeaderLogic() {
             cartDrawer.classList.add('translate-x-full');
             cartOverlay.classList.remove('opacity-100');
             cartOverlay.classList.add('opacity-0');
-            setTimeout(() => { cartOverlay.style.display = 'none'; isDrawerAnimating = false; }, 500);
+            setTimeout(() => { 
+                cartOverlay.style.display = 'none'; 
+                cartDrawer.classList.add('invisible');
+                isDrawerAnimating = false; 
+            }, 500);
         }
     };
 
-    // Controlador de Cantidad dentro del Drawer
     window.changeDrawerQty = (cartId, currentQty, change) => {
         const newQty = currentQty + change;
         if (newQty < 1) return;
@@ -306,14 +472,12 @@ export async function initHeaderLogic() {
         }
     };
 
-    // Eliminar Item del Drawer
     window.removeCartItemDrawer = (cartId) => {
         removeFromCart(cartId);
         window.renderCartDrawerItems();
         window.updateCartCountGlobal();
     };
 
-    // Renderizador Visual del Drawer (Idéntico a la imagen provista)
     window.renderCartDrawerItems = () => {
         const container = document.getElementById('cart-drawer-items');
         const totalEl = document.getElementById('cart-drawer-total');
@@ -332,30 +496,60 @@ export async function initHeaderLogic() {
 
         let subtotal = 0;
         container.innerHTML = cart.map((item) => {
-            subtotal += item.price * item.quantity;
+            const itemSubtotal = item.price * item.quantity;
+            subtotal += itemSubtotal;
             
-            // Renderizado estilo "image_d2007f.png"
-            return `
-            <div class="bg-white p-3 rounded-2xl border border-gray-100 flex flex-col gap-3 relative group transition hover:border-[#00AEC7] hover:shadow-md">
-                <div class="flex gap-4 items-start">
-                    <div class="w-16 h-16 bg-gray-50 rounded-xl border border-gray-100 p-1 shrink-0 flex items-center justify-center">
-                        <img src="${item.image || 'https://placehold.co/50'}" class="max-w-full max-h-full object-contain mix-blend-multiply">
+            const hasPromo = item.originalPrice && item.originalPrice > item.price;
+            let promoHTML = '';
+            let badgePromoHTML = '';
+            
+            if (hasPromo) {
+                const itemOriginalSubtotal = item.originalPrice * item.quantity;
+                const discPercent = Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100);
+                const savings = (item.originalPrice - item.price) * item.quantity;
+                
+                promoHTML = `
+                    <div class="flex items-center gap-2 mt-1.5">
+                        <span class="text-sm font-black text-brand-orange">$${itemSubtotal.toLocaleString('es-CO')}</span>
+                        <span class="line-through text-gray-400 text-xs font-semibold">$${itemOriginalSubtotal.toLocaleString('es-CO')}</span>
                     </div>
-                    <div class="flex-grow min-w-0 pr-2">
-                        <h4 class="text-[9px] font-black uppercase text-brand-black leading-snug line-clamp-2">${item.name}</h4>
-                        ${item.capacity || item.color ? `<p class="text-[8px] font-bold text-gray-400 mt-0.5 uppercase">${item.color || ''} ${item.capacity || ''}</p>` : ''}
-                        <div class="text-xs font-black text-brand-black mt-1">$${item.price.toLocaleString('es-CO')}</div>
+                    <div class="text-[10px] font-black text-emerald-700 uppercase tracking-wide mt-2 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100 w-max flex items-center gap-1 shadow-sm">
+                        <i class="fa-solid fa-tags text-[9px]"></i> ¡Ahorras $${savings.toLocaleString('es-CO')}!
+                    </div>
+                `;
+                
+                badgePromoHTML = `
+                    <span class="absolute -top-1.5 -left-1.5 bg-brand-red text-white text-[9px] font-black px-2 py-0.5 rounded shadow-sm z-10 uppercase tracking-wider">
+                        -${discPercent}%
+                    </span>
+                `;
+            } else {
+                promoHTML = `<div class="text-sm font-black text-brand-black mt-1.5">$${itemSubtotal.toLocaleString('es-CO')}</div>`;
+            }
+            
+            return `
+            <div class="bg-white p-4 rounded-2xl border border-gray-100 flex flex-col gap-4 relative group transition hover:border-brand-orange hover:shadow-md">
+                <div class="flex gap-4 items-center">
+                    <div class="w-20 h-20 bg-gray-50 rounded-xl border border-gray-100 p-1.5 shrink-0 flex items-center justify-center relative">
+                        ${badgePromoHTML}
+                        <img src="${item.image || 'https://placehold.co/50'}" class="max-h-full max-w-full object-contain mix-blend-multiply">
+                    </div>
+                    <div class="flex-grow min-w-0 pr-1">
+                        <h4 class="text-xs font-bold uppercase text-brand-black leading-snug line-clamp-2 tracking-tight">${item.name}</h4>
+                        ${item.capacity || item.color ? `<p class="text-[11px] font-bold text-gray-400 mt-1 uppercase tracking-wide">${item.color || ''} ${item.capacity || ''}</p>` : ''}
+                        
+                        ${promoHTML}
                     </div>
                 </div>
                 
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center bg-white rounded-lg h-8 border border-gray-200 w-24 overflow-hidden">
-                        <button onclick="window.changeDrawerQty('${item.cartId}', ${item.quantity}, -1)" class="flex-1 h-full flex items-center justify-center text-gray-400 hover:text-brand-black hover:bg-gray-50 transition font-bold">-</button>
-                        <span class="flex-1 text-center text-[10px] font-black text-brand-black bg-gray-50/50 h-full flex items-center justify-center border-x border-gray-100">${item.quantity}</span>
-                        <button onclick="window.changeDrawerQty('${item.cartId}', ${item.quantity}, 1)" class="flex-1 h-full flex items-center justify-center text-gray-400 hover:text-brand-black hover:bg-gray-50 transition font-bold">+</button>
+                <div class="flex items-center justify-between border-t border-gray-50 pt-3">
+                    <div class="flex items-center bg-gray-50 rounded-xl h-8 border border-gray-200 w-24 overflow-hidden">
+                        <button onclick="window.changeDrawerQty('${item.cartId}', ${item.quantity}, -1)" class="flex-1 h-full flex items-center justify-center text-gray-400 hover:text-brand-black hover:bg-gray-200 transition font-bold text-xs">-</button>
+                        <span class="flex-1 text-center text-xs font-black text-brand-black bg-white h-full flex items-center justify-center border-x border-gray-200 shadow-inner">${item.quantity}</span>
+                        <button onclick="window.changeDrawerQty('${item.cartId}', ${item.quantity}, 1)" class="flex-1 h-full flex items-center justify-center text-gray-400 hover:text-brand-black hover:bg-gray-200 transition font-bold text-xs">+</button>
                     </div>
-                    <button onclick="window.removeCartItemDrawer('${item.cartId}')" class="w-8 h-8 rounded-full bg-white flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 transition">
-                        <i class="fa-solid fa-trash-can text-[10px]"></i>
+                    <button onclick="window.removeCartItemDrawer('${item.cartId}')" class="w-8 h-8 rounded-full bg-white flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 border border-gray-100 transition shadow-sm active:scale-90">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
                     </button>
                 </div>
             </div>`;
@@ -363,9 +557,8 @@ export async function initHeaderLogic() {
 
         totalEl.textContent = `$${subtotal.toLocaleString('es-CO')}`;
 
-        // Lógica barra de envío
         try {
-            const cachedConfig = sessionStorage.getItem('pixeltech_shipping_config');
+            const cachedConfig = sessionStorage.getItem('mismartech_shipping_config');
             if (cachedConfig) {
                 const data = JSON.parse(cachedConfig);
                 const threshold = parseInt(data.freeThreshold) || 0;
@@ -376,11 +569,11 @@ export async function initHeaderLogic() {
                     shippingBar.style.width = `${percent}%`;
                     
                     if (diff > 0) {
-                        shippingMsg.innerHTML = `TE FALTAN <span class="text-[#00AEC7] font-black">$${diff.toLocaleString('es-CO')}</span> PARA ENVÍO GRATIS`;
-                        shippingBar.classList.remove('bg-emerald-500'); shippingBar.classList.add('bg-[#00AEC7]');
+                        shippingMsg.innerHTML = `TE FALTAN <span class="text-brand-orange font-black">$${diff.toLocaleString('es-CO')}</span> PARA ENVÍO GRATIS`;
+                        shippingBar.classList.remove('bg-emerald-500'); shippingBar.classList.add('bg-brand-orange');
                     } else {
                         shippingMsg.innerHTML = `<span class="text-emerald-500 font-black"><i class="fa-solid fa-check-circle"></i> ¡TIENES ENVÍO GRATIS!</span>`;
-                        shippingBar.classList.remove('bg-[#00AEC7]'); shippingBar.classList.add('bg-emerald-500');
+                        shippingBar.classList.remove('bg-brand-orange'); shippingBar.classList.add('bg-emerald-500');
                     }
                 } else {
                     shippingBarContainer.classList.add('hidden');
@@ -408,9 +601,11 @@ export async function initHeaderLogic() {
     };
 
     // --- EVENT LISTENERS ---
-    window.addEventListener('cartItemAdded', () => {
+    window.addEventListener('cartItemAdded', (e) => {
         window.updateCartCountGlobal();
-        window.toggleCartDrawer(true); // Fuerza abrir el drawer al agregar
+        if (e.detail && e.detail.isFirstProduct) {
+            window.toggleCartDrawer(true); 
+        }
     });
 
     window.addEventListener('cartUpdated', () => {
@@ -422,12 +617,11 @@ export async function initHeaderLogic() {
     });
 
     window.addEventListener('storage', (e) => {
-        if (e.key === 'pixeltech_cart') window.updateCartCountGlobal();
+        if (e.key === 'smartech_cart') window.updateCartCountGlobal();
     });
 
     window.updateCartCountGlobal();
 
-    // Drawer de navegación Móvil (Menú principal)
     const drawer = document.getElementById('mobile-menu-drawer');
     const overlay = document.getElementById('mobile-menu-overlay');
     const btnClose = document.getElementById('mobile-drawer-close');
@@ -460,57 +654,12 @@ export async function initHeaderLogic() {
 
     const initDelayedTasks = () => {
         syncAllCategories();
-        onAuthStateChanged(auth, async (user) => {
-            const container = document.getElementById('user-info-global');
-            const mobileProfile = document.getElementById('mobile-profile-link');
-            if (user) {
-                if (container) {
-                    let role = sessionStorage.getItem('pixeltech_user_role');
-                    if (!role) {
-                        getDoc(doc(db, "users", user.uid)).then(userSnap => {
-                            role = (userSnap.exists() && userSnap.data().role === 'admin') ? 'admin' : 'user';
-                            sessionStorage.setItem('pixeltech_user_role', role);
-                            renderUserLink(role, container, mobileProfile);
-                        });
-                    } else {
-                        renderUserLink(role, container, mobileProfile);
-                    }
-                }
-            } else {
-                if (container) {
-                    container.innerHTML = `
-                    <a href="/auth/login.html" class="flex items-center space-x-2 cursor-pointer hover:text-brand-orange transition text-gray-700">
-                        <i class="fa-regular fa-user text-2xl"></i>
-                        <div class="text-sm">
-                            <p class="text-gray-500 leading-none text-[11px] mb-1">Mi Cuenta</p>
-                            <p class="font-bold leading-none text-brand-black">Ingresar</p>
-                        </div>
-                    </a>`;
-                }
-                if (mobileProfile) mobileProfile.href = "/auth/login.html";
-            }
-        });
     };
 
     if ('requestIdleCallback' in window) {
         requestIdleCallback(initDelayedTasks);
     } else {
         setTimeout(initDelayedTasks, 1000); 
-    }
-
-    function renderUserLink(role, container, mobileProfile) {
-        const isAdmin = role === 'admin';
-        const label = isAdmin ? 'Admin' : 'Perfil';
-        const link = isAdmin ? '/admin/index.html' : '/profile.html';
-        container.innerHTML = `
-        <a href="${link}" class="flex items-center space-x-2 cursor-pointer hover:text-brand-orange transition text-brand-orange">
-            <i class="fa-solid ${isAdmin ? 'fa-user-shield' : 'fa-circle-user'} text-2xl"></i>
-            <div class="text-sm">
-                <p class="text-gray-500 leading-none text-[11px] mb-1">Mi Cuenta</p>
-                <p class="font-bold leading-none">${label}</p>
-            </div>
-        </a>`;
-        if (mobileProfile) mobileProfile.href = link;
     }
 }
 
@@ -523,19 +672,13 @@ export function populateMegaMenus() {
         const categories = SmartCache.getCategories();
         if (categories.length > 0) {
             catDropdown.innerHTML = categories.map(cat => `
-                <a href="/shop/catalog.html?category=${encodeURIComponent(cat.name)}" class="w-48 bg-white border border-gray-100 rounded-[1.5rem] hover:border-[#00AEC7] hover:shadow-[0_10px_30px_rgba(0,174,199,0.15)] transition-all duration-300 group flex flex-col relative overflow-hidden shrink-0">
-                    <div class="absolute top-3 right-3 bg-brand-black text-white text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-1 group-hover:translate-y-0 z-10">
-                        Ver Productos
+                <a href="/shop/catalog.html?category=${encodeURIComponent(cat.name)}" class="w-32 md:w-40 bg-white border border-gray-100 rounded-[1.5rem] hover:border-brand-orange hover:shadow-[0_10px_20px_rgba(240,90,40,0.15)] transition-all duration-300 group flex flex-col relative overflow-hidden shrink-0 p-4 items-center text-center hover:-translate-y-1">
+                    <div class="h-20 w-full mb-3 flex items-center justify-center rounded-2xl group-hover:bg-orange-50/70 transition-colors duration-300 p-2">
+                        <img src="${cat.image || 'https://placehold.co/100'}" class="max-h-full max-w-full object-contain mix-blend-multiply group-hover:scale-125 transition-all duration-300 drop-shadow-sm group-hover:drop-shadow-md">
                     </div>
-                    
-                    <div class="h-32 w-full p-4 flex items-center justify-center relative">
-                        <img src="${cat.image || 'https://placehold.co/150'}" class="max-h-full max-w-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-500 relative z-0">
-                    </div>
-                    
-                    <div class="px-5 py-4 border-t border-gray-50 flex items-center justify-between bg-slate-50/50 group-hover:bg-[#00AEC7]/5 transition-colors">
-                        <span class="text-[11px] font-black uppercase text-brand-black tracking-wider truncate group-hover:text-[#00AEC7] transition-colors w-full">${cat.name}</span>
-                        <i class="fa-solid fa-arrow-right text-[#00AEC7] text-[10px] opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"></i>
-                    </div>
+                    <span class="text-[10px] md:text-[11px] font-black uppercase text-brand-black tracking-widest group-hover:text-brand-orange transition-colors w-full line-clamp-2">
+                        ${cat.name}
+                    </span>
                 </a>
             `).join('');
         }
@@ -545,19 +688,13 @@ export function populateMegaMenus() {
         const brands = SmartCache.getBrands();
         if (brands.length > 0) {
             brandDropdown.innerHTML = brands.map(b => `
-                <a href="/shop/search.html?brand=${encodeURIComponent(b.name)}" class="w-48 bg-white border border-gray-100 rounded-[1.5rem] hover:border-[#00AEC7] hover:shadow-[0_10px_30px_rgba(0,174,199,0.15)] transition-all duration-300 group flex flex-col relative overflow-hidden shrink-0">
-                    <div class="absolute top-3 right-3 bg-brand-black text-white text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-1 group-hover:translate-y-0 z-10">
-                        Ver Productos
+                <a href="/shop/search.html?brand=${encodeURIComponent(b.name)}" class="w-32 md:w-40 bg-white border border-gray-100 rounded-[1.5rem] hover:border-brand-orange hover:shadow-[0_10px_20px_rgba(240,90,40,0.15)] transition-all duration-300 group flex flex-col relative overflow-hidden shrink-0 p-4 items-center text-center hover:-translate-y-1">
+                    <div class="h-20 w-full mb-3 flex items-center justify-center rounded-2xl group-hover:bg-orange-50/70 transition-colors duration-300 p-2">
+                        <img src="${b.image || 'https://placehold.co/100'}" class="max-h-full max-w-full object-contain mix-blend-multiply opacity-70 group-hover:opacity-100 group-hover:scale-125 transition-all duration-300 drop-shadow-sm group-hover:drop-shadow-md">
                     </div>
-                    
-                    <div class="h-32 w-full p-4 flex items-center justify-center relative">
-                        <img src="${b.image || 'https://placehold.co/150'}" class="max-h-full max-w-full object-contain mix-blend-multiply grayscale opacity-70 group-hover:opacity-100 group-hover:grayscale-0 group-hover:scale-110 transition-all duration-500 relative z-0">
-                    </div>
-                    
-                    <div class="px-5 py-4 border-t border-gray-50 flex items-center justify-between bg-slate-50/50 group-hover:bg-[#00AEC7]/5 transition-colors">
-                        <span class="text-[11px] font-black uppercase text-brand-black tracking-wider truncate group-hover:text-[#00AEC7] transition-colors w-full">${b.name}</span>
-                        <i class="fa-solid fa-arrow-right text-[#00AEC7] text-[10px] opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"></i>
-                    </div>
+                    <span class="text-[10px] md:text-[11px] font-black uppercase text-brand-black tracking-widest group-hover:text-brand-orange transition-colors w-full line-clamp-2">
+                        ${b.name}
+                    </span>
                 </a>
             `).join('');
         }
@@ -566,6 +703,7 @@ export function populateMegaMenus() {
 
 window.addEventListener('categoriesUpdated', populateMegaMenus);
 window.addEventListener('brandsUpdated', populateMegaMenus);
+window.populateMegaMenus = populateMegaMenus;
 
 // --- CARGA DE CATEGORÍAS (MENÚ MÓVIL) ---
 async function syncAllCategories() {

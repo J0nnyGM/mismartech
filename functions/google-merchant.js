@@ -2,7 +2,7 @@
 const { onRequest } = require("firebase-functions/v2/https");
 const admin = require("firebase-admin");
 
-const DOMAIN = "https://pixeltechcol.com"; 
+const DOMAIN = "https://mismartech.com"; 
 
 function escapeXml(unsafe) {
     if (!unsafe) return "";
@@ -88,7 +88,7 @@ exports.generateProductFeed = onRequest({ timeoutSeconds: 60, cors: true }, asyn
                 rawDesc += " | Política de Devolución: Únicamente se aceptan devoluciones si el producto presenta daños, defectos de fábrica o llega en mal estado.";
                 const description = escapeXml(rawDesc.substring(0, 5000));
 
-                const brand = escapeXml(p.brand || 'PixelTech');
+                const brand = escapeXml(p.brand || 'MiSmartech');
                 const productType = p.subcategory ? escapeXml(`${p.category} > ${p.subcategory}`) : escapeXml(p.category || 'Electrónica');
 
                 let saleDateXml = '';
@@ -212,7 +212,7 @@ exports.generateProductFeed = onRequest({ timeoutSeconds: 60, cors: true }, asyn
         const feedXml = `<?xml version="1.0" encoding="UTF-8"?>
             <rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">
                 <channel>
-                    <title>PixelTech Col SAS</title>
+                    <title>MiSmartech SAS</title>
                     <link>${DOMAIN}</link>
                     <description>Catálogo oficial de productos tecnológicos</description>
                     ${allItemsXml}

@@ -1,5 +1,5 @@
 // public/js/admin/admin-ui.js
-import { auth } from '../firebase-init.js';
+import { auth, db, collection, getDocs, doc, getDoc } from '../firebase-init.js';
 
 export function loadAdminSidebar(userRole = 'customer') {
     const sidebarContainer = document.getElementById('admin-sidebar');
@@ -10,9 +10,9 @@ export function loadAdminSidebar(userRole = 'customer') {
     // --- 1. PERMISOS DE MÓDULOS (Nombres exactos del menú) ---
     const rolePermissions = {
         'admin': ['all'],
-        'contabilidad': ['Dashboard', 'Facturación', 'Gestión de Cartera', 'Cuentas', 'Control de Gastos', 'Rentabilidad FIFO'],
-        'ventas': ['Dashboard', 'WhatsApp', 'Pedidos', 'Clientes', 'Garantías', 'Productos', 'Categorías', 'Banners y Promos'],
-        'logistica': ['Dashboard', 'Pedidos', 'Productos', 'Nueva Entrada', 'Inventario RMA', 'Logística']
+        'contabilidad': ['Dashboard', 'Facturación', 'Gestión de Cartera', 'Cuentas', 'Control de Gastos', 'Rentabilidad FIFO', 'Sedes y Cierres'],
+        'ventas': ['Dashboard', 'WhatsApp', 'Pedidos', 'Clientes', 'Garantías', 'Productos', 'Categorías', 'Banners y Promos', 'Sedes y Cierres'],
+        'logistica': ['Dashboard', 'Pedidos', 'Productos', 'Nueva Entrada', 'Inventario RMA', 'Logística', 'Sedes y Cierres']
     };
 
     // --- 2. DEFINICIÓN DE GRUPOS Y MENÚS BASE ---
@@ -22,6 +22,7 @@ export function loadAdminSidebar(userRole = 'customer') {
             items: [
                 { name: 'Dashboard', icon: 'fa-chart-line', path: '/admin/index.html' },
                 { name: 'WhatsApp', icon: 'fa-brands fa-whatsapp', path: '/admin/whatsapp.html' },
+                { name: 'Sedes y Cierres', icon: 'fa-house-flag', path: '/admin/branches.html' },
                 { name: 'Gestión Usuarios', icon: 'fa-user-shield', path: '/admin/users-admin.html' } // Módulo solo Admin
             ]
         },
@@ -80,7 +81,7 @@ export function loadAdminSidebar(userRole = 'customer') {
                         const isActive = currentPage.includes(item.path);
                         return `
                             <a href="${item.path}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-300 font-bold text-sm group ${
-                                isActive ? 'bg-brand-orange text-brand-black shadow-lg shadow-cyan-500/20' : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                                isActive ? 'bg-brand-orange text-brand-black shadow-lg shadow-orange-500/20' : 'text-gray-400 hover:bg-gray-800 hover:text-white'
                             }">
                                 <div class="w-6 flex justify-center">
                                     <i class="fa-solid ${item.icon} ${isActive ? 'text-brand-black' : 'text-brand-orange group-hover:text-white'} transition-colors"></i> 
@@ -117,7 +118,7 @@ export function loadAdminSidebar(userRole = 'customer') {
             <button id="mobile-menu-trigger" class="relative flex flex-col items-center py-3 px-2 w-full text-brand-orange hover:text-white hover:bg-white/5 transition">
                 <i class="fa-solid fa-bars text-lg mb-1"></i>
                 <span class="text-[8px] font-bold uppercase tracking-widest">Menú</span>
-                <span id="mobile-update-badge" class="hidden absolute top-2 right-[25%] w-2.5 h-2.5 bg-brand-orange rounded-full shadow-[0_0_8px_#00AEC7] animate-pulse"></span>
+                <span id="mobile-update-badge" class="hidden absolute top-2 right-[25%] w-2.5 h-2.5 bg-brand-orange rounded-full shadow-[0_0_8px_#F05A28] animate-pulse"></span>
             </button>
         </nav>
     `;
@@ -129,7 +130,7 @@ export function loadAdminSidebar(userRole = 'customer') {
             .sidebar-scroll::-webkit-scrollbar { width: 4px; }
             .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
             .sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
-            .sidebar-scroll::-webkit-scrollbar-thumb:hover { background: #00AEC7; }
+            .sidebar-scroll::-webkit-scrollbar-thumb:hover { background: #F05A28; }
             .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0); }
         </style>
     `;
@@ -140,11 +141,11 @@ export function loadAdminSidebar(userRole = 'customer') {
                 <button id="mobile-menu-close" class="md:hidden absolute right-4 top-4 w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-white hover:bg-brand-red transition">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
-                <div class="relative group cursor-pointer mt-2" onclick="window.location.href='/admin/index.html'">
-                    <div class="absolute inset-0 bg-brand-orange/20 blur-xl rounded-full group-hover:bg-brand-orange/30 transition"></div>
-                    <img src="../img/logo.webp" alt="PixelTech" class="h-10 md:h-12 w-auto relative z-10 drop-shadow-lg">
+                <div class="relative group cursor-pointer mt-2 bg-white/95 backdrop-blur-md rounded-2xl py-2 px-5 shadow-lg border border-white/20 flex items-center justify-center transition-all duration-300 hover:scale-[1.03] hover:bg-white" onclick="window.location.href='/admin/index.html'">
+                    <img src="../img/logo.webp" alt="Mi Smartech" class="h-8 md:h-9 w-auto relative z-10">
                 </div>
                 <p class="text-[9px] text-gray-500 font-black uppercase tracking-[0.3em] mt-3">Admin Panel | <span class="text-brand-orange">${userRole}</span></p>
+                <div id="branch-selector-container" class="w-full mt-2"></div>
                 <button id="btn-update-app" class="hidden w-full flex items-center justify-center gap-2 py-3 mt-5 text-xs font-black uppercase tracking-widest text-brand-orange bg-brand-orange/10 border border-brand-orange/30 hover:bg-brand-orange hover:text-brand-black rounded-xl transition-all duration-300 shadow-[0_0_15px_rgba(0,174,199,0.3)]">
                     <i class="fa-solid fa-cloud-arrow-down fa-bounce"></i> Actualizar App
                 </button>
@@ -227,9 +228,93 @@ export function loadAdminSidebar(userRole = 'customer') {
                         if (url.endsWith('.js') || url.endsWith('.html') || url.includes('?')) await cache.delete(request);
                     }
                 }
+                // 🔥 LIMPIAR CACHÉ DE BASE DE DATOS LOCAL PARA FORZAR RE-SINCRONIZACIÓN COMPLETA DESDE FIRESTORE
+                Object.keys(localStorage).forEach(key => {
+                    if (key.startsWith('mismartech_') || key.startsWith('smartech_') || key.startsWith('admin_')) {
+                        localStorage.removeItem(key);
+                    }
+                });
+                Object.keys(sessionStorage).forEach(key => {
+                    if (key.startsWith('mismartech_') || key.startsWith('smartech_') || key.startsWith('admin_')) {
+                        sessionStorage.removeItem(key);
+                    }
+                });
             } catch (error) {}
             if (newWorker) newWorker.postMessage({ type: 'SKIP_WAITING' });
             else window.location.href = window.location.pathname + '?refresh=' + new Date().getTime();
         });
+    }
+
+    setupBranchSelectorInSidebar();
+}
+
+async function setupBranchSelectorInSidebar() {
+    const container = document.getElementById('branch-selector-container');
+    if (!container) return;
+
+    const role = sessionStorage.getItem('adminUserRole') || 'customer';
+    const assignedBranchId = sessionStorage.getItem('adminUserBranchId') || 'sede_principal';
+    const activeBranchId = sessionStorage.getItem('activeBranchId') || 'sede_principal';
+
+    // Para Super Admin (o rol admin)
+    if (role === 'admin' || assignedBranchId === 'ALL') {
+        try {
+            const snap = await getDocs(collection(db, "branches"));
+            let optionsHTML = '';
+            snap.forEach(d => {
+                const b = d.data();
+                const selected = d.id === activeBranchId ? 'selected' : '';
+                optionsHTML += `<option value="${d.id}" ${selected}>${b.name || d.id}</option>`;
+            });
+
+            container.innerHTML = `
+                <div class="relative w-full">
+                    <div class="absolute left-3 top-1/2 -translate-y-1/2 text-brand-orange text-xs pointer-events-none">
+                        <i class="fa-solid fa-location-dot"></i>
+                    </div>
+                    <select id="sidebar-branch-select" class="w-full bg-gray-900 border border-gray-800 rounded-xl py-2 pl-8 pr-8 text-xs font-bold text-gray-300 outline-none appearance-none focus:border-brand-orange focus:text-white transition">
+                        ${optionsHTML}
+                    </select>
+                    <div class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-[10px] pointer-events-none">
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </div>
+                </div>
+            `;
+
+            const selectEl = document.getElementById('sidebar-branch-select');
+            if (selectEl) {
+                selectEl.onchange = (e) => {
+                    sessionStorage.setItem('activeBranchId', e.target.value);
+                    window.location.reload();
+                };
+            }
+        } catch (err) {
+            console.error("Error loading branches for sidebar:", err);
+            container.innerHTML = `<span class="text-[10px] text-red-400">Error al cargar sedes</span>`;
+        }
+    } else {
+        // Para empleados de sede bloqueada
+        container.innerHTML = `
+            <div class="w-full bg-gray-900/60 border border-gray-800/80 rounded-xl py-2.5 px-3 flex items-center gap-2 text-xs font-bold text-gray-400">
+                <span class="text-brand-orange animate-pulse"><i class="fa-solid fa-location-dot"></i></span>
+                <span class="truncate uppercase text-[9px] tracking-widest text-gray-400">Sede: <span id="locked-branch-name" class="font-black text-brand-orange">Cargando...</span></span>
+            </div>
+        `;
+
+        try {
+            const docSnap = await getDoc(doc(db, "branches", assignedBranchId));
+            const nameEl = document.getElementById('locked-branch-name');
+            if (nameEl) {
+                if (docSnap.exists()) {
+                    nameEl.innerText = docSnap.data().name || assignedBranchId;
+                } else {
+                    nameEl.innerText = assignedBranchId;
+                }
+            }
+        } catch (err) {
+            console.error("Error fetching locked branch name:", err);
+            const nameEl = document.getElementById('locked-branch-name');
+            if (nameEl) nameEl.innerText = assignedBranchId;
+        }
     }
 }

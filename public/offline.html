@@ -1,24 +1,118 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0B0B0F">
+    <link rel="apple-touch-icon" href="/img/icons/icon-192x192.webp">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sin Conexión | PixelTech</title>
-    <link rel="stylesheet" href="/css/styles.css"> <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <title>Sin Conexión | MiSmartech</title>
+    
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+    
+    <style>
+        body {
+            background-color: #0B0B0F !important;
+        }
+        /* Ambient Floating Lights Animation */
+        .ambient-glow-1 {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(240, 90, 40, 0.12) 0%, transparent 70%);
+            border-radius: 50%;
+            top: -10%;
+            left: -10%;
+            animation: float-glow-1 15s infinite alternate ease-in-out;
+            pointer-events: none;
+            filter: blur(40px);
+        }
+        .ambient-glow-2 {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(239, 68, 68, 0.08) 0%, transparent 70%);
+            border-radius: 50%;
+            bottom: -15%;
+            right: -10%;
+            animation: float-glow-2 18s infinite alternate ease-in-out;
+            pointer-events: none;
+            filter: blur(40px);
+        }
+        @keyframes float-glow-1 {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(100px, 60px) scale(1.15); }
+        }
+        @keyframes float-glow-2 {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(-100px, -60px) scale(1.1); }
+        }
+
+        /* Radar pulses with delays */
+        .radar-ring-1 { animation: radar-pulse 3s infinite linear; }
+        .radar-ring-2 { animation: radar-pulse 3s infinite linear; animation-delay: 1s; }
+        .radar-ring-3 { animation: radar-pulse 3s infinite linear; animation-delay: 2s; }
+
+        @keyframes radar-pulse {
+            0% { transform: scale(0.8); opacity: 0; }
+            10% { opacity: 0.4; }
+            100% { transform: scale(2.2); opacity: 0; }
+        }
+
+        /* Smooth scale-in entry */
+        .fade-in-scale { 
+            animation: fadeInScale 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
+            opacity: 0; 
+            transform: scale(0.96) translateY(15px); 
+        }
+        @keyframes fadeInScale { 
+            to { 
+                opacity: 1; 
+                transform: scale(1) translateY(0); 
+            } 
+        }
+    </style>
 </head>
-<body class="bg-slate-50 flex items-center justify-center h-screen text-center p-6">
-    <div>
-        <div class="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-400">
-            <i class="fa-solid fa-wifi-slash text-4xl"></i>
+
+<body class="bg-[#0B0B0F] font-sans text-white antialiased flex items-center justify-center min-h-screen text-center p-6 relative overflow-hidden">
+    
+    <!-- Organic Floating Neons in the Background -->
+    <div class="ambient-glow-1"></div>
+    <div class="ambient-glow-2"></div>
+
+    <div class="max-w-md w-full bg-white/[0.03] backdrop-blur-2xl p-8 md:p-12 rounded-[2.5rem] shadow-[0_30px_100px_rgba(0,0,0,0.8)] border border-white/[0.08] relative z-10 fade-in-scale">
+
+        <!-- Premium Radar Waves Box with Brand Logo in the Center -->
+        <div class="relative w-36 h-36 mx-auto mb-10 flex items-center justify-center">
+            <!-- Concentric Pulse Waves -->
+            <span class="absolute w-24 h-24 rounded-full bg-brand-orange/30 radar-ring-1"></span>
+            <span class="absolute w-24 h-24 rounded-full bg-brand-orange/20 radar-ring-2"></span>
+            <span class="absolute w-24 h-24 rounded-full bg-brand-orange/10 radar-ring-3"></span>
+            
+            <!-- Central Physical Brand Logo Container -->
+            <div class="relative w-20 h-20 bg-white rounded-3xl flex items-center justify-center shadow-[0_0_30px_rgba(240,90,40,0.4)] border border-white/20 transform hover:scale-105 transition-transform duration-300 p-3.5 z-10">
+                <img src="/img/icons/icon-192x192.webp" alt="MiSmartech Logo" class="w-full h-full object-contain">
+            </div>
         </div>
-        <h1 class="text-2xl font-black text-brand-black uppercase mb-2">Estás Offline</h1>
-        <p class="text-gray-500 text-sm max-w-xs mx-auto mb-8">
-            No tienes conexión a internet en este momento. Revisa tu señal e intenta de nuevo.
+
+        <h1 class="text-3xl font-black uppercase tracking-tighter mb-2 bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent leading-none">
+            Sin Conexión
+        </h1>
+        
+        <p class="text-brand-orange font-black text-[10px] uppercase tracking-[0.25em] mb-6">
+            Buscando señal de red...
         </p>
-        <button onclick="window.location.reload()" class="bg-brand-orange text-white px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-brand-black transition">
-            Reintentar
+
+        <p class="text-slate-400 font-medium text-sm max-w-xs mx-auto mb-10 leading-relaxed">
+            Hemos perdido contacto con el servidor de MiSmartech. Por favor, verifica tu conexión a internet o datos e intenta reconectarte.
+        </p>
+
+        <button onclick="this.querySelector('.fa-rotate-right').classList.add('fa-spin'); setTimeout(() => window.location.reload(), 800);" class="w-full bg-gradient-to-r from-brand-orange to-brand-red text-white py-4.5 px-6 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-[0_10px_30px_rgba(240,90,40,0.25)] hover:shadow-[0_15px_40px_rgba(240,90,40,0.45)] hover:-translate-y-0.5 active:scale-95 transform transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer">
+            <i class="fa-solid fa-rotate-right text-xs transition-transform duration-300"></i> Reintentar Conexión
         </button>
     </div>
+
 </body>
 </html>

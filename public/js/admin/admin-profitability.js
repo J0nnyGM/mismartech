@@ -19,7 +19,7 @@ let allPurchases = [];
 let allOrders = [];
 let globalMetrics = []; 
 
-const STORAGE_KEY = 'pixeltech_admin_master_inventory';
+const STORAGE_KEY = 'mismartech_admin_master_inventory';
 const normalizeText = (str) => str ? str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
 const formatMoney = (val) => `$${Math.round(val).toLocaleString('es-CO')}`;
 

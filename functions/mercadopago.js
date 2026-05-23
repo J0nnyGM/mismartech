@@ -8,7 +8,7 @@ const MP_TOKEN = process.env.MP_ACCESS_TOKEN;
 const client = MP_TOKEN ? new MercadoPagoConfig({ accessToken: MP_TOKEN }) : null;
 
 // CAMBIA ESTO POR TU URL REAL DE FIREBASE FUNCTIONS
-const WEBHOOK_URL = "https://us-central1-pixeltechcol.cloudfunctions.net/mercadoPagoWebhook"; 
+const WEBHOOK_URL = "https://mercadopagowebhook-wghz2bdqpq-uc.a.run.app"; 
 
 /**
  * 1. CREAR PREFERENCIA (CHECKOUT)
@@ -144,12 +144,12 @@ exports.createPreference = async (data, context) => {
                     address: { street_name: buyerInfo.address, zip_code: buyerInfo.postal }
                 },
                 back_urls: {
-                    success: "https://pixeltechcol.com/shop/success.html", 
-                    failure: "https://pixeltechcol.com/shop/success.html", 
-                    pending: "https://pixeltechcol.com/shop/success.html"
+                    success: "https://mismartech.com/shop/success.html", 
+                    failure: "https://mismartech.com/shop/success.html", 
+                    pending: "https://mismartech.com/shop/success.html"
                 },
                 auto_return: "approved",
-                statement_descriptor: "PIXELTECH",
+                statement_descriptor: "MISMARTECH",
                 external_reference: newOrderRef.id,
                 notification_url: WEBHOOK_URL,
                 date_of_expiration: expirationDate.toISOString() // EXPIRACIÓN AUTOMÁTICA

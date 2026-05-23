@@ -1,22 +1,47 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="overflow-x-hidden">
 <head>
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#00AEC7">
+    <meta name="theme-color" content="#F05A28">
     <link rel="apple-touch-icon" href="/img/icons/icon-192x192.webp">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resultados de Búsqueda | PixelTech</title>
-    <link rel="canonical" href="https://pixeltechcol.com/search.html" />
+    <title>Búsqueda | Smartech</title>
+    <link rel="canonical" href="https://mismartech.com/shop/search.html" />
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
     <style>
         .custom-scroll::-webkit-scrollbar { width: 6px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
-        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #00AEC7; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #F05A28; }
+
+        /* Ocultar barra de desplazamiento */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Animación suave de entrada */
+        .fade-in { animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Resplandor ambiental de marca */
+        .bg-glow {
+            background: radial-gradient(circle at 50% 50%, rgba(240, 90, 40, 0.04) 0%, transparent 75%);
+        }
+
+        /* Header scrollable (no sticky) */
+        header {
+            position: relative !important;
+            top: auto !important;
+            box-shadow: none !important;
+        }
+        .lg\:hidden.sticky {
+            position: relative !important;
+            top: auto !important;
+            box-shadow: none !important;
+        }
     </style>
-    <link rel="modulepreload" href="js/firebase-init.js">
+    <link rel="modulepreload" href="../js/firebase-init.js">
     <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js">
     <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js">
     <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js">
@@ -24,103 +49,110 @@
     <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js">
 </head>
 
-<body class="bg-white font-sans text-brand-black antialiased flex flex-col min-h-screen">
+<body class="bg-slate-50/60 font-sans text-brand-black antialiased flex flex-col min-h-screen relative overflow-x-hidden">
 
-    <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php'; ?>
+    <!-- Decoración de iluminación ambiental de fondo -->
+    <div class="absolute top-20 left-1/4 w-[600px] h-[600px] bg-glow pointer-events-none -z-10"></div>
 
-    <main class="flex-grow w-full px-[3%] py-8">
+    <div id="header-placeholder"></div>
+
+    <main class="flex-grow w-full px-4 md:px-12 pt-8 pb-16 relative z-10">
         
-        <div id="brands-carousel-area" class="mb-10"></div>
-        
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 border-b border-gray-100 pb-6">
-            <div>
-                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1" id="search-subtitle">Resultados para</p>
-                <h1 class="text-3xl font-black uppercase tracking-tighter text-brand-black truncate max-w-2xl" id="search-title">...</h1>
-                <p class="text-xs text-gray-500 mt-1"><span id="result-count" class="font-bold text-brand-black">0</span> coincidencias encontradas</p>
-            </div>
-            
-            <div class="flex items-center gap-3 w-full md:w-auto relative z-20">
-                <button id="btn-open-filters" class="lg:hidden flex-1 bg-brand-black text-white px-4 py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-gray-800 transition">
-                    <i class="fa-solid fa-sliders"></i> Filtros
-                </button>
+        <div class="fade-in">
 
-                <div class="relative w-full md:w-64" id="custom-sort-container">
-                    <button id="sort-trigger" class="w-full bg-white border border-gray-200 px-4 py-3 rounded-xl flex justify-between items-center hover:border-brand-orange transition group">
-                        <div class="flex items-center gap-2">
-                            <i class="fa-solid fa-arrow-down-short-wide text-gray-400 group-hover:text-brand-orange transition"></i>
-                            <span class="text-xs font-bold text-gray-600 uppercase tracking-wide" id="sort-label">Lo más nuevo</span>
-                        </div>
-                        <i class="fa-solid fa-chevron-down text-[10px] text-gray-400 transition-transform duration-300" id="sort-icon"></i>
-                    </button>
-                    
-                    <div id="sort-dropdown" class="absolute top-full right-0 mt-2 w-full bg-white border border-gray-100 rounded-xl shadow-xl hidden z-30 overflow-hidden">
-                        <div class="p-1 space-y-1">
-                            <button onclick="window.setSort('newest', 'Lo más nuevo')" class="w-full text-left px-4 py-3 text-xs font-bold text-gray-600 hover:bg-slate-50 hover:text-brand-orange rounded-lg transition uppercase">Lo más nuevo</button>
-                            <button onclick="window.setSort('price-asc', 'Menor Precio')" class="w-full text-left px-4 py-3 text-xs font-bold text-gray-600 hover:bg-slate-50 hover:text-brand-orange rounded-lg transition uppercase">Menor Precio</button>
-                            <button onclick="window.setSort('price-desc', 'Mayor Precio')" class="w-full text-left px-4 py-3 text-xs font-bold text-gray-600 hover:bg-slate-50 hover:text-brand-orange rounded-lg transition uppercase">Mayor Precio</button>
-                            <button onclick="window.setSort('alpha-asc', 'A - Z')" class="w-full text-left px-4 py-3 text-xs font-bold text-gray-600 hover:bg-slate-50 hover:text-brand-orange rounded-lg transition uppercase">Nombre (A-Z)</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 relative">
+            <div id="brands-carousel-area" class="mb-4"></div>
             
-            <aside class="hidden lg:block lg:col-span-3 xl:col-span-2 space-y-8 sticky top-24 h-fit">
-                <div class="flex justify-between items-center mb-2">
-                    <h3 class="font-black text-sm uppercase tracking-widest text-brand-black">Filtros</h3>
-                    <button id="btn-clear-filters" onclick="window.clearAllFilters()" class="text-[10px] font-bold text-red-400 hover:text-red-600 uppercase tracking-wide hidden flex items-center gap-1 transition">
-                        <i class="fa-solid fa-trash-can"></i> Limpiar
-                    </button>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8 border-l-[6px] border-brand-orange pl-6 md:pl-8 rounded-l">
+                <div>
+                    <p class="text-gray-400 font-black text-[10px] uppercase tracking-[0.2em] leading-none mb-2.5" id="search-subtitle">Resultados para</p>
+                    <h1 class="text-4xl md:text-5xl font-black uppercase tracking-tighter text-brand-black truncate max-w-2xl leading-none" id="search-title">...</h1>
+                    <p class="text-gray-400 font-black text-[10px] mt-2.5 uppercase tracking-[0.2em] leading-none"><span id="result-count" class="text-brand-orange">0</span> coincidencias encontradas</p>
                 </div>
                 
-                <div id="filters-container" class="space-y-6">
-                    <div class="animate-pulse space-y-4">
-                        <div class="h-4 bg-gray-100 rounded w-1/2"></div>
-                        <div class="h-4 bg-gray-100 rounded w-3/4"></div>
-                        <div class="h-4 bg-gray-100 rounded w-2/3"></div>
-                    </div>
-                </div>
-            </aside>
-
-            <div class="lg:col-span-9 xl:col-span-10">
-                <div id="products-grid" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 min-h-[400px]">
-                    <div class="col-span-full py-20 flex flex-col items-center justify-center text-gray-300">
-                        <i class="fa-solid fa-circle-notch fa-spin text-4xl text-brand-orange mb-4"></i>
-                        <p class="font-bold uppercase text-xs tracking-widest">Buscando productos...</p>
-                    </div>
-                </div>
-
-                <div id="empty-state" class="hidden py-20 text-center">
-                    <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-300">
-                        <i class="fa-solid fa-magnifying-glass text-3xl"></i>
-                    </div>
-                    <h3 class="text-xl font-black text-brand-black mb-2 uppercase tracking-tight">Sin resultados</h3>
-                    <p class="text-gray-400 text-sm max-w-md mx-auto mb-8">No encontramos productos con esos criterios. Intenta con otros términos o filtros.</p>
-                    <button onclick="window.clearAllFilters()" class="bg-brand-black text-white px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-orange hover:text-brand-black transition shadow-lg">
-                        Ver todo el catálogo
+                <div class="flex items-center gap-3 w-full md:w-auto relative z-20 shrink-0">
+                    <button id="btn-open-filters" class="lg:hidden flex-1 bg-brand-black text-white px-5 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-brand-orange hover:text-brand-black transition duration-300 shadow-md">
+                        <i class="fa-solid fa-sliders"></i> Filtros
                     </button>
-                </div>
 
-                <div id="pagination-controls" class="mt-12 flex justify-center gap-2"></div>
+                    <div class="relative flex-1 md:w-64 md:flex-none" id="custom-sort-container">
+                        <button id="sort-trigger" class="w-full bg-white border border-gray-200 px-4 py-3.5 rounded-2xl flex justify-between items-center hover:border-brand-orange transition group shadow-sm">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-arrow-down-short-wide text-gray-400 group-hover:text-brand-orange transition"></i>
+                                <span class="text-[10px] font-black text-gray-600 uppercase tracking-widest" id="sort-label">Lo más nuevo</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-down text-[10px] text-gray-400 transition-transform duration-300" id="sort-icon"></i>
+                        </button>
+                        
+                        <div id="sort-dropdown" class="absolute top-full right-0 mt-2 w-full bg-white border border-gray-100 rounded-2xl shadow-[0_15px_40px_rgba(0,0,0,0.08)] hidden z-30 overflow-hidden">
+                            <div class="p-1.5 space-y-1">
+                                <button onclick="window.setSort('newest', 'Lo más nuevo')" class="w-full text-left px-4 py-3 text-[10px] font-black text-gray-600 hover:bg-orange-50/50 hover:text-brand-orange rounded-xl transition uppercase tracking-widest">Lo más nuevo</button>
+                                <button onclick="window.setSort('price-asc', 'Menor Precio')" class="w-full text-left px-4 py-3 text-[10px] font-black text-gray-600 hover:bg-orange-50/50 hover:text-brand-orange rounded-xl transition uppercase tracking-widest">Menor Precio</button>
+                                <button onclick="window.setSort('price-desc', 'Mayor Precio')" class="w-full text-left px-4 py-3 text-[10px] font-black text-gray-600 hover:bg-orange-50/50 hover:text-brand-orange rounded-xl transition uppercase tracking-widest">Mayor Precio</button>
+                                <button onclick="window.setSort('alpha-asc', 'A - Z')" class="w-full text-left px-4 py-3 text-[10px] font-black text-gray-600 hover:bg-orange-50/50 hover:text-brand-orange rounded-xl transition uppercase tracking-widest">Nombre (A-Z)</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 relative">
+                
+                <aside class="hidden lg:block lg:col-span-3 xl:col-span-2 space-y-8 sticky top-24 h-fit">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="font-black text-sm uppercase tracking-widest text-brand-black">Filtros</h3>
+                        <button id="btn-clear-filters" onclick="window.clearAllFilters()" class="text-[10px] font-bold text-red-400 hover:text-red-600 uppercase tracking-wide hidden flex items-center gap-1 transition">
+                            <i class="fa-solid fa-trash-can"></i> Limpiar
+                        </button>
+                    </div>
+                    
+                    <div id="filters-container" class="space-y-6">
+                        <div class="animate-pulse space-y-4">
+                            <div class="h-4 bg-gray-100 rounded w-1/2"></div>
+                            <div class="h-4 bg-gray-100 rounded w-3/4"></div>
+                            <div class="h-4 bg-gray-100 rounded w-2/3"></div>
+                        </div>
+                    </div>
+                </aside>
+
+                <div class="lg:col-span-9 xl:col-span-10">
+                    <div id="products-grid" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 min-h-[400px]">
+                        <div class="col-span-full py-24 flex flex-col items-center justify-center text-gray-300">
+                            <i class="fa-solid fa-circle-notch fa-spin text-4xl text-brand-orange mb-4"></i>
+                            <p class="font-black uppercase text-[10px] tracking-widest">Buscando productos...</p>
+                        </div>
+                    </div>
+
+                    <div id="empty-state" class="hidden py-24 text-center">
+                        <div class="w-24 h-24 bg-white rounded-[2rem] border border-slate-100 flex items-center justify-center mx-auto mb-6 text-gray-300 shadow-sm">
+                            <i class="fa-solid fa-magnifying-glass text-3xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-black text-brand-black mb-2 uppercase tracking-tight">Sin resultados</h3>
+                        <p class="text-gray-400 text-sm max-w-md mx-auto mb-8 font-bold">No encontramos productos con esos criterios. Intenta con otros términos o filtros.</p>
+                        <button onclick="window.clearAllFilters()" class="bg-brand-black text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-orange hover:text-brand-black transition duration-300 shadow-md hover:shadow-[0_10px_25px_-5px_rgba(240,90,40,0.35)]">
+                            Ver todo el catálogo
+                        </button>
+                    </div>
+
+                    <div id="pagination-controls" class="mt-12 flex justify-center gap-2"></div>
+                </div>
+            </div>
+
         </div>
     </main>
 
-    <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php'; ?>
+    <div id="footer-placeholder"></div>
 
-    <div id="mobile-filters-drawer" class="fixed inset-y-0 right-0 w-80 bg-white shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-in-out lg:hidden flex flex-col">
-        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-slate-50">
+    <div id="mobile-filters-drawer" class="fixed inset-y-0 right-0 w-80 bg-white shadow-[0_0_60px_rgba(0,0,0,0.15)] z-50 transform translate-x-full transition-transform duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] lg:hidden flex flex-col rounded-l-[2rem] invisible">
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-slate-50/80 rounded-tl-[2rem]">
             <h3 class="font-black text-sm uppercase tracking-widest text-brand-black">Filtros</h3>
-            <button id="btn-close-filters" class="w-8 h-8 rounded-full bg-white text-gray-400 flex items-center justify-center shadow-sm hover:text-brand-red transition">
+            <button id="btn-close-filters" class="w-9 h-9 rounded-xl bg-white text-gray-400 flex items-center justify-center shadow-sm hover:text-red-500 hover:bg-red-50 transition border border-gray-100">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
         <div class="flex-grow overflow-y-auto p-6 space-y-8 custom-scroll" id="mobile-filters-content">
-            </div>
-        <div class="p-6 border-t border-gray-100 bg-white">
-            <button id="btn-apply-mobile" class="w-full bg-brand-black text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-brand-orange hover:text-brand-black transition">
+        </div>
+        <div class="p-6 border-t border-gray-100 bg-white rounded-bl-[2rem]">
+            <button id="btn-apply-mobile" class="w-full bg-brand-black text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-orange hover:text-brand-black transition duration-300 shadow-md">
                 Ver Resultados
             </button>
         </div>
@@ -128,8 +160,11 @@
     <div id="mobile-filters-overlay" class="fixed inset-0 bg-black/60 z-40 hidden lg:hidden backdrop-blur-sm opacity-0 transition-opacity duration-300"></div>
 
     <script type="module">
-        import { loadGlobalHeader, loadGlobalFooter } from '../js/global-components.js';        loadGlobalHeader();
-        loadGlobalFooter();
+        import { loadGlobalHeader, loadGlobalFooter } from '../js/global-components.js';
+        (async () => {
+            await loadGlobalHeader();
+            await loadGlobalFooter();
+        })();
     </script>
     <script type="module" src="../js/shop/search.js"></script>
 </body>

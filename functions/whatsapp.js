@@ -183,7 +183,7 @@ exports.webhook = onRequest({ timeoutSeconds: 60 }, async (req, res) => {
                         const hoursSinceLast = lastAutoReply ? (now - lastAutoReply) / (1000 * 60 * 60) : 24;
 
                         if (hoursSinceLast > 12) {
-                            const replyText = "Hola 👋, gracias por escribir a PixelTech.\n\n🌙 Nuestro equipo descansa en este momento, pero hemos recibido tu mensaje y te responderemos a primera hora de la mañana.";
+                            const replyText = "Hola 👋, gracias por escribir a MiSmartech.\n\n🌙 Nuestro equipo descansa en este momento, pero hemos recibido tu mensaje y te responderemos a primera hora de la mañana.";
                             const replyId = await sendToMeta(phoneNumber, replyText, 'text');
                             
                             await chatRef.collection('messages').add({

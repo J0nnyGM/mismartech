@@ -23,7 +23,7 @@ ErrorDocument 404 /404.html
     # ======================================================================
     RewriteCond %{HTTPS} off [OR]
     RewriteCond %{HTTP_HOST} ^www\. [NC]
-    RewriteRule ^(.*)$ https://pixeltechcol.com/$1 [L,R=301]
+    RewriteRule ^(.*)$ https://mismartech.com/$1 [L,R=301]
 
     # ======================================================================
     # REGLA 2: INYECCIÓN DINÁMICA DE PRODUCTOS (SEO & BOTS)

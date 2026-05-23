@@ -148,6 +148,20 @@ service cloud.firestore {
     match /campaigns_history/{campId} {
       allow read, write: if isStaff();
     }
+
+    // 🏠 MULTI-SEDE Y CIERRES DE CAJA
+    match /branches/{branchId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /transfers/{transferId} {
+      allow read, write: if isStaff();
+    }
+
+    match /cash_closings/{closingId} {
+      allow read, write: if isStaff();
+    }
     
   }
 }

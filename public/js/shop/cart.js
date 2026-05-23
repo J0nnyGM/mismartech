@@ -1,55 +1,106 @@
 import { db, doc, onSnapshot } from "../firebase-init.js";
+import { SmartCache } from "./cache-service.js";
 
-// Clave para guardar en el navegador
-const CART_KEY = 'pixeltech_cart';
+// ✅ UNIFICACIÓN DE LLAVE: Totalmente integrado al ecosistema Smartech
+const CART_KEY = 'smartech_cart';
 
-// --- CONTROLADORES DE TIEMPO REAL ---
-let cartUnsubscribers = {}; // Guarda las conexiones activas por ID de producto
+let cartUnsubscribers = {}; 
 
-// --- 1. OBTENER CARRITO ---
+/* ==========================================================================
+   🎨 MAPA DE COLORES EXPORTABLE (Sincronizado con app.js)
+   ========================================================================== */
+export const colorMap = {
+    "negro": "#171717", "black": "#171717", "blanco": "#F9FAFB", "white": "#F9FAFB",
+    "azul": "#2563EB", "blue": "#2563EB", "rojo": "#DC2626", "red": "#DC2626",
+    "verde": "#16A34A", "green": "#16A34A", "gris": "#4B5563", "gray": "#4B5563",
+    "plateado": "#E5E7EB", "silver": "#E5E7EB", "dorado": "#FCD34D", "gold": "#FCD34D",
+    "morado": "#9333EA", "purple": "#9333EA", "rosa": "#EC4899", "pink": "#EC4899",
+    "titanio": "#9CA3AF", "natural": "#D4D4D8"
+};
+
+export function getColorHex(name) {
+    if (!name) return '#E5E7EB';
+    if (name.startsWith('#')) return name; 
+    if (/^[0-9A-Fa-f]{6}$/i.test(name)) return `#${name}`; 
+    return colorMap[name.toLowerCase()] || name; 
+}
+
+/* ==========================================================================
+   MÓDULO CORE: OPERACIONES DEL CARRITO
+   ========================================================================== */
+
 export function getCart() {
     const cart = localStorage.getItem(CART_KEY);
     return cart ? JSON.parse(cart) : [];
 }
 
-// --- 2. GUARDAR CARRITO (Interna) ---
 function saveCart(cart) {
     localStorage.setItem(CART_KEY, JSON.stringify(cart));
     window.dispatchEvent(new Event('cartUpdated')); 
     updateCartCount();
-    
-    // 🔥 Cada vez que el carrito cambia, ajustamos los vigilantes en tiempo real
     startCartSync(); 
 }
 
-// --- 3. AGREGAR ITEM (VALIDANDO STOCK) ---
 export function addToCart(product) {
     const cart = getCart();
-    
     const pColor = product.color || null;
     const pCapacity = product.capacity || null;
-    const maxStock = product.maxStock || 999; 
+    
+    // Resolve dynamic maxStock from passed object, check SmartCache, fallback to 999
+    let maxStock = product.maxStock;
+    if (maxStock === undefined) {
+        if (product.stock !== undefined) {
+            maxStock = product.stock;
+        } else {
+            const cachedProd = SmartCache.getProduct(product.id);
+            if (cachedProd) {
+                if (cachedProd.combinations && cachedProd.combinations.length > 0) {
+                    const combo = cachedProd.combinations.find(c => 
+                        (c.color === pColor || (!c.color && !pColor)) &&
+                        (c.capacity === pCapacity || (!c.capacity && !pCapacity))
+                    );
+                    if (combo && combo.stock !== undefined) {
+                        maxStock = combo.stock;
+                    } else {
+                        maxStock = cachedProd.stock !== undefined ? cachedProd.stock : 999;
+                    }
+                } else {
+                    maxStock = cachedProd.stock !== undefined ? cachedProd.stock : 999;
+                }
+            } else {
+                maxStock = 999;
+            }
+        }
+    }
+    const isCartPreviouslyEmpty = cart.length === 0;
 
     const uniqueCartId = `${product.id}-${pColor || 'def'}-${pCapacity || 'def'}`;
     const existingItem = cart.find(item => item.cartId === uniqueCartId);
 
     let newQty = product.quantity || 1;
+    let isNewItem = false; 
 
     if (existingItem) {
         newQty += existingItem.quantity;
         if (newQty > maxStock) {
+            if (window.showToast) {
+                window.showToast(`Solo hay ${maxStock} unidades disponibles en inventario.`, "error");
+            }
             return { success: false, message: `Solo hay ${maxStock} unidades disponibles.` };
         }
         existingItem.quantity = newQty;
     } else {
         if (newQty > maxStock) {
+            if (window.showToast) {
+                window.showToast(`Solo hay ${maxStock} unidades disponibles en inventario.`, "error");
+            }
             return { success: false, message: `Solo hay ${maxStock} unidades disponibles.` };
         }
+        isNewItem = true; 
         cart.push({
             cartId: uniqueCartId,
             id: product.id,
             name: product.name,
-            // Aseguramos que los precios siempre se guarden como enteros limpios
             price: Math.round(Number(product.price)) || 0,
             originalPrice: Math.round(Number(product.originalPrice)) || 0,
             image: product.mainImage || product.image || 'https://placehold.co/100',
@@ -61,24 +112,47 @@ export function addToCart(product) {
     }
 
     saveCart(cart);
-    window.dispatchEvent(new Event('cartItemAdded'));
-    
+    if (isNewItem) {
+        window.dispatchEvent(new CustomEvent('cartItemAdded', { 
+            detail: { isFirstProduct: isCartPreviouslyEmpty } 
+        }));
+    }
     return { success: true };
 }
 
-// --- 4. ACTUALIZAR CANTIDAD (VALIDANDO STOCK) ---
 export function updateQuantity(cartId, newQty) {
     let cart = getCart();
     const item = cart.find(i => i.cartId === cartId);
 
     if (item) {
         const qty = parseInt(newQty);
-        const max = item.maxStock || 999; 
+        
+        // Resolve fresh maxStock from SmartCache
+        let max = item.maxStock;
+        const cachedProd = SmartCache.getProduct(item.id);
+        if (cachedProd) {
+            if (cachedProd.combinations && cachedProd.combinations.length > 0) {
+                const combo = cachedProd.combinations.find(c => 
+                    (c.color === item.color || (!c.color && !item.color)) &&
+                    (c.capacity === item.capacity || (!c.capacity && !item.capacity))
+                );
+                if (combo && combo.stock !== undefined) {
+                    max = combo.stock;
+                } else {
+                    max = cachedProd.stock !== undefined ? cachedProd.stock : max;
+                }
+            } else {
+                max = cachedProd.stock !== undefined ? cachedProd.stock : max;
+            }
+        }
+        if (max === undefined) max = 999;
         
         if (qty > max) {
+            if (window.showToast) {
+                window.showToast(`Solo hay ${max} unidades disponibles en inventario.`, "error");
+            }
             return { success: false, message: `Máximo ${max} unidades.` };
         }
-
         if (qty <= 0) {
             cart = cart.filter(i => i.cartId !== cartId);
         } else {
@@ -90,14 +164,12 @@ export function updateQuantity(cartId, newQty) {
     return { success: false, message: "Producto no encontrado" };
 }
 
-// --- 5. ELIMINAR ITEM (Por ID de carrito) ---
 export function removeFromCart(cartId) {
     let cart = getCart();
     cart = cart.filter(item => item.cartId !== cartId);
     saveCart(cart);
 }
 
-// --- 6. ELIMINAR UNA UNIDAD (Por ID de Producto - Genérico) ---
 export function removeOneUnit(productId) {
     let cart = getCart();
     const index = cart.findIndex(item => item.id === productId);
@@ -112,18 +184,16 @@ export function removeOneUnit(productId) {
     }
 }
 
-// --- 7. CALCULAR TOTAL ---
 export function getCartTotal() {
     const cart = getCart();
     return cart.reduce((total, item) => {
         if (item.maxStock !== undefined && item.maxStock <= 0) {
-            return total; // No sumar productos agotados
+            return total; 
         }
         return total + (item.price * item.quantity);
     }, 0);
 }
 
-// --- 8. ACTUALIZAR BADGES (UI) ---
 export function updateCartCount() {
     const cart = getCart();
     const count = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -136,7 +206,6 @@ export function updateCartCount() {
     });
 }
 
-// --- 9. OBTENER CANTIDAD TOTAL DE UN PRODUCTO ---
 export function getProductQtyInCart(productId) {
     const cart = getCart();
     return cart
@@ -144,32 +213,26 @@ export function getProductQtyInCart(productId) {
         .reduce((sum, item) => sum + (item.quantity || 0), 0);
 }
 
-
-// ==========================================================================
-// 🧠 MOTOR DE SINCRONIZACIÓN EN TIEMPO REAL DEL CARRITO (ONSNAPSHOT)
-// ==========================================================================
-
+/* ==========================================================================
+   🧠 MOTOR DE SINCRONIZACIÓN EN TIEMPO REAL DEL CARRITO (FIRESTORE CLOUD)
+   ========================================================================== */
 export function startCartSync() {
     const cart = getCart();
-    // Extraer solo los IDs base de los productos (sin importar las variantes)
     const productIdsInCart = [...new Set(cart.map(i => i.id))];
     
-    // 1. LIMPIEZA: Apagar escuchas de productos que ya no están en el carrito
     Object.keys(cartUnsubscribers).forEach(id => {
         if (!productIdsInCart.includes(id)) {
-            cartUnsubscribers[id](); // Apaga el onSnapshot
+            cartUnsubscribers[id](); 
             delete cartUnsubscribers[id];
         }
     });
     
-    // 2. INICIAR: Encender escuchas para los productos que están en el carrito
     productIdsInCart.forEach(productId => {
         if (!cartUnsubscribers[productId]) {
             cartUnsubscribers[productId] = onSnapshot(doc(db, "products", productId), (snap) => {
                 if (snap.exists()) {
                     updateCartItemsFromCloud(productId, snap.data());
                 } else {
-                    // Si el producto fue borrado de Firebase, marcar stock 0
                     updateCartItemsFromCloud(productId, { stock: 0, status: 'inactive' });
                 }
             }, (error) => {
@@ -179,7 +242,6 @@ export function startCartSync() {
     });
 }
 
-// Helper: Procesa la info que llega de la nube y ajusta el carrito si es necesario
 function updateCartItemsFromCloud(productId, pData) {
     let cart = getCart();
     let hasChanges = false;
@@ -187,14 +249,13 @@ function updateCartItemsFromCloud(productId, pData) {
     cart.forEach(item => {
         if (item.id === productId) {
             let newPrice = pData.price || 0;
+            let newOriginalPrice = pData.originalPrice || 0;
             let newStock = pData.stock || 0;
             const isInactive = pData.status !== 'active';
             
-            // Si el producto fue desactivado o borrado, forzamos stock a 0
             if (isInactive) {
                 newStock = 0;
             } 
-            // Si tiene combinaciones, buscamos el stock y precio exacto de su variante
             else if (pData.combinations && pData.combinations.length > 0) {
                 const combo = pData.combinations.find(c => 
                     (c.color === item.color || (!c.color && !item.color)) &&
@@ -202,46 +263,44 @@ function updateCartItemsFromCloud(productId, pData) {
                 );
                 if (combo) {
                     newPrice = combo.price;
+                    newOriginalPrice = combo.originalPrice || 0;
                     newStock = combo.stock;
                 } else {
-                    newStock = 0; // Esa variante específica ya no existe
+                    newStock = 0; 
                 }
             } 
-            // Si solo tiene capacidades simples
             else if (item.capacity && pData.capacities) {
                 const cap = pData.capacities.find(c => c.label === item.capacity);
                 if (cap) {
                     newPrice = cap.price;
+                    newOriginalPrice = cap.originalPrice || 0;
                 }
             }
 
-            // Detectamos si el precio, el stock o el nombre cambiaron
-            if (item.price !== newPrice || item.maxStock !== newStock || item.name !== pData.name) {
+            if (item.price !== newPrice || item.originalPrice !== newOriginalPrice || item.maxStock !== newStock || item.name !== pData.name) {
                 item.price = newPrice;
+                item.originalPrice = newOriginalPrice;
                 item.maxStock = newStock;
                 item.name = pData.name || item.name;
-                item.originalPrice = pData.originalPrice || 0;
                 
-                // Si el nuevo stock máximo es menor a lo que el cliente quería, ajustamos su cantidad
                 if (newStock > 0 && item.quantity > newStock) {
                     item.quantity = newStock;
                 }
-
                 hasChanges = true;
             }
         }
     });
     
-    // Solo si detectó un cambio real, guarda silenciosamente y avisa a la UI
     if (hasChanges) {
-        console.log(`🛒 [Cart Sync] El producto ${productId} cambió de precio o stock en vivo.`);
+        console.log(`🛒 [Cart Sync] Sincronización en vivo completada para ${productId}.`);
         localStorage.setItem(CART_KEY, JSON.stringify(cart));
         window.dispatchEvent(new Event('cartUpdated')); 
         updateCartCount();
     }
 }
 
-// Iniciar vigilancia apenas se cargue el archivo por primera vez
-document.addEventListener('DOMContentLoaded', () => {
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startCartSync);
+} else {
     startCartSync();
-});
+}

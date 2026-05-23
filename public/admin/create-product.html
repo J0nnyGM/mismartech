@@ -2,11 +2,11 @@
 <html lang="es">
 <head>
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#00AEC7">
+    <meta name="theme-color" content="#F05A28">
     <link rel="apple-touch-icon" href="/img/icons/icon-192x192.webp">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Publicar Producto | PixelTech Admin</title>
+    <title>Publicar Producto | Mi Smartech Admin</title>
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
@@ -22,7 +22,7 @@
         }
         
         .admin-input-group:focus-within {
-            border-color: #00AEC7; 
+            border-color: #F05A28; 
             box-shadow: 0 10px 15px -3px rgba(0, 174, 199, 0.1);
         }
 
@@ -169,15 +169,181 @@
                             </div>
                         </div>
 
+                        <!-- Modern Rich Text Editor Panel -->
                         <div class="bg-white border-2 border-gray-200 rounded-[2.5rem] overflow-hidden shadow-sm">
-                            <div class="bg-gray-50 border-b border-gray-100 p-6 flex items-center justify-between">
-                                <span class="block text-[10px] font-black text-brand-black uppercase tracking-[0.2em]">Descripción</span>
-                                <div class="flex gap-2 bg-white p-1.5 rounded-2xl border border-gray-200 shadow-sm">
-                                    <button type="button" onclick="formatDoc('bold')" class="w-10 h-10 rounded-xl hover:bg-gray-100 transition"><i class="fa-solid fa-bold"></i></button>
-                                    <button type="button" onclick="formatDoc('insertUnorderedList')" class="w-10 h-10 rounded-xl hover:bg-gray-100 transition"><i class="fa-solid fa-list-ul"></i></button>
+                            <div class="bg-slate-50/90 backdrop-blur-md border-b border-slate-200/60 p-2 flex flex-row flex-wrap items-center justify-start gap-2 sticky top-0 z-20 w-full">
+                                <!-- Grupo 1: Plantillas Premium (Audio y Sonido) -->
+                                <div class="relative inline-block text-left shrink-0" id="editor-templates-dropdown">
+                                    <button type="button" onclick="toggleDropdown('templates')" class="h-9 px-3.5 bg-gradient-to-r from-orange-50 to-orange-100/50 hover:from-orange-100 hover:to-orange-200/50 border border-orange-200 hover:border-brand-orange text-brand-orange rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-sm active:scale-95">
+                                        <i class="fa-solid fa-wand-magic-sparkles text-brand-orange text-xs"></i>
+                                        <span class="hidden sm:inline">Plantillas</span>
+                                        <i class="fa-solid fa-chevron-down text-[8px] text-brand-orange/70"></i>
+                                    </button>
+                                    <div id="dropdown-templates" class="hidden absolute left-0 mt-2 w-[280px] sm:w-72 bg-white border border-slate-100 rounded-2xl shadow-xl z-30 p-3 space-y-3">
+                                        <!-- Sección 1: Genéricas -->
+                                        <div>
+                                            <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest block mb-1.5 px-2">Plantillas Estándar</span>
+                                            <div class="space-y-0.5">
+                                                <button type="button" onclick="insertTemplate('left-text')" class="w-full text-left px-2.5 py-1.5 rounded-xl text-xs font-bold text-gray-700 hover:bg-slate-50 flex items-center gap-2">
+                                                    <i class="fa-solid fa-align-left text-brand-orange"></i> Texto Izq. + Imagen Der.
+                                                </button>
+                                                <button type="button" onclick="insertTemplate('right-text')" class="w-full text-left px-2.5 py-1.5 rounded-xl text-xs font-bold text-gray-700 hover:bg-slate-50 flex items-center gap-2">
+                                                    <i class="fa-solid fa-align-right text-brand-orange"></i> Imagen Izq. + Texto Der.
+                                                </button>
+                                                <button type="button" onclick="insertTemplate('banner')" class="w-full text-left px-2.5 py-1.5 rounded-xl text-xs font-bold text-gray-700 hover:bg-slate-50 flex items-center gap-2">
+                                                    <i class="fa-solid fa-rectangle-ad text-brand-orange"></i> Banner Centrado
+                                                </button>
+                                                <button type="button" onclick="insertTemplate('3-columns')" class="w-full text-left px-2.5 py-1.5 rounded-xl text-xs font-bold text-gray-700 hover:bg-slate-50 flex items-center gap-2">
+                                                    <i class="fa-solid fa-columns text-brand-orange"></i> Características 3 Col.
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Sección 2: Premium (Audio y Sonido) -->
+                                        <div class="border-t border-slate-100 pt-2">
+                                            <span class="text-[8px] font-black text-brand-orange uppercase tracking-widest block mb-1.5 px-2">Plantillas Premium (Audio y Sonido)</span>
+                                            <div class="space-y-0.5 max-h-48 overflow-y-auto no-scrollbar">
+                                                <button type="button" onclick="insertTemplate('premium-anc')" class="w-full text-left px-2.5 py-1.5 rounded-xl text-xs font-bold text-gray-700 hover:bg-slate-50 flex items-center gap-2">
+                                                    <i class="fa-solid fa-ear-deaf text-brand-orange"></i> Cancelación de Ruido (Premium)
+                                                </button>
+                                                <button type="button" onclick="insertTemplate('premium-hifi')" class="w-full text-left px-2.5 py-1.5 rounded-xl text-xs font-bold text-gray-700 hover:bg-slate-50 flex items-center gap-2">
+                                                    <i class="fa-solid fa-music text-brand-orange"></i> Audio de Alta Fidelidad (Premium)
+                                                </button>
+                                                <button type="button" onclick="insertTemplate('premium-calls')" class="w-full text-left px-2.5 py-1.5 rounded-xl text-xs font-bold text-gray-700 hover:bg-slate-50 flex items-center gap-2">
+                                                    <i class="fa-solid fa-phone text-brand-orange"></i> Llamadas y Reducción de Viento (Premium)
+                                                </button>
+                                                <button type="button" onclick="insertTemplate('premium-battery')" class="w-full text-left px-2.5 py-1.5 rounded-xl text-xs font-bold text-gray-700 hover:bg-slate-50 flex items-center gap-2">
+                                                    <i class="fa-solid fa-battery-three-quarters text-brand-orange"></i> Batería y Conexión (Premium)
+                                                </button>
+                                                <button type="button" onclick="insertTemplate('specs-grid')" class="w-full text-left px-2.5 py-1.5 rounded-xl text-xs font-bold text-gray-700 hover:bg-slate-50 flex items-center gap-2">
+                                                    <i class="fa-solid fa-list-check text-brand-orange"></i> Especificaciones Técnicas (Premium)
+                                                </button>
+                                                <button type="button" onclick="insertTemplate('reasons-card')" class="w-full text-left px-2.5 py-1.5 rounded-xl text-xs font-bold text-gray-700 hover:bg-slate-50 flex items-center gap-2">
+                                                    <i class="fa-solid fa-star text-brand-orange"></i> 5 Razones de Compra (Premium)
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="border-t border-slate-100 my-1 pt-1.5">
+                                            <div class="flex justify-between items-center px-2 mb-1.5">
+                                                <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest">Mis Plantillas</span>
+                                                <button type="button" onclick="saveCurrentAsTemplate()" class="text-[9px] font-extrabold text-brand-orange hover:text-brand-orange/80 transition flex items-center gap-1">
+                                                    <i class="fa-solid fa-floppy-disk"></i> Guardar Actual
+                                                </button>
+                                            </div>
+                                            <div id="user-templates-container" class="space-y-0.5 max-h-40 overflow-y-auto no-scrollbar">
+                                                <!-- Dynamic user templates -->
+                                                <div class="text-[10px] text-gray-400 text-center py-2 italic font-medium">No tienes plantillas guardadas</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+ 
+                                <!-- Grupo 2: Formato & Estilos de Texto -->
+                                <div class="flex items-center bg-white border border-slate-200/60 rounded-xl shadow-sm p-0.5 gap-0.5 w-auto shrink-0">
+                                    <!-- Format Dropdown -->
+                                    <div class="relative inline-block text-left shrink-0" id="editor-format-dropdown">
+                                        <button type="button" onclick="toggleDropdown('format')" class="h-8 px-2.5 hover:bg-slate-50 text-brand-black rounded-lg text-xs font-extrabold transition flex items-center gap-1">
+                                            <i class="fa-solid fa-paragraph sm:hidden text-slate-600"></i>
+                                            <span id="current-format" class="hidden sm:inline max-w-[70px] truncate">Párrafo</span>
+                                            <i class="fa-solid fa-chevron-down text-[8px] text-gray-400"></i>
+                                        </button>
+                                        <div id="dropdown-format" class="hidden absolute left-0 mt-2 w-40 bg-white border border-slate-100 rounded-2xl shadow-xl z-30 p-2 space-y-1">
+                                            <button type="button" onclick="applyBlock('p')" class="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-gray-700 hover:bg-slate-50">Párrafo</button>
+                                            <button type="button" onclick="applyBlock('h2')" class="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-gray-700 hover:bg-slate-50 font-black text-sm uppercase">Título 1</button>
+                                            <button type="button" onclick="applyBlock('h3')" class="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-gray-700 hover:bg-slate-50 font-bold text-xs uppercase">Título 2</button>
+                                        </div>
+                                    </div>
+ 
+                                    <div class="h-5 w-px bg-slate-200/80 mx-0.5 shrink-0"></div>
+ 
+                                    <!-- Basic Formatting -->
+                                    <button type="button" onclick="formatText('bold')" title="Negrita" class="w-8 h-8 hover:bg-slate-50 rounded-lg transition flex items-center justify-center text-slate-600 hover:text-brand-black active:scale-90 shrink-0"><i class="fa-solid fa-bold text-[11px]"></i></button>
+                                    <button type="button" onclick="formatText('italic')" title="Cursiva" class="w-8 h-8 hover:bg-slate-50 rounded-lg transition flex items-center justify-center text-slate-600 hover:text-brand-black active:scale-90 shrink-0"><i class="fa-solid fa-italic text-[11px]"></i></button>
+                                    <button type="button" onclick="formatText('underline')" title="Subrayado" class="w-8 h-8 hover:bg-slate-50 rounded-lg transition flex items-center justify-center text-slate-600 hover:text-brand-black active:scale-90 shrink-0"><i class="fa-solid fa-underline text-[11px]"></i></button>
+ 
+                                    <div class="h-5 w-px bg-slate-200/80 mx-0.5 shrink-0"></div>
+ 
+                                    <!-- Color Picker -->
+                                    <div class="relative inline-block text-left shrink-0" id="editor-color-dropdown">
+                                        <button type="button" onclick="toggleDropdown('color')" title="Color de Texto" class="w-8 h-8 hover:bg-slate-50 rounded-lg transition flex flex-col items-center justify-center text-slate-600 hover:text-brand-black active:scale-90">
+                                            <i class="fa-solid fa-font text-[11px]"></i>
+                                            <div id="color-bar" class="w-3.5 h-0.5 bg-brand-black mt-0.5 rounded-full"></div>
+                                        </button>
+                                        <div id="dropdown-color" class="hidden absolute left-0 mt-2 w-32 bg-white border border-slate-100 rounded-2xl shadow-xl z-30 p-2 grid grid-cols-4 gap-1">
+                                            <button type="button" onclick="changeTextColor('#111827')" class="w-6 h-6 rounded-md bg-gray-900 border border-gray-200" title="Negro"></button>
+                                            <button type="button" onclick="changeTextColor('#6B7280')" class="w-6 h-6 rounded-md bg-gray-500 border border-gray-200" title="Gris"></button>
+                                            <button type="button" onclick="changeTextColor('#F05A28')" class="w-6 h-6 rounded-md bg-brand-orange border border-gray-200" title="Naranja"></button>
+                                            <button type="button" onclick="changeTextColor('#EF4444')" class="w-6 h-6 rounded-md bg-red-500 border border-gray-200" title="Rojo"></button>
+                                            <button type="button" onclick="changeTextColor('#10B981')" class="w-6 h-6 rounded-md bg-emerald-500 border border-gray-200" title="Verde"></button>
+                                            <button type="button" onclick="changeTextColor('#3B82F6')" class="w-6 h-6 rounded-md bg-blue-500 border border-gray-200" title="Azul"></button>
+                                            <button type="button" onclick="changeTextColor('#8B5CF6')" class="w-6 h-6 rounded-md bg-purple-500 border border-gray-200" title="Morado"></button>
+                                            <button type="button" onclick="changeTextColor('#EC4899')" class="w-6 h-6 rounded-md bg-pink-500 border border-gray-200" title="Rosa"></button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Grupo 3: Párrafo & Alineación -->
+                                <div class="flex items-center bg-white border border-slate-200/60 rounded-xl shadow-sm p-0.5 gap-0.5 shrink-0">
+                                    <!-- Alignment -->
+                                    <div class="relative inline-block text-left" id="editor-align-dropdown">
+                                        <button type="button" onclick="toggleDropdown('align')" title="Alineación" class="w-8 h-8 hover:bg-slate-50 rounded-lg transition flex items-center justify-center text-slate-600 hover:text-brand-black active:scale-90">
+                                            <i class="fa-solid fa-align-left text-[11px]"></i>
+                                        </button>
+                                        <div id="dropdown-align" class="hidden absolute right-0 mt-2 w-36 bg-white border border-slate-100 rounded-2xl shadow-xl z-30 p-2 space-y-1">
+                                            <button type="button" onclick="alignText('left')" class="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-gray-700 hover:bg-slate-50 flex items-center gap-2"><i class="fa-solid fa-align-left text-gray-400"></i> Izquierda</button>
+                                            <button type="button" onclick="alignText('center')" class="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-gray-700 hover:bg-slate-50 flex items-center gap-2"><i class="fa-solid fa-align-center text-gray-400"></i> Centro</button>
+                                            <button type="button" onclick="alignText('right')" class="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-gray-700 hover:bg-slate-50 flex items-center gap-2"><i class="fa-solid fa-align-right text-gray-400"></i> Derecha</button>
+                                            <button type="button" onclick="alignText('justify')" class="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-gray-700 hover:bg-slate-50 flex items-center gap-2"><i class="fa-solid fa-align-justify text-gray-400"></i> Justificado</button>
+                                        </div>
+                                    </div>
+
+                                    <div class="h-5 w-px bg-slate-200/80 mx-0.5 shrink-0"></div>
+
+                                    <!-- More options dropdown (Lists & Indentation) -->
+                                    <div class="relative inline-block text-left" id="editor-more-dropdown">
+                                        <button type="button" onclick="toggleDropdown('more')" title="Listas y Sangría" class="w-8 h-8 hover:bg-slate-50 rounded-lg transition flex items-center justify-center text-slate-600 hover:text-brand-black active:scale-90">
+                                            <i class="fa-solid fa-list-ul text-[11px]"></i>
+                                        </button>
+                                        <div id="dropdown-more" class="hidden absolute right-0 mt-2 w-44 bg-white border border-slate-100 rounded-2xl shadow-xl z-30 p-2 space-y-1">
+                                            <button type="button" onclick="formatText('insertUnorderedList')" class="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-gray-700 hover:bg-slate-50 flex items-center gap-2"><i class="fa-solid fa-list-ul text-gray-400"></i> Lista Viñetas</button>
+                                            <button type="button" onclick="formatText('insertOrderedList')" class="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-gray-700 hover:bg-slate-50 flex items-center gap-2"><i class="fa-solid fa-list-ol text-gray-400"></i> Lista Numerada</button>
+                                            <button type="button" onclick="formatText('indent')" class="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-gray-700 hover:bg-slate-50 flex items-center gap-2"><i class="fa-solid fa-indent text-gray-400"></i> Aumentar Sangría</button>
+                                            <button type="button" onclick="formatText('outdent')" class="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-gray-700 hover:bg-slate-50 flex items-center gap-2"><i class="fa-solid fa-outdent text-gray-400"></i> Disminuir Sangría</button>
+                                            <div class="h-px bg-slate-100 my-1"></div>
+                                            <button type="button" onclick="formatText('removeFormat')" class="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-red-500 hover:bg-red-50 flex items-center gap-2"><i class="fa-solid fa-eraser text-red-400"></i> Limpiar Formato</button>
+                                        </div>
+                                    </div>
+                                </div>
+ 
+                                <!-- Grupo 4: Inserciones (Enlaces, Multimedia & Tablas) -->
+                                <div class="flex items-center bg-white border border-slate-200/60 rounded-xl shadow-sm p-0.5 gap-0.5 shrink-0">
+                                    <button type="button" onclick="insertLink()" title="Insertar Enlace" class="w-8 h-8 hover:bg-slate-50 rounded-lg transition flex items-center justify-center text-slate-600 hover:text-brand-black active:scale-90"><i class="fa-solid fa-link text-[11px]"></i></button>
+                                    
+                                    <div class="relative inline-block">
+                                        <button type="button" onclick="triggerEditorImageUpload()" title="Insertar Imagen" class="w-8 h-8 hover:bg-slate-50 rounded-lg transition flex items-center justify-center text-slate-600 hover:text-brand-black active:scale-90">
+                                            <i class="fa-solid fa-image text-[11px]"></i>
+                                        </button>
+                                        <input type="file" id="editor-image-file-input" accept="image/*" class="hidden" onchange="uploadEditorImage(event)">
+                                    </div>
+ 
+                                    <button type="button" onclick="insertVideo()" title="Insertar Video YouTube/Vimeo" class="w-8 h-8 hover:bg-slate-50 rounded-lg transition flex items-center justify-center text-slate-600 hover:text-brand-black active:scale-90"><i class="fa-solid fa-circle-play text-[11px]"></i></button>
+                                    <button type="button" onclick="insertTable()" title="Insertar Tabla de Especificaciones" class="w-8 h-8 hover:bg-slate-50 rounded-lg transition flex items-center justify-center text-slate-600 hover:text-brand-black active:scale-90"><i class="fa-solid fa-table text-[11px]"></i></button>
+                                </div>
+ 
+                                <!-- Grupo 5: Código Fuente (Pill style match) -->
+                                <div class="flex items-center bg-white border border-slate-200/60 rounded-xl shadow-sm p-0.5 shrink-0">
+                                    <button type="button" id="btn-toggle-code" onclick="toggleCodeView()" title="Ver código HTML" class="w-8 h-8 hover:bg-slate-50 rounded-lg transition flex items-center justify-center text-slate-600 hover:text-brand-black active:scale-90">
+                                        <i class="fa-solid fa-code text-[11px]"></i>
+                                    </button>
                                 </div>
                             </div>
-                            <div id="p-description-editor" contenteditable="true" class="rich-editor no-scrollbar"><p>Especificaciones...</p></div>
+
+                            <!-- Edit area (WYSIWYG) -->
+                            <div id="p-description-editor" contenteditable="true" placeholder="Especificaciones..." class="rich-editor no-scrollbar outline-none focus:outline-none min-h-[400px] p-8 max-h-[600px] overflow-y-auto"></div>
+
+                            <!-- Edit area (Source Code HTML) -->
+                            <textarea id="p-description-source" class="hidden font-mono text-xs text-slate-100 bg-slate-900 w-full min-h-[400px] max-h-[600px] p-6 outline-none focus:outline-none resize-y overflow-y-auto" style="line-height: 1.5;"></textarea>
                         </div>
                     </div>
 
@@ -221,10 +387,534 @@
     <script type="module" src="../js/admin/admin-create-product.js"></script>
     <script type="module" src="../js/admin/admin-guard.js"></script>
     <script>
-        function formatDoc(cmd, value = null) {
+        function toggleDropdown(type) {
+            const dropdowns = ['templates', 'format', 'color', 'align', 'more'];
+            dropdowns.forEach(d => {
+                const el = document.getElementById('dropdown-' + d);
+                if (d === type) {
+                    el.classList.toggle('hidden');
+                    if (d === 'templates' && !el.classList.contains('hidden')) {
+                        renderUserTemplates();
+                    }
+                } else {
+                    el.classList.add('hidden');
+                }
+            });
+        }
+
+        // Global click listener to close dropdowns when clicking outside
+        document.addEventListener('click', function(e) {
+            const dropdowns = ['templates', 'format', 'color', 'align', 'more'];
+            dropdowns.forEach(d => {
+                const container = document.getElementById('editor-' + d + '-dropdown');
+                const dropdownEl = document.getElementById('dropdown-' + d);
+                if (container && dropdownEl && !container.contains(e.target)) {
+                    dropdownEl.classList.add('hidden');
+                }
+            });
+        });
+
+        // Basic formatting commands
+        function formatText(cmd, value = null) {
             document.execCommand(cmd, false, value);
             document.getElementById('p-description-editor').focus();
         }
+
+        // Apply HTML tags (h2, h3, p)
+        function applyBlock(tag) {
+            document.execCommand('formatBlock', false, tag);
+            const formatLabel = document.getElementById('current-format');
+            if (formatLabel) {
+                if (tag === 'p') formatLabel.textContent = 'Párrafo';
+                else if (tag === 'h2') formatLabel.textContent = 'Título 1';
+                else if (tag === 'h3') formatLabel.textContent = 'Título 2';
+            }
+            document.getElementById('p-description-editor').focus();
+            const drop = document.getElementById('dropdown-format');
+            if (drop) drop.classList.add('hidden');
+        }
+
+        // Change Text Color and reflect in toolbar
+        function changeTextColor(color) {
+            document.execCommand('foreColor', false, color);
+            const colorBar = document.getElementById('color-bar');
+            if (colorBar) {
+                colorBar.style.backgroundColor = color;
+            }
+            document.getElementById('p-description-editor').focus();
+            const drop = document.getElementById('dropdown-color');
+            if (drop) drop.classList.add('hidden');
+        }
+
+        // Text alignment commands
+        function alignText(alignment) {
+            let cmd = 'justifyLeft';
+            if (alignment === 'center') cmd = 'justifyCenter';
+            else if (alignment === 'right') cmd = 'justifyRight';
+            else if (alignment === 'justify') cmd = 'justifyFull';
+            document.execCommand(cmd, false, null);
+            document.getElementById('p-description-editor').focus();
+            const drop = document.getElementById('dropdown-align');
+            if (drop) drop.classList.add('hidden');
+        }
+
+        // Inserter for hyperlinks
+        function insertLink() {
+            const url = prompt("Ingrese la URL del enlace:");
+            if (url) {
+                let formattedUrl = url;
+                if (!/^https?:\/\//i.test(url)) {
+                    formattedUrl = 'https://' + url;
+                }
+                document.execCommand('createLink', false, formattedUrl);
+                
+                // Add classes and target="_blank"
+                const selection = window.getSelection();
+                if (selection.rangeCount > 0) {
+                    const container = selection.getRangeAt(0).startContainer.parentNode;
+                    if (container && container.tagName === 'A') {
+                        container.setAttribute('target', '_blank');
+                        container.setAttribute('class', 'text-brand-orange hover:underline font-bold');
+                    }
+                }
+            }
+        }
+
+        // Video iframe injector (YouTube/Vimeo)
+        function insertVideo() {
+            const url = prompt("Ingrese la URL del video de YouTube o Vimeo:");
+            if (!url) return;
+            
+            let videoHtml = '';
+            const ytRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
+            const ytMatch = url.match(ytRegex);
+            
+            const vimeoRegex = /(?:vimeo\.com\/)(?:channels\/[^\/]+\/|groups\/[^\/]+\/videos\/|album\/[^\/]+\/video\/|showcase\/[^\/]+\/video\/|)(\d+)/i;
+            const vimeoMatch = url.match(vimeoRegex);
+            
+            if (ytMatch && ytMatch[1]) {
+                const id = ytMatch[1];
+                videoHtml = `<div class="my-6 rounded-[2.5rem] overflow-hidden aspect-video border border-gray-100 shadow-md max-w-4xl mx-auto" contenteditable="false"><iframe class="w-full h-full" src="https://www.youtube.com/embed/${id}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
+            } else if (vimeoMatch && vimeoMatch[1]) {
+                const id = vimeoMatch[1];
+                videoHtml = `<div class="my-6 rounded-[2.5rem] overflow-hidden aspect-video border border-gray-100 shadow-md max-w-4xl mx-auto" contenteditable="false"><iframe class="w-full h-full" src="https://player.vimeo.com/video/${id}" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></div>`;
+            } else {
+                alert("URL de video no soportada. Use enlaces válidos de YouTube o Vimeo.");
+                return;
+            }
+            
+            insertHTMLAtCursor(videoHtml);
+        }
+
+        // Table injector
+        function insertTable() {
+            const tableHtml = `
+            <div class="my-6 overflow-hidden border border-gray-200 rounded-[1.5rem] shadow-sm max-w-4xl mx-auto" contenteditable="false">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 border-b border-gray-200">
+                            <th class="p-4 text-xs font-black uppercase text-gray-500 tracking-wider">Característica</th>
+                            <th class="p-4 text-xs font-black uppercase text-gray-500 tracking-wider">Detalle</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 text-sm">
+                        <tr>
+                            <td class="p-4 font-bold text-gray-900" contenteditable="true">Característica 1</td>
+                            <td class="p-4 text-gray-600" contenteditable="true">Descripción o valor</td>
+                        </tr>
+                        <tr>
+                            <td class="p-4 font-bold text-gray-900" contenteditable="true">Característica 2</td>
+                            <td class="p-4 text-gray-600" contenteditable="true">Descripción o valor</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>`;
+            insertHTMLAtCursor(tableHtml);
+        }
+
+        // Preset templates injector
+        function insertTemplate(type) {
+            let templateHtml = '';
+            if (type === 'left-text') {
+                templateHtml = `
+                <div class="my-8 grid grid-cols-1 md:grid-cols-2 gap-8 items-center max-w-5xl mx-auto">
+                    <div class="space-y-4">
+                        <h2 class="text-xl md:text-2xl font-black text-brand-black uppercase">Título de la Característica</h2>
+                        <p class="text-sm text-gray-500 leading-relaxed">Describe aquí los detalles más importantes del producto. Puedes destacar palabras clave en <b>negrita</b> o incluir especificaciones breves y persuasivas para wowear al usuario.</p>
+                    </div>
+                    <div class="aspect-[4/3] bg-white border border-slate-100 rounded-[2.5rem] overflow-hidden flex items-center justify-center p-6 shadow-sm">
+                        <img src="https://placehold.co/600x450/f8fafc/0f0f0f?text=Imagen+Destacada" class="max-h-full max-w-full object-contain rounded-2xl" alt="Característica">
+                    </div>
+                </div>`;
+            } else if (type === 'right-text') {
+                templateHtml = `
+                <div class="my-8 grid grid-cols-1 md:grid-cols-2 gap-8 items-center max-w-5xl mx-auto">
+                    <div class="aspect-[4/3] bg-white border border-slate-100 rounded-[2.5rem] overflow-hidden flex items-center justify-center p-6 shadow-sm order-last md:order-first">
+                        <img src="https://placehold.co/600x450/f8fafc/0f0f0f?text=Imagen+Destacada" class="max-h-full max-w-full object-contain rounded-2xl" alt="Característica">
+                    </div>
+                    <div class="space-y-4">
+                        <h2 class="text-xl md:text-2xl font-black text-brand-black uppercase">Título de la Característica</h2>
+                        <p class="text-sm text-gray-500 leading-relaxed">Describe aquí los detalles más importantes del producto. Puedes destacar palabras clave en <b>negrita</b> o incluir especificaciones breves y persuasivas para wowear al usuario.</p>
+                    </div>
+                </div>`;
+            } else if (type === 'banner') {
+                templateHtml = `
+                <div class="my-10 text-center max-w-4xl mx-auto space-y-6">
+                    <p class="text-sm font-black tracking-widest text-brand-orange uppercase">Categoría Destacada</p>
+                    <h2 class="text-2xl md:text-4xl font-black text-brand-black uppercase leading-none">Título del Banner Principal</h2>
+                    <p class="text-sm md:text-base text-gray-500 max-w-2xl mx-auto leading-relaxed">Especificaciones modernas de alto impacto y descripciones dinámicas. Esta sección es ideal para captar la atención del comprador nada más ver el producto.</p>
+                    <div class="h-1 w-20 bg-brand-orange mx-auto rounded-full mt-4"></div>
+                </div>`;
+            } else if (type === '3-columns') {
+                templateHtml = `
+                <div class="my-10 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+                    <div class="p-6 bg-slate-50 rounded-[2rem] border border-gray-100 text-center space-y-3">
+                        <div class="w-12 h-12 bg-orange-100/50 rounded-full flex items-center justify-center mx-auto text-brand-orange text-lg"><i class="fa-solid fa-bolt"></i></div>
+                        <h3 class="font-black text-xs uppercase tracking-wider text-brand-black">Característica 1</h3>
+                        <p class="text-xs text-gray-500">Breve descripción del beneficio técnico o ventaja competitiva número uno.</p>
+                    </div>
+                    <div class="p-6 bg-slate-50 rounded-[2rem] border border-gray-100 text-center space-y-3">
+                        <div class="w-12 h-12 bg-orange-100/50 rounded-full flex items-center justify-center mx-auto text-brand-orange text-lg"><i class="fa-solid fa-shield-halved"></i></div>
+                        <h3 class="font-black text-xs uppercase tracking-wider text-brand-black">Característica 2</h3>
+                        <p class="text-xs text-gray-500">Breve descripción del beneficio técnico o ventaja competitiva número dos.</p>
+                    </div>
+                    <div class="p-6 bg-slate-50 rounded-[2rem] border border-gray-100 text-center space-y-3">
+                        <div class="w-12 h-12 bg-orange-100/50 rounded-full flex items-center justify-center mx-auto text-brand-orange text-lg"><i class="fa-solid fa-leaf"></i></div>
+                        <h3 class="font-black text-xs uppercase tracking-wider text-brand-black">Característica 3</h3>
+                        <p class="text-xs text-gray-500">Breve descripción del beneficio técnico o ventaja competitiva número tres.</p>
+                    </div>
+                </div>`;
+            } else if (type === 'premium-anc') {
+                templateHtml = `
+                <div class="my-8 grid grid-cols-1 md:grid-cols-2 gap-8 items-center max-w-5xl mx-auto">
+                    <div class="space-y-4">
+                        <h2 class="text-xl md:text-2xl font-black text-brand-black uppercase">Cancelación Activa de Ruido Inteligente</h2>
+                        <p class="text-sm text-gray-500 leading-relaxed">Silencio absoluto. Su avanzada tecnología de cancelación activa de ruido híbrida reduce drásticamente los sonidos no deseados del exterior, permitiéndote concentrarte por completo en tu contenido favorito. Incorpora varios niveles de ajuste y un modo de transparencia inteligente para mantener el contacto con tu entorno de forma segura.</p>
+                    </div>
+                    <div class="aspect-[4/3] bg-white border-2 border-gray-100 rounded-[2.5rem] overflow-hidden flex items-center justify-center p-6 shadow-sm">
+                        <img src="https://placehold.co/600x450/f8fafc/0f0f0f?text=Cancelacion+Activa+de+Ruido" class="max-h-full max-w-full object-contain rounded-2xl" alt="Cancelación Activa de Ruido">
+                    </div>
+                </div>`;
+            } else if (type === 'premium-hifi') {
+                templateHtml = `
+                <div class="my-8 grid grid-cols-1 md:grid-cols-2 gap-8 items-center max-w-5xl mx-auto">
+                    <div class="aspect-[4/3] bg-white border-2 border-gray-100 rounded-[2.5rem] overflow-hidden flex items-center justify-center p-6 shadow-sm order-last md:order-first">
+                        <img src="https://placehold.co/600x450/f8fafc/0f0f0f?text=Audio+de+Alta+Fidelidad" class="max-h-full max-w-full object-contain rounded-2xl" alt="Audio de Alta Fidelidad">
+                    </div>
+                    <div class="space-y-4">
+                        <h2 class="text-xl md:text-2xl font-black text-brand-black uppercase">Audio de Alta Fidelidad y Alta Resolución</h2>
+                        <p class="text-sm text-gray-500 leading-relaxed">Calidad de estudio. Equipado con un sistema de controladores duales acústicos optimizados y componentes de audio de alta gama, ofrece una respuesta sonora increíblemente detallada con bajos profundos y dinámicos junto a agudos nítidos y transparentes.</p>
+                    </div>
+                </div>`;
+            } else if (type === 'premium-calls') {
+                templateHtml = `
+                <div class="my-8 grid grid-cols-1 md:grid-cols-2 gap-8 items-center max-w-5xl mx-auto">
+                    <div class="space-y-4">
+                        <h2 class="text-xl md:text-2xl font-black text-brand-black uppercase">Llamadas Ultra Claras y Reducción de Viento</h2>
+                        <p class="text-sm text-gray-500 leading-relaxed">Conversaciones sin interferencias. Su matriz de micrófonos integrados cuenta con algoritmos avanzados de filtrado ambiental y protección contra el viento, garantizando que tu voz se escuche clara, limpia y definida en cualquier lugar y bajo cualquier circunstancia.</p>
+                    </div>
+                    <div class="aspect-[4/3] bg-white border-2 border-gray-100 rounded-[2.5rem] overflow-hidden flex items-center justify-center p-6 shadow-sm">
+                        <img src="https://placehold.co/600x450/f8fafc/0f0f0f?text=Llamadas+Ultra+Claras" class="max-h-full max-w-full object-contain rounded-2xl" alt="Llamadas Ultra Claras">
+                    </div>
+                </div>`;
+            } else if (type === 'premium-battery') {
+                templateHtml = `
+                <div class="my-8 grid grid-cols-1 md:grid-cols-2 gap-8 items-center max-w-5xl mx-auto">
+                    <div class="aspect-[4/3] bg-white border-2 border-gray-100 rounded-[2.5rem] overflow-hidden flex items-center justify-center p-6 shadow-sm order-last md:order-first">
+                        <img src="https://placehold.co/600x450/f8fafc/0f0f0f?text=Bateria+de+Larga+Duracion" class="max-h-full max-w-full object-contain rounded-2xl" alt="Batería de Larga Duración">
+                    </div>
+                    <div class="space-y-4">
+                        <h2 class="text-xl md:text-2xl font-black text-brand-black uppercase">Batería de Larga Duración y Conexión Multipunto</h2>
+                        <p class="text-sm text-gray-500 leading-relaxed">Energía ininterrumpida. Su eficiente batería te brinda una autonomía prolongada para todo el día, complementada con tecnología de carga rápida y un estuche de carga inteligente. Además, su conectividad multipunto integrada te permite emparejar y alternar fluidamente entre múltiples dispositivos.</p>
+                    </div>
+                </div>`;
+            } else if (type === 'specs-grid') {
+                templateHtml = `
+                <div class="my-10 max-w-4xl mx-auto bg-white border border-slate-100 rounded-[2.5rem] p-8 shadow-sm">
+                    <h3 class="text-sm font-black text-brand-black mb-6 uppercase tracking-widest border-b border-slate-100 pb-3">Especificaciones Técnicas</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
+                        <div class="flex justify-between items-center py-2 border-b border-slate-50 text-xs">
+                            <span class="font-black text-brand-orange uppercase tracking-wider">Audio:</span>
+                            <span class="font-bold text-gray-600">Sistema de doble driver acústico optimizado.</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2 border-b border-slate-50 text-xs">
+                            <span class="font-black text-brand-orange uppercase tracking-wider">Cancelación:</span>
+                            <span class="font-bold text-gray-600">Cancelación activa de ruido híbrida e inteligente.</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2 border-b border-slate-50 text-xs">
+                            <span class="font-black text-brand-orange uppercase tracking-wider">Micrófonos:</span>
+                            <span class="font-bold text-gray-600">Micrófonos de alta definición con reducción de ruido por IA.</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2 border-b border-slate-50 text-xs">
+                            <span class="font-black text-brand-orange uppercase tracking-wider">Carga Rápida:</span>
+                            <span class="font-bold text-gray-600">Carga rápida a través de puerto USB Tipo C.</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2 border-b border-slate-50 text-xs">
+                            <span class="font-black text-brand-orange uppercase tracking-wider">Autonomía:</span>
+                            <span class="font-bold text-gray-600">Batería de larga duración con estuche inteligente.</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2 border-b border-slate-50 text-xs">
+                            <span class="font-black text-brand-orange uppercase tracking-wider">Control:</span>
+                            <span class="font-bold text-gray-600">Panel táctil personalizable y compatible con app.</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2 border-b border-slate-50 text-xs">
+                            <span class="font-black text-brand-orange uppercase tracking-wider">Conectividad:</span>
+                            <span class="font-bold text-gray-600">Bluetooth de alta fidelidad con conexión multipunto.</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2 border-b border-slate-50 text-xs">
+                            <span class="font-black text-brand-orange uppercase tracking-wider">Protección:</span>
+                            <span class="font-bold text-gray-600">Resistencia certificada al sudor y salpicaduras.</span>
+                        </div>
+                    </div>
+                </div>`;
+            } else if (type === 'reasons-card') {
+                templateHtml = `
+                <div class="my-10 max-w-4xl mx-auto bg-orange-50/20 border border-orange-100 rounded-[2.5rem] p-8 md:p-10 space-y-6">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="text-2xl animate-pulse">🌟</span>
+                        <h4 class="text-sm font-black text-brand-orange uppercase tracking-wider">5 Razones para elegir este Producto</h4>
+                    </div>
+                    <div class="space-y-4 pl-2">
+                        <div class="text-xs flex items-start gap-2">
+                            <span class="text-brand-orange font-black mt-0.5">•</span>
+                            <div>
+                                <span class="font-black text-slate-800">Calidad Acústica Superior:</span>
+                                <span class="text-gray-600 font-medium ml-1">Diseñado para reproducir cada detalle con la máxima fidelidad y pureza sonora.</span>
+                            </div>
+                        </div>
+                        <div class="text-xs flex items-start gap-2">
+                            <span class="text-brand-orange font-black mt-0.5">•</span>
+                            <div>
+                                <span class="font-black text-slate-800">Aislamiento Excepcional:</span>
+                                <span class="text-gray-600 font-medium ml-1">Desconéctate de ruidos exteriores gracias al sistema inteligente de aislamiento.</span>
+                            </div>
+                        </div>
+                        <div class="text-xs flex items-start gap-2">
+                            <span class="text-brand-orange font-black mt-0.5">•</span>
+                            <div>
+                                <span class="font-black text-slate-800">Claridad Absoluta:</span>
+                                <span class="text-gray-600 font-medium ml-1">Filtro inteligente que elimina ruidos de fondo para una comunicación perfecta.</span>
+                            </div>
+                        </div>
+                        <div class="text-xs flex items-start gap-2">
+                            <span class="text-brand-orange font-black mt-0.5">•</span>
+                            <div>
+                                <span class="font-black text-slate-800">Autonomía de Larga Duración:</span>
+                                <span class="text-gray-600 font-medium ml-1">Disfruta por horas sin preocuparte por tener que buscar un cargador constantemente.</span>
+                            </div>
+                        </div>
+                        <div class="text-xs flex items-start gap-2">
+                            <span class="text-brand-orange font-black mt-0.5">•</span>
+                            <div>
+                                <span class="font-black text-slate-800">Conexión Multipunto y Rápida:</span>
+                                <span class="text-gray-600 font-medium ml-1">Vinculación rápida, estable y compatible con múltiples dispositivos simultáneamente.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            }
+            
+            insertHTMLAtCursor(templateHtml);
+            
+            const drop = document.getElementById('dropdown-templates');
+            if (drop) drop.classList.add('hidden');
+        }
+
+        // Dynamic user template rendering, saving, insertion and deletion
+        function renderUserTemplates() {
+            const container = document.getElementById('user-templates-container');
+            if (!container) return;
+            
+            let templates = [];
+            try {
+                templates = JSON.parse(localStorage.getItem('sm_editor_templates') || '[]');
+            } catch (e) {
+                console.error(e);
+            }
+            
+            if (templates.length === 0) {
+                container.innerHTML = `<div class="text-[10px] text-gray-400 text-center py-2 italic font-medium">No tienes plantillas guardadas</div>`;
+                return;
+            }
+            
+            container.innerHTML = templates.map((t, idx) => `
+                <div class="flex items-center justify-between group px-2 py-1 rounded-xl hover:bg-slate-50 transition">
+                    <button type="button" onclick="insertUserTemplate(${idx})" class="flex-1 text-left text-xs font-bold text-gray-700 truncate mr-2 flex items-center gap-2">
+                        <i class="fa-solid fa-file-invoice text-brand-orange"></i>
+                        <span>${t.name}</span>
+                    </button>
+                    <button type="button" onclick="deleteUserTemplate(${idx}, event)" class="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 transition p-1" title="Eliminar Plantilla">
+                        <i class="fa-solid fa-trash-can text-[10px]"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function saveCurrentAsTemplate() {
+            const name = prompt("Escribe un nombre para esta plantilla:");
+            if (!name || !name.trim()) return;
+            
+            const editor = document.getElementById('p-description-editor');
+            if (!editor) return;
+            
+            const html = editor.innerHTML;
+            if (!html || html.trim() === '' || html.trim() === '<p><br></p>') {
+                alert("El editor está vacío.");
+                return;
+            }
+            
+            let templates = [];
+            try {
+                templates = JSON.parse(localStorage.getItem('sm_editor_templates') || '[]');
+            } catch (e) {
+                templates = [];
+            }
+            
+            templates.push({
+                name: name.trim(),
+                html: html
+            });
+            
+            localStorage.setItem('sm_editor_templates', JSON.stringify(templates));
+            renderUserTemplates();
+            alert("¡Plantilla '" + name.trim() + "' guardada con éxito!");
+        }
+
+        function insertUserTemplate(idx) {
+            let templates = [];
+            try {
+                templates = JSON.parse(localStorage.getItem('sm_editor_templates') || '[]');
+            } catch (e) {
+                console.error(e);
+            }
+            
+            const template = templates[idx];
+            if (template && template.html) {
+                insertHTMLAtCursor(template.html);
+            }
+            
+            const drop = document.getElementById('dropdown-templates');
+            if (drop) drop.classList.add('hidden');
+        }
+
+        function deleteUserTemplate(idx, event) {
+            if (event) event.stopPropagation();
+            if (!confirm("¿Seguro que deseas eliminar esta plantilla?")) return;
+            
+            let templates = [];
+            try {
+                templates = JSON.parse(localStorage.getItem('sm_editor_templates') || '[]');
+            } catch (e) {
+                console.error(e);
+            }
+            
+            templates.splice(idx, 1);
+            localStorage.setItem('sm_editor_templates', JSON.stringify(templates));
+            renderUserTemplates();
+        }
+
+        // Inline Image file trigger
+        function triggerEditorImageUpload() {
+            document.getElementById('editor-image-file-input').click();
+        }
+
+        // Inline Image uploader call
+        function uploadEditorImage(e) {
+            // Bound directly to the modules exported on window in admin-create-product.js
+            if (window.uploadEditorImageToFirebase) {
+                window.uploadEditorImageToFirebase(e);
+            }
+        }
+
+        // Inserter Helper at Cursor Position
+        function insertHTMLAtCursor(html) {
+            const editor = document.getElementById('p-description-editor');
+            if (document.activeElement !== editor && !editor.contains(document.activeElement)) {
+                editor.focus();
+            }
+            
+            let sel, range;
+            if (window.getSelection) {
+                sel = window.getSelection();
+                if (sel.getRangeAt && sel.rangeCount) {
+                    range = sel.getRangeAt(0);
+                    
+                    if (!editor.contains(range.commonAncestorContainer)) {
+                        range = document.createRange();
+                        range.selectNodeContents(editor);
+                        range.collapse(false);
+                        sel.removeAllRanges();
+                        sel.addRange(range);
+                    }
+                    
+                    range.deleteContents();
+                    const el = document.createElement("div");
+                    el.innerHTML = html;
+                    const frag = document.createDocumentFragment();
+                    let node, lastNode;
+                    while ((node = el.firstChild)) {
+                        lastNode = frag.appendChild(node);
+                    }
+                    range.insertNode(frag);
+                    
+                    if (lastNode) {
+                        range = range.cloneRange();
+                        range.setStartAfter(lastNode);
+                        range.collapse(true);
+                        sel.removeAllRanges();
+                        sel.addRange(range);
+                    }
+                }
+            }
+        }
+
+        // Code view toggler
+        function toggleCodeView() {
+            const editor = document.getElementById('p-description-editor');
+            const source = document.getElementById('p-description-source');
+            const codeBtn = document.getElementById('btn-toggle-code');
+            
+            if (source.classList.contains('hidden')) {
+                source.value = editor.innerHTML;
+                source.classList.remove('hidden');
+                editor.classList.add('hidden');
+                if (codeBtn) {
+                    codeBtn.classList.add('bg-orange-100', 'text-brand-orange', 'border-brand-orange');
+                }
+            } else {
+                editor.innerHTML = source.value;
+                source.classList.add('hidden');
+                editor.classList.remove('hidden');
+                if (codeBtn) {
+                    codeBtn.classList.remove('bg-orange-100', 'text-brand-orange', 'border-brand-orange');
+                }
+            }
+        }
     </script>
+
+    <!-- Modal Premium de Stock por Sede -->
+    <div id="branch-stock-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onclick="closeBranchStockModal()"></div>
+        <div class="relative bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300 max-h-[90vh] flex flex-col">
+            <div class="p-8 border-b border-gray-50 flex justify-between items-center bg-slate-50/50 shrink-0">
+                <div>
+                    <h3 class="font-black text-xl uppercase tracking-tighter">Stock por <span class="text-brand-orange">Sedes</span></h3>
+                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1" id="branch-stock-title-detail">Cargando...</p>
+                </div>
+                <button onclick="closeBranchStockModal()" class="w-10 h-10 rounded-full bg-white border border-gray-200 text-gray-400 hover:text-brand-red transition flex items-center justify-center"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <div class="p-8 overflow-y-auto custom-scroll flex-1">
+                <div id="branch-stock-fields" class="space-y-4">
+                    <!-- Dinámico -->
+                </div>
+            </div>
+            
+            <div class="p-8 border-t border-gray-50 bg-slate-50/50 flex justify-end gap-3 shrink-0">
+                <button onclick="closeBranchStockModal()" class="px-5 py-3 border border-gray-200 text-gray-400 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-50 transition">Cancelar</button>
+                <button onclick="saveBranchStockModal()" class="bg-brand-black text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-orange hover:text-brand-black transition shadow-lg">Confirmar Stock</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

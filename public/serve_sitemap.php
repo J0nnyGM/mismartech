@@ -16,8 +16,8 @@ curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 
 // Simulamos que somos tu propio servidor para evitar bloqueos
 curl_setopt($ch, CURLOPT_HTTPHEADER, [
-    "Referer: https://pixeltechcol.com/",
-    "Origin: https://pixeltechcol.com"
+    "Referer: https://mismartech.com/",
+    "Origin: https://mismartech.com"
 ]);
 
 $xml = curl_exec($ch);
@@ -34,7 +34,7 @@ if ($http_code == 200 && !empty($xml)) {
     echo '<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-        <loc>https://pixeltechcol.com/</loc>
+        <loc>https://mismartech.com/</loc>
         <changefreq>daily</changefreq>
         <priority>1.0</priority>
     </url>

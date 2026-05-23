@@ -14,7 +14,7 @@ const SC_APP_TOKEN = process.env.SC_APP_TOKEN;
 
 const SC_BASE_URL = "https://api.credinet.co/pay";
 const SC_ORIGEN = IS_SC_SANDBOX ? "Staging" : "Production";
-const SC_WEBHOOK_URL = "https://sistecreditowebhook-muiondpggq-uc.a.run.app";
+const SC_WEBHOOK_URL = "https://sistecreditowebhook-wghz2bdqpq-uc.a.run.app";
 
 // ==========================================
 // 1. CREAR CHECKOUT SISTECRÉDITO
@@ -64,7 +64,7 @@ exports.createSistecreditoCheckout = async (data, context) => {
         dbItems.push({
             id: item.id, name: pData.name, price: price, quantity: qty,
             color: item.color || "", capacity: item.capacity || "",
-            mainImage: pData.mainImage || pData.image || "https://pixeltechcol.com/img/logo.webp"
+            mainImage: pData.mainImage || pData.image || "https://mismartech.com/img/logo.webp"
         });
     }
 
@@ -112,7 +112,7 @@ exports.createSistecreditoCheckout = async (data, context) => {
 
     const payload = {
         invoice: firebaseOrderId, 
-        description: `Compra en PixelTech - Orden ${firebaseOrderId.slice(0,8)}`, 
+        description: `Compra en MiSmartech - Orden ${firebaseOrderId.slice(0,8)}`, 
         paymentMethod: {
             paymentMethodId: 2, 
             bankCode: 1, 
@@ -123,7 +123,7 @@ exports.createSistecreditoCheckout = async (data, context) => {
         tax: 0, 
         taxBase: 0, 
         sandbox: { isActive: IS_SC_SANDBOX, status: "Approved" }, 
-        urlResponse: `https://pixeltechcol.com/shop/success.html?order=${firebaseOrderId}`, 
+        urlResponse: `https://mismartech.com/shop/success.html?order=${firebaseOrderId}`, 
         urlConfirmation: SC_WEBHOOK_URL, 
         methodConfirmation: "POST", 
         client: {

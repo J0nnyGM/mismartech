@@ -101,5 +101,5 @@ exports.watchers = syncWatcherModule;
 
 
 //Arreglo cedulas en pedidos 
-//const fixCedulasModule = require('./fix-cedulas');
-//exports.fixMissingCedulas = fixCedulasModule.runFix;
+const fixCedulasModule = require('./fix-cedulas');
+exports.fixMissingCedulas = fixCedulasModule.runFix;

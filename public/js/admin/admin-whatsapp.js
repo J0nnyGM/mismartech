@@ -86,12 +86,12 @@ let allClientsCache = [];   // RAM de Clientes
 
 const TIME_UNITS = { 'months': 'Meses', 'years': 'Años', 'days': 'Días' };
 const QUICK_REPLIES = [
-    { title: "👋 Saludo", text: "¡Hola! Gracias por escribir a PixelTech. ¿En qué podemos ayudarte hoy?" },
+    { title: "👋 Saludo", text: "¡Hola! Gracias por escribir a Mi Smartech. ¿En qué podemos ayudarte hoy?" },
     { title: "🛵 Envío Bogotá", text: "Para Bogotá el envío llega el mismo día (Lunes a Sábado) si confirmas antes de las 3:30 PM.\n\n💰 Costo: $10.000\n🤝 Pago: Contra entrega." },
     { title: "🚚 Envío Nacional", text: "Realizamos envíos a toda Colombia 🇨🇴. Si confirmas antes de las 3:00 PM sale hoy mismo.\n\n📸 Te enviamos foto del paquete y la guía de rastreo.\n💰 Costo promedio: $18.000 (varía según ubicación)." },
     { title: "📍 Pasar a Recoger", text: "Estamos en el Centro internacional, Bogotá (a media cuadra de la 34).\n\n🏢 *Calle 31 # 13A-51*\nEdificio Panorama, Oficina 223." },
     { title: "⏰ Horarios", text: "Nuestros horarios de atención son:\n\n📅 Lunes a Viernes: 9:00 AM - 5:30 PM\n📅 Sábados: 10:00 AM - 3:00 PM" },
-    { title: "🟣 Cuentas Cobro", text: "Puedes realizar el pago a:\n\n🏦 *Bancolombia Ahorros* \n*PixelTech Col SAS* \n*NIT:* 901.561.037 \n*Cuenta:* 237-000046-12 \n\n📱 *Nequi / Daviplata*\n3003729020\nLina Gil\n\n🗝️ *Llave / Bre-B:*\n0041243528 \nPixelTech Col" },
+    { title: "🟣 Cuentas Cobro", text: "Puedes realizar el pago a:\n\n🏦 *Bancolombia Ahorros* \n*Mi Smartech SAS* \n*NIT:* 901.561.037 \n*Cuenta:* 237-000046-12 \n\n📱 *Nequi / Daviplata*\n3003729020\nLina Gil\n\n🗝️ *Llave / Bre-B:*\n0041243528 \nMi Smartech" },
     { title: "📝 Pedir Datos", text: "Para procesar tu pedido, regálame por favor estos datos:\n\n🧑🏻 Nombre:\n🎫 C.C:\n📲 Cel:\n🏠 Dirección:\n🏭 Barrio:\n🌆 Ciudad:\n📩 Email:" },
 ];
 
@@ -276,12 +276,12 @@ function createChatCard(id, data) {
     div.innerHTML = `
         <div class="w-12 h-12 rounded-full bg-slate-200 flex items-center justify-center text-gray-500 relative shrink-0">
             <i class="fa-solid fa-user"></i>
-            <span id="badge-${id}" class="absolute top-0 right-0 w-3 h-3 bg-brand-cyan rounded-full border-2 border-white shadow-sm ${data.unread ? '' : 'hidden'}"></span>
+            <span id="badge-${id}" class="absolute top-0 right-0 w-3 h-3 bg-brand-orange rounded-full border-2 border-white shadow-sm ${data.unread ? '' : 'hidden'}"></span>
         </div>
         <div class="flex-grow min-w-0">
             <div class="flex justify-between items-baseline mb-1">
                 <h4 id="name-${id}" class="text-sm font-bold text-gray-800 truncate ${data.unread ? 'font-black' : ''}">${data.clientName || id}</h4>
-                <span id="time-${id}" class="text-[10px] ${data.unread ? 'text-brand-cyan font-bold' : 'text-gray-400'}">${formatTime(data.lastMessageAt)}</span>
+                <span id="time-${id}" class="text-[10px] ${data.unread ? 'text-brand-orange font-bold' : 'text-gray-400'}">${formatTime(data.lastMessageAt)}</span>
             </div>
             <div class="flex justify-between items-center">
                 <p id="msg-${id}" class="text-[11px] text-gray-500 truncate pr-2 ${data.unread ? 'font-bold text-gray-700' : ''}">${formatPreview(data.lastMessage)}</p>
@@ -307,11 +307,11 @@ function updateChatCardContent(card, data) {
 
     if (data.unread) {
         badge.classList.remove('hidden'); name.classList.add('font-black');
-        time.classList.replace('text-gray-400', 'text-brand-cyan'); time.classList.add('font-bold');
+        time.classList.replace('text-gray-400', 'text-brand-orange'); time.classList.add('font-bold');
         msg.classList.add('font-bold', 'text-gray-700');
     } else {
         badge.classList.add('hidden'); name.classList.remove('font-black');
-        time.classList.replace('text-brand-cyan', 'text-gray-400'); time.classList.remove('font-bold');
+        time.classList.replace('text-brand-orange', 'text-gray-400'); time.classList.remove('font-bold');
         msg.classList.remove('font-bold', 'text-gray-700');
     }
 }
@@ -355,7 +355,7 @@ els.chatSearchInput.oninput = (e) => {
     if (chatSearchTimeout) clearTimeout(chatSearchTimeout);
 
     chatSearchTimeout = setTimeout(async () => {
-        els.chatList.innerHTML = `<div class="p-10 text-center"><i class="fa-solid fa-circle-notch fa-spin text-brand-cyan"></i></div>`;
+        els.chatList.innerHTML = `<div class="p-10 text-center"><i class="fa-solid fa-circle-notch fa-spin text-brand-orange"></i></div>`;
         try {
             const refChat = collection(db, "chats");
             if (!isNaN(term) && term.length > 5) {
@@ -474,7 +474,7 @@ function loadMessages(id) {
         if (btnWrapper) {
             btnWrapper.innerHTML = ""; 
             const btn = document.createElement('button');
-            btn.className = "text-xs font-bold text-brand-cyan hover:underline bg-cyan-50 px-3 py-1 rounded-full border border-cyan-100 transition";
+            btn.className = "text-xs font-bold text-brand-orange hover:underline bg-orange-50 px-3 py-1 rounded-full border border-orange-100 transition";
             btn.innerHTML = '<i class="fa-solid fa-clock-rotate-left"></i> Cargar mensajes anteriores';
             btn.onclick = loadOlderMessages;
             btnWrapper.appendChild(btn);
@@ -531,7 +531,7 @@ function loadMessages(id) {
 
 function createLoadMoreButton() {
     const btnContainer = document.createElement('div'); btnContainer.className = "flex justify-center py-4"; btnContainer.id = "btn-load-more-wrapper";
-    const btn = document.createElement('button'); btn.className = "text-xs font-bold text-brand-cyan hover:underline bg-cyan-50 px-3 py-1 rounded-full border border-cyan-100 transition"; btn.innerHTML = '<i class="fa-solid fa-clock-rotate-left"></i> Cargar mensajes anteriores'; btn.onclick = loadOlderMessages;
+    const btn = document.createElement('button'); btn.className = "text-xs font-bold text-brand-orange hover:underline bg-orange-50 px-3 py-1 rounded-full border border-orange-100 transition"; btn.innerHTML = '<i class="fa-solid fa-clock-rotate-left"></i> Cargar mensajes anteriores'; btn.onclick = loadOlderMessages;
     btnContainer.appendChild(btn); els.msgArea.prepend(btnContainer);
 }
 
@@ -616,7 +616,7 @@ function createMessageNode(m) {
                 </div>
                 <div class="min-w-0 flex-1">
                     <p class="text-xs font-bold text-gray-800 truncate">${m.content || "Documento Adjunto"}</p>
-                    <a href="${m.mediaUrl}" target="_blank" class="text-[10px] font-black text-brand-cyan uppercase hover:underline mt-1 block">Descargar Archivo</a>
+                    <a href="${m.mediaUrl}" target="_blank" class="text-[10px] font-black text-brand-orange uppercase hover:underline mt-1 block">Descargar Archivo</a>
                 </div>
             </div>
         `;
@@ -626,7 +626,7 @@ function createMessageNode(m) {
             <div class="flex flex-col items-center bg-slate-50/50 p-3 rounded-lg border border-gray-200 min-w-[200px]">
                 <i class="fa-solid fa-map-location-dot text-3xl text-red-500 mb-2"></i>
                 <p class="text-xs font-bold text-gray-700 text-center leading-tight mb-2 break-words">${m.content.replace('📍 Ubicación:', '').trim() || 'Ubicación compartida'}</p>
-                <a href="${m.mediaUrl}" target="_blank" class="w-full bg-brand-cyan text-brand-black text-[10px] font-black uppercase tracking-widest py-2 rounded-md text-center hover:shadow-md transition">Abrir en Mapa</a>
+                <a href="${m.mediaUrl}" target="_blank" class="w-full bg-brand-orange text-brand-black text-[10px] font-black uppercase tracking-widest py-2 rounded-md text-center hover:shadow-md transition">Abrir en Mapa</a>
             </div>`;
     } 
     else if (m.messageType === 'contacts' || m.type === 'contacts') {
@@ -641,7 +641,7 @@ function createMessageNode(m) {
                         <p class="text-[10px] text-gray-500 font-mono">+${cPhone}</p>
                     </div>
                 </div>
-                <a href="https://wa.me/${cPhone}" target="_blank" class="w-full bg-brand-black text-white text-[10px] font-black uppercase tracking-widest py-2 rounded-md text-center hover:bg-brand-cyan hover:text-brand-black transition">Enviar Mensaje</a>
+                <a href="https://wa.me/${cPhone}" target="_blank" class="w-full bg-brand-black text-white text-[10px] font-black uppercase tracking-widest py-2 rounded-md text-center hover:bg-brand-orange hover:text-brand-black transition">Enviar Mensaje</a>
             </div>`;
     } 
     else {
@@ -742,7 +742,7 @@ function renderQuickReplies(filter) {
 
         div.className = "p-4 hover:bg-slate-50 cursor-pointer border-b border-gray-50 last:border-0 transition-colors group";
         div.innerHTML = `
-            <p class="text-[11px] font-black uppercase text-brand-cyan mb-1.5 flex items-center gap-2 group-hover:translate-x-1 transition-transform">
+            <p class="text-[11px] font-black uppercase text-brand-orange mb-1.5 flex items-center gap-2 group-hover:translate-x-1 transition-transform">
                 <i class="fa-solid fa-bolt text-yellow-500"></i> ${r.title}
             </p>
             <p class="text-xs font-medium text-gray-600 line-clamp-2 leading-relaxed pr-2">${formattedPreview}</p>
@@ -820,7 +820,7 @@ function renderProductList(products) {
             </div>
             <div class="min-w-0 flex-1">
                 <div class="flex justify-between items-start">
-                    <p class="text-[10px] font-black uppercase ${isOutOfStock ? 'text-gray-500 line-through' : 'text-brand-black group-hover:text-brand-cyan transition'} line-clamp-1">${p.name}</p>
+                    <p class="text-[10px] font-black uppercase ${isOutOfStock ? 'text-gray-500 line-through' : 'text-brand-black group-hover:text-brand-orange transition'} line-clamp-1">${p.name}</p>
                 </div>
                 <div class="flex items-center mt-0.5">
                     ${priceLabel}<span class="text-xs font-black ${priceColor}">$${price}</span>${warrantyBadge}
@@ -932,9 +932,9 @@ function updateTimer(ms, open, txt) {
 
 function checkInputState() {
     if (!els.txtInput.disabled && els.txtInput.value.trim().length > 0) {
-        els.btnSend.disabled = false; els.btnSend.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-gray-200', 'text-gray-400'); els.btnSend.classList.add('bg-brand-black', 'text-white', 'hover:bg-brand-cyan', 'hover:text-brand-black');
+        els.btnSend.disabled = false; els.btnSend.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-gray-200', 'text-gray-400'); els.btnSend.classList.add('bg-brand-black', 'text-white', 'hover:bg-brand-orange', 'hover:text-brand-black');
     } else {
-        els.btnSend.disabled = true; els.btnSend.classList.add('opacity-50', 'cursor-not-allowed', 'bg-gray-200', 'text-gray-400'); els.btnSend.classList.remove('bg-brand-black', 'text-white', 'hover:bg-brand-cyan', 'hover:text-brand-black');
+        els.btnSend.disabled = true; els.btnSend.classList.add('opacity-50', 'cursor-not-allowed', 'bg-gray-200', 'text-gray-400'); els.btnSend.classList.remove('bg-brand-black', 'text-white', 'hover:bg-brand-orange', 'hover:text-brand-black');
     }
 }
 
@@ -1011,7 +1011,7 @@ function resetOrdersPagination(phoneNumber) {
 }
 
 async function loadOrders(isInitial = false) {
-    if (isInitial) els.ordersContainer.innerHTML = `<div class="text-center py-10"><i class="fa-solid fa-circle-notch fa-spin text-brand-cyan"></i></div>`;
+    if (isInitial) els.ordersContainer.innerHTML = `<div class="text-center py-10"><i class="fa-solid fa-circle-notch fa-spin text-brand-orange"></i></div>`;
     else els.btnLoadMore.disabled = true;
 
     try {
@@ -1040,14 +1040,14 @@ function renderOrders(docs) {
         const o = d.data(); const date = o.createdAt?.toDate().toLocaleDateString() || 'N/A'; const total = (o.total || 0).toLocaleString('es-CO');
         let c = "bg-gray-100 text-gray-600"; if(o.status==='PAGADO') c="bg-blue-50 text-blue-600"; if(o.status==='ENTREGADO') c="bg-emerald-50 text-emerald-600";
         const div = document.createElement('div'); div.className = "bg-white border border-gray-100 rounded-xl p-3 shadow-sm hover:shadow-md cursor-pointer group"; div.onclick = () => viewOrderDetail(d.id);
-        div.innerHTML = `<div class="flex justify-between items-start mb-2"><div><span class="text-[10px] font-black uppercase text-gray-400">#${d.id.slice(0,8).toUpperCase()}</span><p class="text-xs font-bold text-brand-black mt-0.5">${date}</p></div><span class="px-2 py-1 rounded text-[9px] font-black uppercase ${c}">${o.status}</span></div><div class="flex justify-between items-center border-t border-gray-50 pt-2"><span class="text-sm font-black">$${total}</span><span class="text-[10px] font-bold text-brand-cyan group-hover:underline">Ver <i class="fa-solid fa-arrow-right"></i></span></div>`;
+        div.innerHTML = `<div class="flex justify-between items-start mb-2"><div><span class="text-[10px] font-black uppercase text-gray-400">#${d.id.slice(0,8).toUpperCase()}</span><p class="text-xs font-bold text-brand-black mt-0.5">${date}</p></div><span class="px-2 py-1 rounded text-[9px] font-black uppercase ${c}">${o.status}</span></div><div class="flex justify-between items-center border-t border-gray-50 pt-2"><span class="text-sm font-black">$${total}</span><span class="text-[10px] font-bold text-brand-orange group-hover:underline">Ver <i class="fa-solid fa-arrow-right"></i></span></div>`;
         els.ordersContainer.appendChild(div);
     });
 }
 
 els.btnSearchOrder.onclick = async () => {
     let term = els.inputSearchOrder.value.trim(); if (term.startsWith('#')) term = term.substring(1); if (!term) return;
-    els.ordersContainer.innerHTML = `<div class="text-center py-4"><i class="fa-solid fa-circle-notch fa-spin text-brand-cyan"></i></div>`; els.btnLoadMore.classList.add('hidden');
+    els.ordersContainer.innerHTML = `<div class="text-center py-4"><i class="fa-solid fa-circle-notch fa-spin text-brand-orange"></i></div>`; els.btnLoadMore.classList.add('hidden');
     try { const s = await getDoc(doc(db, "orders", term)); if(s.exists()) { els.ordersContainer.innerHTML = ""; renderOrders([s]); return; } } catch(e) {}
     try {
         const matches = (await getDocs(query(collection(db, "orders"), where("buyerInfo.phone", "in", currentPhoneNumbers), orderBy("createdAt", "desc"), limit(20)))).docs.filter(d => d.id.toUpperCase().startsWith(term.toUpperCase()));
@@ -1240,7 +1240,7 @@ function initMarketingCampaigns() {
             elsCamp.audienceList.innerHTML = currentAudience.map((u, index) => `
                 <label class="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg cursor-pointer transition border border-transparent hover:border-gray-100">
                     <div class="min-w-0 flex-1 pr-3"><p class="text-[10px] font-black text-brand-black uppercase truncate">${u.name || u.userName || 'Sin Nombre'}</p><p class="text-[9px] text-gray-500 font-mono">${u.phone}</p></div>
-                    <input type="checkbox" class="audience-checkbox w-4 h-4 text-brand-cyan rounded border-gray-300 focus:ring-brand-cyan" value="${index}" checked>
+                    <input type="checkbox" class="audience-checkbox w-4 h-4 text-brand-orange rounded border-gray-300 focus:ring-brand-orange" value="${index}" checked>
                 </label>
             `).join('');
 
@@ -1260,7 +1260,7 @@ function initMarketingCampaigns() {
     elsCamp.btnSend.onclick = async () => {
         const finalAudience = Array.from(elsCamp.audienceList.querySelectorAll('.audience-checkbox:checked')).map(cb => currentAudience[parseInt(cb.value)]);
         
-        const templateName = "promo_pixeltech_v1"; 
+        const templateName = "promo_mismartech_v1"; 
         const customMessage = elsCamp.customMsg.value.trim();
         
         if (!confirm(`¿Enviar esta promoción a ${finalAudience.length} clientes?`)) return;
@@ -1446,7 +1446,7 @@ async function loadAdminStats() {
             tr.innerHTML = `
                 <td class="p-2 py-3 font-bold text-[10px] uppercase text-brand-black truncate max-w-[120px]">
                     <div class="flex items-center gap-2">
-                        <div class="w-6 h-6 rounded-full bg-brand-cyan/20 text-brand-cyan flex items-center justify-center text-[10px] shrink-0"><i class="fa-solid fa-user-tie"></i></div>
+                        <div class="w-6 h-6 rounded-full bg-brand-orange/20 text-brand-orange flex items-center justify-center text-[10px] shrink-0"><i class="fa-solid fa-user-tie"></i></div>
                         <span class="truncate">${name}</span>
                     </div>
                 </td>
@@ -1480,7 +1480,7 @@ let isLoadingAudit = false;
 if (btnOpenAudit) {
     btnOpenAudit.onclick = async () => {
         auditModal.classList.remove('hidden');
-        auditContainer.innerHTML = `<div class="p-20 text-center"><i class="fa-solid fa-circle-notch fa-spin text-3xl text-brand-cyan"></i><p class="text-[10px] font-black uppercase text-gray-400 mt-4 tracking-widest">Generando estado de cuenta...</p></div>`;
+        auditContainer.innerHTML = `<div class="p-20 text-center"><i class="fa-solid fa-circle-notch fa-spin text-3xl text-brand-orange"></i><p class="text-[10px] font-black uppercase text-gray-400 mt-4 tracking-widest">Generando estado de cuenta...</p></div>`;
         
         groupedMonths = {};
         sortedMonths = [];
@@ -1563,7 +1563,7 @@ function renderCurrentMonthView() {
 
     let html = `
         <div class="flex items-center justify-between bg-slate-50 p-4 md:p-6 rounded-3xl mb-6 border border-gray-100 shadow-sm">
-            <button id="btn-prev-month" class="w-12 h-12 rounded-full bg-white border border-gray-200 text-gray-500 hover:text-brand-cyan hover:border-brand-cyan transition flex items-center justify-center shadow-sm disabled:opacity-30 disabled:cursor-not-allowed" ${currentMonthIndex >= sortedMonths.length - 1 ? (lastAuditDoc ? '' : 'disabled') : ''} title="Mes Anterior">
+            <button id="btn-prev-month" class="w-12 h-12 rounded-full bg-white border border-gray-200 text-gray-500 hover:text-brand-orange hover:border-brand-orange transition flex items-center justify-center shadow-sm disabled:opacity-30 disabled:cursor-not-allowed" ${currentMonthIndex >= sortedMonths.length - 1 ? (lastAuditDoc ? '' : 'disabled') : ''} title="Mes Anterior">
                 <i class="fa-solid fa-chevron-left"></i>
             </button>
             <div class="text-center">
@@ -1572,7 +1572,7 @@ function renderCurrentMonthView() {
                     ${group.campaigns.length} Campañas <span class="mx-1 text-gray-300">|</span> ${group.totalSent.toLocaleString('es-CO')} Mensajes <span class="mx-1 text-gray-300">|</span> <span class="${effectiveness >= 90 ? 'text-emerald-500' : 'text-orange-500'}">${effectiveness}% Efectividad</span>
                 </p>
             </div>
-            <button id="btn-next-month" class="w-12 h-12 rounded-full bg-white border border-gray-200 text-gray-500 hover:text-brand-cyan hover:border-brand-cyan transition flex items-center justify-center shadow-sm disabled:opacity-30 disabled:cursor-not-allowed" ${currentMonthIndex === 0 ? 'disabled' : ''} title="Mes Siguiente">
+            <button id="btn-next-month" class="w-12 h-12 rounded-full bg-white border border-gray-200 text-gray-500 hover:text-brand-orange hover:border-brand-orange transition flex items-center justify-center shadow-sm disabled:opacity-30 disabled:cursor-not-allowed" ${currentMonthIndex === 0 ? 'disabled' : ''} title="Mes Siguiente">
                 <i class="fa-solid fa-chevron-right"></i>
             </button>
         </div>
@@ -1674,17 +1674,17 @@ function renderCampaignRow(camp, idx) {
                 <p class="text-[9px] text-gray-500 font-bold mt-2">${camp.successCount} Entregados</p>
             </td>
             <td class="p-4 pr-6 align-top text-center">
-                <button onclick="document.getElementById('det-${camp.id || idx}').classList.toggle('hidden')" class="w-10 h-10 rounded-full bg-white border border-gray-200 text-brand-cyan hover:bg-brand-cyan hover:text-white transition shadow-sm" title="Ver Lista de Clientes">
+                <button onclick="document.getElementById('det-${camp.id || idx}').classList.toggle('hidden')" class="w-10 h-10 rounded-full bg-white border border-gray-200 text-brand-orange hover:bg-brand-orange hover:text-white transition shadow-sm" title="Ver Lista de Clientes">
                     <i class="fa-solid fa-users-viewfinder text-sm"></i>
                 </button>
             </td>
         </tr>
         
-        <tr id="det-${camp.id || idx}" class="hidden bg-slate-50/50 border-b-2 border-brand-cyan/20">
+        <tr id="det-${camp.id || idx}" class="hidden bg-slate-50/50 border-b-2 border-brand-orange/20">
             <td colspan="6" class="p-6">
                 <div class="flex items-center justify-between mb-4">
                     <h4 class="text-[10px] font-black uppercase text-brand-black tracking-widest flex items-center gap-2">
-                        <i class="fa-solid fa-list-check text-brand-cyan"></i> Reporte de Entrega
+                        <i class="fa-solid fa-list-check text-brand-orange"></i> Reporte de Entrega
                     </h4>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 max-h-60 overflow-y-auto custom-scroll pr-2">
