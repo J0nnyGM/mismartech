@@ -1,5 +1,5 @@
 import { db, collection, addDoc, doc, getDocs, query, where, orderBy, runTransaction, limit, startAfter } from '../firebase-init.js';
-import { loadAdminSidebar } from '../admin-ui.js';
+import { loadAdminSidebar } from './admin-ui.js';
 import { AdminStore } from './admin-store.js'; // 🔥 IMPORTAMOS EL CEREBRO
 
 loadAdminSidebar();

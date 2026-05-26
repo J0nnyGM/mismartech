@@ -41,7 +41,7 @@ include $real_html_path; // Ejecutamos el HTML y sus includes PHP
 $html = ob_get_clean(); // Guardamos el resultado ensamblado y limpiamos la memoria
 
 // 3. API REST directa a Firebase
-$api_key = "AIzaSyALwLCRjRaWUE5yy5-TBjjxKehguNhb0GU"; 
+$api_key = "AIzaSyAhDCTuplw5Lfswx6UQOBn0ze8ypL__KQs"; 
 $api_url = "https://firestore.googleapis.com/v1/projects/mismartech/databases/(default)/documents/products/" . urlencode($product_id) . "?key=" . $api_key;
 
 $ch = curl_init();
@@ -144,7 +144,7 @@ if ($http_code == 200 && $response) {
     <meta property=\"og:title\" content=\"$title\">
     <meta property=\"og:description\" content=\"$desc\">
     <meta property=\"og:image\" content=\"$image\">
-    <meta property=\"og:site_name\" content=\"MiSmartech Col\">
+    <meta property=\"og:site_name\" content=\"MiSmartech\">
     <meta property=\"product:price:amount\" content=\"$price\">
     <meta property=\"product:price:currency\" content=\"COP\">
     <meta name=\"twitter:card\" content=\"summary_large_image\">

@@ -4,7 +4,7 @@ header('Content-Type: application/xml; charset=utf-8');
 header('Cache-Control: public, max-age=3600');
 
 // 2. URL de tu Cloud Function
-$function_url = "https://sitemap-muiondpggq-uc.a.run.app";
+$function_url = "https://sitemap-wghz2bdqpq-uc.a.run.app";
 
 // 3. Usamos cURL para saltar los bloqueos de seguridad de cPanel
 $ch = curl_init();

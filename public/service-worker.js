@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mismartech-shell-v0.1'; // 🔥 Subimos la versión
+const CACHE_NAME = 'mismartech-shell-v0.2'; // 🔥 Subimos la versión
 
 // Archivos vitales para que la app arranque sin internet
 const urlsToCache = [
@@ -61,8 +61,7 @@ self.addEventListener('fetch', (event) => {
 
   const alwaysFetchFiles = [
     'admin/admin-ui.js',
-    'admin/admin-guard.js',
-    'index.html' // Evita que el dashboard principal se quede atascado
+    'admin/admin-guard.js'
   ];
 
   // Si la URL coincide con un dominio ignorado o con un archivo de administración vital, saltamos el caché

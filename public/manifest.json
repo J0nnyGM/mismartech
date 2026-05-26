@@ -1,12 +1,12 @@
 {
   "name": "Mismartech Store",
   "short_name": "MiSmartech",
-  "description": "Tecnologia a tu alcance. Contraentrega en MEDELLIN, Envíos a toda Colombia.",
+  "description": "Tecnologia a tu alcance. Contraentrega en MEDELLIN, BARRANQUILLA, CALI, BOGOTA, Envíos a toda Colombia.",
   "start_url": "/index.html",
   "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#00AEC7",
+  "theme_color": "#F05A28",
   "orientation": "portrait",
   "shortcuts": [
     {

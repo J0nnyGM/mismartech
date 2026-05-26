@@ -1,14 +1,28 @@
-User-agent: *
-Allow: /
+# ==============================================================================
+# Robots.txt - MiSmartech (https://mismartech.com)
+# ==============================================================================
 
-# No indexar áreas privadas o irrelevantes para SEO
+# Reglas globales para todos los rastreadores
+User-agent: *
+
+# Permitir indexar todo el contenido público y recursos esenciales para renderizado
+Allow: /
+Allow: /js/
+Allow: /css/
+Allow: /img/
+
+# Evitar indexación de áreas administrativas y privadas (Optimización de presupuesto de rastreo)
 Disallow: /admin/
+Disallow: /auth/
 Disallow: /profile.html
 Disallow: /shop/cart.html
 Disallow: /shop/checkout.html
 Disallow: /shop/success.html
-Disallow: /auth/
+
+# Evitar la indexación de fragmentos de código parciales y la caché técnica de servidor
+Disallow: /includes/
+Disallow: /cache/
 Disallow: /antiguo/
 
-# Indicar donde está el sitemap
+# Ubicación del archivo de mapa del sitio web
 Sitemap: https://mismartech.com/sitemap.xml

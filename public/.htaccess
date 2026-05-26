@@ -43,19 +43,6 @@ ErrorDocument 404 /404.html
     RewriteRule ^sitemap\.xml$ serve_sitemap.php [L]
     RewriteRule ^google-feed\.xml$ serve_feed.php [L]
 
-    # REDIRECCIONES 301 WOOCOMMERCE
-    RewriteRule ^catalogo\.html$ /shop/catalog.html [R=301,L]
-    RewriteRule ^catalog\.html$ /shop/catalog.html [R=301,L]
-    RewriteRule ^etiqueta-producto/?(.*)$ /shop/catalog.html [R=301,L]
-    RewriteRule ^categoria-producto/?(.*)$ /shop/catalog.html [R=301,L]
-    RewriteRule ^tienda/?(.*)$ / [R=301,L]
-    RewriteRule ^producto/?(.*)$ / [R=301,L]
-    RewriteRule ^faqs/?(.*)$ / [R=301,L]
-    RewriteRule ^carrito/?(.*)$ / [R=301,L]
-    RewriteRule ^finalizar-compra/?(.*)$ / [R=301,L]
-    RewriteRule ^mi-cuenta/?(.*)$ / [R=301,L]
-    RewriteRule ^wp-content/?(.*)$ / [R=301,L]
-
     # Ocultar extensión .html
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
@@ -118,7 +105,57 @@ ErrorDocument 404 /404.html
 </IfModule>
 
 # ----------------------------------------------------------------------
-# 6. MANEJADOR DE PHP DE CPANEL (NO EDITAR)
+# 6. SEGURIDAD ACTIVA Y PROTECCIÓN DE CABECERAS
+# ----------------------------------------------------------------------
+<IfModule mod_headers.c>
+    # Previene que la tienda sea cargada dentro de un iframe en sitios externos (evita Clickjacking)
+    Header set X-Frame-Options "SAMEORIGIN"
+    
+    # Previene que el navegador intente adivinar el tipo de contenido (evita inyección de scripts camuflados)
+    Header set X-Content-Type-Options "nosniff"
+    
+    # Activa la protección contra XSS en navegadores heredados
+    Header set X-XSS-Protection "1; mode=block"
+    
+    # Controla cuánta información de referencia envía tu tienda a otros sitios
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# ----------------------------------------------------------------------
+# 7. PROTECCIÓN Y BLOQUEO DE ARCHIVOS DEL SISTEMA
+# ----------------------------------------------------------------------
+# Denegar el acceso a archivos ocultos (como .git, .env, .htaccess, etc.)
+<FilesMatch "^\.">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Denegar el acceso a archivos de configuración y logs comunes
+<FilesMatch "\.(bak|config|sql|fla|psd|ini|log|sh|inc|swp|dist)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# ----------------------------------------------------------------------
+# 8. DESACTIVACIÓN DE ETAGS PARA CACHÉ EXTREMA
+# ----------------------------------------------------------------------
+<IfModule mod_headers.c>
+    Header unset ETag
+</IfModule>
+FileETag None
+
+# ----------------------------------------------------------------------
+# 9. MANEJADOR DE PHP DE CPANEL (NO EDITAR)
 # ----------------------------------------------------------------------
 # php -- BEGIN cPanel-generated handler, do not edit
 <IfModule mime_module>

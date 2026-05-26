@@ -87,11 +87,11 @@ let allClientsCache = [];   // RAM de Clientes
 const TIME_UNITS = { 'months': 'Meses', 'years': 'Años', 'days': 'Días' };
 const QUICK_REPLIES = [
     { title: "👋 Saludo", text: "¡Hola! Gracias por escribir a Mi Smartech. ¿En qué podemos ayudarte hoy?" },
-    { title: "🛵 Envío Bogotá", text: "Para Bogotá el envío llega el mismo día (Lunes a Sábado) si confirmas antes de las 3:30 PM.\n\n💰 Costo: $10.000\n🤝 Pago: Contra entrega." },
+    { title: "🛵 Envío Medellin", text: "Para Bogotá el envío llega el mismo día (Lunes a Sábado) si confirmas antes de las 3:00 PM.\n\n💰 Costo: $10.000\n🤝 Pago: Contra entrega." },
     { title: "🚚 Envío Nacional", text: "Realizamos envíos a toda Colombia 🇨🇴. Si confirmas antes de las 3:00 PM sale hoy mismo.\n\n📸 Te enviamos foto del paquete y la guía de rastreo.\n💰 Costo promedio: $18.000 (varía según ubicación)." },
-    { title: "📍 Pasar a Recoger", text: "Estamos en el Centro internacional, Bogotá (a media cuadra de la 34).\n\n🏢 *Calle 31 # 13A-51*\nEdificio Panorama, Oficina 223." },
-    { title: "⏰ Horarios", text: "Nuestros horarios de atención son:\n\n📅 Lunes a Viernes: 9:00 AM - 5:30 PM\n📅 Sábados: 10:00 AM - 3:00 PM" },
-    { title: "🟣 Cuentas Cobro", text: "Puedes realizar el pago a:\n\n🏦 *Bancolombia Ahorros* \n*Mi Smartech SAS* \n*NIT:* 901.561.037 \n*Cuenta:* 237-000046-12 \n\n📱 *Nequi / Daviplata*\n3003729020\nLina Gil\n\n🗝️ *Llave / Bre-B:*\n0041243528 \nMi Smartech" },
+    //{ title: "📍 Pasar a Recoger", text: "Estamos en el Centro internacional, Bogotá (a media cuadra de la 34).\n\n🏢 *Calle 31 # 13A-51*\nEdificio Panorama, Oficina 223." },
+    { title: "⏰ Horarios", text: "Nuestros horarios de atención son:\n\n📅 Lunes a Viernes: 9:30 AM - 6:00 PM\n📅 Sábados: 9:30 AM - 3:00 PM" },
+    { title: "🟣 Cuentas Cobro", text: "Puedes realizar el pago a:\n\n🏦 *Bancolombia Ahorros* \n*Mi Smartech SAS* \n*NIT:* 902.033.894-1 \n*Cuenta:* 245-000218-71 \n\n📱 *Nequi / Daviplata*\n3196276426\nJeison Cuervo\n\n🗝️ *Llave / Bre-B:*\n3196276426 \nJeison Cuervo" },
     { title: "📝 Pedir Datos", text: "Para procesar tu pedido, regálame por favor estos datos:\n\n🧑🏻 Nombre:\n🎫 C.C:\n📲 Cel:\n🏠 Dirección:\n🏭 Barrio:\n🌆 Ciudad:\n📩 Email:" },
 ];
 
@@ -856,7 +856,8 @@ async function sendProduct(p) {
         warrantyText = `\n🛡️ *Garantía:* ${p.warranty.time} ${unit} (Directa)`;
     }
 
-    const caption = `*${p.name}*\n💲 *Precio:* ${priceText}${featuresText}${warrantyText}`.trim();
+    const productUrl = `https://mismartech.com/shop/product.html?id=${p.id}`;
+    const caption = `*${p.name}*\n💲 *Precio:* ${priceText}${featuresText}${warrantyText}\n\n🔗 *Ver en la web:* ${productUrl}`.trim();
     let imgUrl = p.mainImage || p.image || (p.images && p.images[0]) || "";
     if (p.variants && p.variants.length > 0 && p.variants[0].images && p.variants[0].images.length > 0 && !imgUrl) imgUrl = p.variants[0].images[0];
     
