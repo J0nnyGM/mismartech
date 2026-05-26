@@ -115,7 +115,7 @@ function getBeautifulEmailTemplate(type, order, orderId) {
                         
                         <tr>
                             <td style="padding: 40px 40px 20px; text-align: center; background-color: ${darkColor};">
-                                <img src="https://mismartech.com/img/logo.webp" alt="MiSmartech" style="height: 40px; margin-bottom: 20px;">
+                                <img src="https://mismartech.com/img/logo-email.png" alt="MiSmartech" style="height: 40px; margin-bottom: 20px; display: inline-block; border: 0; outline: none; text-decoration: none;">
                                 <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 900; text-transform: uppercase; letter-spacing: -1px;">
                                     ${title}
                                 </h1>

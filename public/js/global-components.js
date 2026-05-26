@@ -4,10 +4,25 @@ import { SmartCache } from "./shop/cache-service.js";
 
 async function loadComponent(elementId, componentPath) {
     try {
+        const container = document.getElementById(elementId);
+        if (container) {
+            container.style.opacity = '0';
+            container.style.transition = 'opacity 0.25s ease-in-out';
+        }
+
         const response = await fetch(componentPath);
         if (!response.ok) throw new Error(`Error cargando ${componentPath}`);
         const html = await response.text();
-        document.getElementById(elementId).innerHTML = html;
+        
+        if (container) {
+            container.innerHTML = html;
+            // Force browser to calculate styles and paint before transitioning opacity
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    container.style.opacity = '1';
+                });
+            });
+        }
     } catch (error) {
         console.error(error);
     }
