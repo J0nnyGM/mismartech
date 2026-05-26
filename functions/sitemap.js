@@ -114,7 +114,7 @@ exports.sitemap = onRequest({ timeoutSeconds: 60, cors: true }, async (req, res)
 ${urls}
 </urlset>`.trim(); 
 
-        res.set('Content-Type', 'application/xml; charset=utf-8'); 
+        res.set('Content-Type', 'text/xml; charset=utf-8'); 
         res.set('Cache-Control', 'public, max-age=3600, s-maxage=7200');
         
         res.status(200).send(sitemapXml);
