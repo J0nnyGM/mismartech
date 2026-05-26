@@ -4,12 +4,10 @@
 Options -MultiViews -Indexes
 
 # ----------------------------------------------------------------------
-# 1. EJECUTAR PHP DENTRO DE ARCHIVOS HTML (Ajustado para tu cPanel)
+# 1. EJECUTAR PHP DENTRO DE ARCHIVOS HTML (Desactivado por seguridad)
 # ----------------------------------------------------------------------
-# Usamos el manejador exacto que tu servidor ya definió al final del archivo
-<IfModule mime_module>
-  AddHandler application/x-httpd-ea-php74___lsphp .html .htm
-</IfModule>
+# Los archivos HTML estáticos ya no requieren ejecución PHP directa.
+
 
 # ----------------------------------------------------------------------
 # 2. PÁGINAS DE ERROR PERSONALIZADAS
@@ -160,10 +158,5 @@ ErrorDocument 404 /404.html
 FileETag None
 
 # ----------------------------------------------------------------------
-# 9. MANEJADOR DE PHP DE CPANEL (NO EDITAR)
-# ----------------------------------------------------------------------
-# php -- BEGIN cPanel-generated handler, do not edit
-<IfModule mime_module>
-  AddHandler application/x-httpd-ea-php74___lsphp .php .php7 .phtml
-</IfModule>
-# php -- END cPanel-generated handler, do not edit
+# 9. MANEJADOR DE PHP DE CPANEL (Eliminado para usar el global por defecto)
+# ----------------------------------------------------------------------
