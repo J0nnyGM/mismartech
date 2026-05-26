@@ -32,6 +32,14 @@ class StoreModule {
                 const parsed = JSON.parse(cached);
                 this.runtimeMap = parsed.map || {};
                 this.lastSyncTime = parsed.lastSync || 0;
+                
+                // Convert dateObj strings back to Date objects
+                Object.keys(this.runtimeMap).forEach(id => {
+                    const item = this.runtimeMap[id];
+                    if (item.dateObj) {
+                        item.dateObj = new Date(item.dateObj);
+                    }
+                });
             } catch (e) { localStorage.removeItem(this.storageKey); }
         }
     }

@@ -209,6 +209,24 @@ window.showToast = (msg, type = 'success') => {
 
 // --- LÓGICA DE BÚSQUEDA ---
 export function initSearchLogic() {
+    const normalize = (txt) => {
+        if (!txt) return "";
+        let clean = txt.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // Quitar acentos y tildes
+        
+        // --- Algoritmo de Aproximación Fonética y Ortográfica Española ---
+        clean = clean.replace(/h/g, ""); // Quitar la 'h' muda (ej: haudifonos -> audifonos)
+        clean = clean.replace(/v/g, "b"); // Unificar 'v' y 'b' (ej: vascula -> bascula)
+        clean = clean.replace(/z/g, "s"); // Unificar 'z' y 's' (ej: vazcula -> bascula)
+        clean = clean.replace(/c([ei])/g, "s$1"); // 'c' suave -> 's' (ej: celular -> selular)
+        clean = clean.replace(/c([aou])/g, "k$1"); // 'c' fuerte -> 'k' (ej: cargador -> kargador)
+        clean = clean.replace(/qu/g, "k"); // 'qu' -> 'k' (ej: queso -> keso)
+        clean = clean.replace(/g([ei])/g, "j$1"); // 'g' suave -> 'j' (ej: gente -> jente)
+        clean = clean.replace(/g\b/g, "j"); // 'g' al final de la palabra -> 'j' (ej: relog -> reloj)
+        clean = clean.replace(/ll/g, "y"); // 'll' -> 'y' (ej: llave -> yave)
+        
+        return clean;
+    };
+
     const setupSearch = (inputId, resultsId) => {
         const input = document.getElementById(inputId);
         const results = document.getElementById(resultsId);
@@ -223,14 +241,16 @@ export function initSearchLogic() {
         });
 
         input.addEventListener('input', (e) => {
-            const term = e.target.value.trim().toLowerCase();
+            const rawTerm = e.target.value.trim();
             clearTimeout(debounceTimer);
 
-            if (term.length < 2) {
+            if (rawTerm.length < 2) {
                 results.innerHTML = '';
                 results.classList.remove('active');
                 return;
             }
+
+            const normalizedTerm = normalize(rawTerm);
 
             debounceTimer = setTimeout(async () => {
                 try {
@@ -239,9 +259,9 @@ export function initSearchLogic() {
 
                     if (localProducts.length > 0) {
                         resultsArray = localProducts.filter(p => {
-                            const name = (p.name || "").toLowerCase();
-                            const cat = (p.category || "").toLowerCase();
-                            return (name.includes(term) || cat.includes(term)) && p.status === 'active';
+                            const name = normalize(p.name || "");
+                            const cat = normalize(p.category || "");
+                            return (name.includes(normalizedTerm) || cat.includes(normalizedTerm)) && p.status === 'active';
                         });
                     } else {
                         const q = query(collection(db, "products"), where("status", "==", "active"), limit(20));
@@ -250,13 +270,13 @@ export function initSearchLogic() {
                         snap.forEach(d => products.push({ id: d.id, ...d.data() }));
 
                         resultsArray = products.filter(p => {
-                            const name = (p.name || "").toLowerCase();
-                            const cat = (p.category || "").toLowerCase();
-                            return name.includes(term) || cat.includes(term);
+                            const name = normalize(p.name || "");
+                            const cat = normalize(p.category || "");
+                            return name.includes(normalizedTerm) || cat.includes(normalizedTerm);
                         });
                     }
 
-                    renderResults(resultsArray.slice(0, 5), term);
+                    renderResults(resultsArray.slice(0, 5), rawTerm);
 
                 } catch (err) {
                     console.error("Search error", err);

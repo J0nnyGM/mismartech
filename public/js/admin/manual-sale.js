@@ -1,4 +1,4 @@
-import { db, collection, doc, runTransaction, addDoc, setDoc, getDocs, query, orderBy } from '../firebase-init.js';
+import { db, collection, doc, runTransaction, addDoc, setDoc, getDocs, query, orderBy, auth } from '../firebase-init.js';
 import { adjustStock } from './inventory-core.js';
 import { AdminStore } from './admin-store.js';
 
@@ -840,7 +840,9 @@ async function loadManualDepartments() {
 }
 
 // --- GUARDAR TRANSACCIÓN ---
+let isSavingOrder = false;
 async function saveOrder() {
+    if (isSavingOrder) return;
     const btn = document.getElementById('btn-save-manual');
     
     if (!selectedUserId && !isCreatingNewClient) { 
@@ -916,6 +918,7 @@ async function saveOrder() {
         if(!shippingData.department || !shippingData.address) return alert("Faltan datos de la nueva dirección de entrega.");
     }
 
+    isSavingOrder = true;
     const originalText = btn.innerHTML;
     btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Procesando Venta...';
 
@@ -1040,6 +1043,7 @@ async function saveOrder() {
     } catch (e) {
         console.error(e); alert(e.message);
     } finally {
+        isSavingOrder = false;
         btn.disabled = false; btn.innerHTML = originalText;
     }
 }

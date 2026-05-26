@@ -514,7 +514,6 @@
         }
 
         // --- PAGO (Lógica On-Demand FIFO) ---
-        // Aquí ocurre la magia: Solo descargamos las facturas pendientes AL MOMENTO DE PAGAR
         document.getElementById('payment-form').onsubmit = async (e) => {
             e.preventDefault();
             const btn = e.target.querySelector('button');
@@ -535,27 +534,32 @@
             }
 
             try {
-                // FASE 1: Buscar facturas pendientes FIFO (En el momento del clic)
+                // FASE 1: Buscar facturas asociadas al proveedor
                 const qPending = query(
                     collection(db, "purchases"), 
-                    where("supplierId", "==", supplierId), 
-                    orderBy("createdAt", "asc")
+                    where("supplierId", "==", supplierId)
                 );
                 
-                // Limitamos a 50 para no procesar infinito, asumimos que con eso cubrimos el monto
-                // Si la deuda es muy vieja y fragmentada, requeriría mas lógica, pero esto cubre el 99%
-                const snapPending = await getDocs(query(qPending, limit(50)));
+                const snapPending = await getDocs(qPending);
                 
                 const purchasesToPay = [];
                 let moneyAvailable = amount;
 
-                snapPending.forEach(d => {
+                // Ordenar por fecha de creación ascendente (FIFO) en memoria (evita requerir índice compuesto en Firestore)
+                const sortedPendingDocs = snapPending.docs.map(d => ({ ref: d.ref, data: d.data() }));
+                sortedPendingDocs.sort((a, b) => {
+                    const timeA = a.data.createdAt?.toDate ? a.data.createdAt.toDate().getTime() : 0;
+                    const timeB = b.data.createdAt?.toDate ? b.data.createdAt.toDate().getTime() : 0;
+                    return timeA - timeB;
+                });
+
+                sortedPendingDocs.forEach(item => {
                     if (moneyAvailable <= 0) return;
-                    const p = d.data();
+                    const p = item.data;
                     const bal = (p.totalCost || 0) - (p.amountPaid || 0);
                     
                     if (bal > 0) {
-                        purchasesToPay.push({ ref: d.ref, data: p });
+                        purchasesToPay.push({ ref: item.ref, data: p });
                         moneyAvailable -= bal;
                     }
                 });

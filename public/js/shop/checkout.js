@@ -111,23 +111,27 @@ function setupPaymentListeners() {
     });
 }
 
-// ✅ CORRECCIÓN COBERTURA: La Contraentrega ahora opera únicamente para Medellín, Antioquia
+// ✅ CORRECCIÓN COBERTURA: La Contraentrega ahora opera para Medellín, Bogotá, Cali, Barranquilla, Bello, Itagüí, Sabaneta y Copacabana
 function validatePaymentMethods() {
     const city = els.citySelect.value || "";
-    const deptOpt = els.deptSelect.options[els.deptSelect.selectedIndex];
-    const dept = deptOpt ? (deptOpt.dataset.name || deptOpt.textContent || "") : "";
+    
+    // Normalizar texto para ignorar acentos/tildes y mayúsculas/minúsculas
+    const cleanCity = city.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    
+    // Ciudades permitidas para Contra Entrega
+    const allowedCities = ['medellin', 'bogota', 'cali', 'barranquilla', 'bello', 'itagui', 'sabaneta', 'copacabana'];
+    const isAllowed = allowedCities.some(allowed => cleanCity.includes(allowed));
 
-    // Detección tolerante a tildes y caracteres especiales mediante normalización básica
-    const isAntioquia = dept.toLowerCase().includes('antioquia');
-    const isMedellin = city.toLowerCase().replace(/[íìï]/g, 'i').includes('medellin'); 
-
-    if (isAntioquia && isMedellin) {
+    if (isAllowed) {
         els.codInput.disabled = false;
         els.codContainer.classList.remove('payment-disabled');
         els.codWarning.classList.add('hidden');
     } else {
         els.codInput.disabled = true;
         els.codContainer.classList.add('payment-disabled');
+        if (els.codWarning) {
+            els.codWarning.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Servicio Contra Entrega disponible únicamente para Medellín (y Área Metropolitana), Bogotá, Cali y Barranquilla.`;
+        }
         els.codWarning.classList.remove('hidden');
 
         if (els.codInput.checked) {

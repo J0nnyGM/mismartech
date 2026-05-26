@@ -49,5 +49,12 @@ service firebase.storage {
       allow read: if true; // Público para que WhatsApp pueda descargar la imagen si le mandamos el link
       allow write: if request.auth != null; // Solo usuarios logueados (Admin) pueden subir
     }
+
+    // 9. MARKETING (Campañas Masivas de WhatsApp)
+    // Las imágenes promocionales deben leerse públicamente para ser enviadas por WhatsApp
+    match /marketing/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
   }
 }

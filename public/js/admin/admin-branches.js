@@ -270,61 +270,89 @@ document.getElementById('btn-new-cierre').onclick = async () => {
         return;
     }
 
-    try {
-        // Cargar detalles de la sede
-        const branchSnap = await getDoc(doc(db, "branches", activeBranchId));
-        if (!branchSnap.exists()) {
-            alert(`No existe la sede activa: ${activeBranchId}`);
-            return;
-        }
+    const role = sessionStorage.getItem('adminUserRole');
+    const branchNameInput = document.getElementById('cierre-branch-name');
+    const branchSelect = document.getElementById('cierre-branch-select');
 
-        const branch = branchSnap.data();
-
-        // Rellenar formulario básico
-        document.getElementById('cierre-branch-id').value = activeBranchId;
-        document.getElementById('cierre-branch-name').value = branch.name || activeBranchId;
-
-        // Cargar cuentas vinculadas y globales para el select
-        const accountSelect = document.getElementById('cierre-account-id');
-        accountSelect.innerHTML = '';
-
-        // Filtrar cuentas: asociadas a la sede activa
-        const filteredAccounts = accountsList.filter(acc => acc.branchId === activeBranchId);
-
-        if (filteredAccounts.length === 0) {
-            alert("No hay cuentas asociadas a esta sede o globales disponibles para arquear.");
-            return;
-        }
-
-        filteredAccounts.forEach(acc => {
-            const isGlobal = !acc.branchId || acc.branchId === 'ALL';
-            const badge = isGlobal ? 'GLOBAL' : 'SEDE';
-            accountSelect.innerHTML += `<option value="${acc.id}">💳 [${badge}] ${acc.name}</option>`;
-        });
-
-        // Configurar listener
-        accountSelect.onchange = (e) => {
-            updateCierreAccountDetails(e.target.value);
-        };
-
-        // Seleccionar cuenta por defecto
-        const defaultAccountId = branch.accountId && filteredAccounts.some(a => a.id === branch.accountId)
-            ? branch.accountId 
-            : filteredAccounts[0].id;
+    // Configurar visibilidad y opciones según el rol
+    if (role === 'admin') {
+        branchNameInput.classList.add('hidden');
+        branchSelect.classList.remove('hidden');
         
-        accountSelect.value = defaultAccountId;
+        branchSelect.innerHTML = '';
+        branchesList.forEach(b => {
+            branchSelect.innerHTML += `<option value="${b.id}">${b.name}</option>`;
+        });
+        branchSelect.value = activeBranchId;
+        
+        branchSelect.onchange = async () => {
+            await loadCierreForBranch(branchSelect.value);
+        };
+    } else {
+        branchNameInput.classList.remove('hidden');
+        branchSelect.classList.add('hidden');
+    }
 
+    const loadCierreForBranch = async (selectedBranchId) => {
+        try {
+            document.getElementById('cierre-branch-id').value = selectedBranchId;
+
+            // Cargar detalles de la sede
+            const branchSnap = await getDoc(doc(db, "branches", selectedBranchId));
+            const branch = branchSnap.exists() ? branchSnap.data() : { name: selectedBranchId };
+            const branchName = branch.name || selectedBranchId;
+            
+            // Sincronizar input de nombre (para el guardado final)
+            branchNameInput.value = branchName;
+
+            // Cargar cuentas vinculadas y globales para el select
+            const accountSelect = document.getElementById('cierre-account-id');
+            accountSelect.innerHTML = '';
+
+            // Filtrar cuentas: asociadas a la sede seleccionada o globales
+            const filteredAccounts = accountsList.filter(acc => acc.branchId === selectedBranchId);
+
+            if (filteredAccounts.length === 0) {
+                accountSelect.innerHTML = '<option value="">-- Sin Cuentas Disponibles --</option>';
+                document.getElementById('cierre-expected-value').value = 0;
+                document.getElementById('cierre-expected-display').value = '$ 0';
+                recalculateCierreAmounts();
+                return;
+            }
+
+            filteredAccounts.forEach(acc => {
+                const isGlobal = !acc.branchId || acc.branchId === 'ALL';
+                const badge = isGlobal ? 'GLOBAL' : 'SEDE';
+                accountSelect.innerHTML += `<option value="${acc.id}">💳 [${badge}] ${acc.name}</option>`;
+            });
+
+            accountSelect.onchange = (e) => {
+                updateCierreAccountDetails(e.target.value);
+            };
+
+            const defaultAccountId = branch.accountId && filteredAccounts.some(a => a.id === branch.accountId)
+                ? branch.accountId 
+                : filteredAccounts[0].id;
+            
+            accountSelect.value = defaultAccountId;
+            updateCierreAccountDetails(defaultAccountId);
+        } catch (err) {
+            console.error("Error al cargar cierre para sede:", err);
+            alert("Error al cargar la información de la sede: " + err.message);
+        }
+    };
+
+    try {
         document.getElementById('cierre-physical').value = '';
         document.getElementById('cierre-difference-display').value = '$0';
         document.getElementById('cierre-difference-display').className = 'w-full bg-gray-100 text-gray-400 border border-gray-200 p-4 rounded-2xl text-xs font-black outline-none cursor-not-allowed text-right';
         document.getElementById('cierre-notes').value = '';
 
-        // Reset base minima y excedente
         document.getElementById('cierre-base').value = '$0';
         document.getElementById('cierre-transfer-amount').value = '$0';
 
-        // Actualizar detalles inicialmente
-        updateCierreAccountDetails(defaultAccountId);
+        // Cargar los detalles para la sede seleccionada inicialmente
+        await loadCierreForBranch(activeBranchId);
 
         document.getElementById('cierre-modal').classList.remove('hidden');
     } catch (e) {
@@ -767,8 +795,12 @@ function updateTransferStockPreview() {
     document.getElementById('transfer-stock-preview').classList.remove('hidden');
 }
 
+let isSubmittingTransfer = false;
 document.getElementById('transfer-form').onsubmit = async (e) => {
     e.preventDefault();
+    if (isSubmittingTransfer) return;
+    isSubmittingTransfer = true;
+
     const btn = e.target.querySelector('button[type="submit"]');
     const originalText = btn.innerText;
     btn.disabled = true;
@@ -784,6 +816,7 @@ document.getElementById('transfer-form').onsubmit = async (e) => {
         alert("Todos los campos obligatorios deben completarse con cantidades válidas.");
         btn.disabled = false;
         btn.innerText = originalText;
+        isSubmittingTransfer = false;
         return;
     }
 
@@ -791,6 +824,7 @@ document.getElementById('transfer-form').onsubmit = async (e) => {
         alert("La sede origen no puede ser la misma que la sede destino.");
         btn.disabled = false;
         btn.innerText = originalText;
+        isSubmittingTransfer = false;
         return;
     }
 
@@ -799,6 +833,7 @@ document.getElementById('transfer-form').onsubmit = async (e) => {
         alert("El producto seleccionado no es válido.");
         btn.disabled = false;
         btn.innerText = originalText;
+        isSubmittingTransfer = false;
         return;
     }
 
@@ -842,6 +877,7 @@ document.getElementById('transfer-form').onsubmit = async (e) => {
         console.error("Error requesting stock transfer:", err);
         alert("Error: " + err.message);
     } finally {
+        isSubmittingTransfer = false;
         btn.disabled = false;
         btn.innerText = originalText;
     }

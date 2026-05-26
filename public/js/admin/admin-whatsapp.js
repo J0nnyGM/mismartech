@@ -87,7 +87,10 @@ let allClientsCache = [];   // RAM de Clientes
 const TIME_UNITS = { 'months': 'Meses', 'years': 'Años', 'days': 'Días' };
 const QUICK_REPLIES = [
     { title: "👋 Saludo", text: "¡Hola! Gracias por escribir a Mi Smartech. ¿En qué podemos ayudarte hoy?" },
-    { title: "🛵 Envío Medellin", text: "Para Bogotá el envío llega el mismo día (Lunes a Sábado) si confirmas antes de las 3:00 PM.\n\n💰 Costo: $10.000\n🤝 Pago: Contra entrega." },
+    { title: "🛵 Envío Medellín", text: "Para Medellín contamos con envío pago contra entrega por $11.000 😊" },
+    { title: "🛵 Envío Bello", text: "Para Bello contamos con envío pago contra entrega por $13.000 😊\nTambién puedes pasar" },
+    { title: "🛵 Envío Itagüí", text: "Para Itaguí contamos con envío pago contra entrega por $12.000 😊\nTambién puedes pasar directamente por el producto si lo prefieres.\nAceptamos efectivo, transferencia y Sistecrédito.\n👉 ¿Cómo te gustaría recibirlo?" },
+    { title: "🛵 Envío Sabaneta/Copa", text: "Para sabaneta o Copacabana contamos con envío pago contra entrega por $13.000 😊\nTambién puedes pasar directamente por el producto si lo prefieres.\nAceptamos efectivo, transferencia y Sistecrédito.\n👉 ¿Cómo te gustaría recibirlo?" },
     { title: "🚚 Envío Nacional", text: "Realizamos envíos a toda Colombia 🇨🇴. Si confirmas antes de las 3:00 PM sale hoy mismo.\n\n📸 Te enviamos foto del paquete y la guía de rastreo.\n💰 Costo promedio: $18.000 (varía según ubicación)." },
     //{ title: "📍 Pasar a Recoger", text: "Estamos en el Centro internacional, Bogotá (a media cuadra de la 34).\n\n🏢 *Calle 31 # 13A-51*\nEdificio Panorama, Oficina 223." },
     { title: "⏰ Horarios", text: "Nuestros horarios de atención son:\n\n📅 Lunes a Viernes: 9:30 AM - 6:00 PM\n📅 Sábados: 9:30 AM - 3:00 PM" },

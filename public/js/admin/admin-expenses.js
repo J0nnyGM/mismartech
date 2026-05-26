@@ -42,9 +42,21 @@ const cleanNumber = (val) => {
 
 AdminStore.subscribeToAccounts((accs) => {
     accountsList = accs;
+    
+    const role = sessionStorage.getItem('adminUserRole');
+    const activeBranchId = sessionStorage.getItem('activeBranchId') || 'sede_principal';
+    
+    let filteredAccs = accountsList;
+    if (role !== 'admin') {
+        filteredAccs = accountsList.filter(a => {
+            const accBranchId = a.branchId || 'sede_principal';
+            return accBranchId === activeBranchId || a.branchId === 'ALL';
+        });
+    }
+
     const previousSelection = accountSelect.value;
     accountSelect.innerHTML = '<option value="">Seleccione Cuenta...</option>';
-    accountsList.forEach(a => {
+    filteredAccs.forEach(a => {
         accountSelect.innerHTML += `<option value="${a.id}">${a.name} ($${(a.balance || 0).toLocaleString()})</option>`;
     });
     if (previousSelection) accountSelect.value = previousSelection;
@@ -415,6 +427,8 @@ form.addEventListener('submit', async (e) => {
 
             t.update(accRef, { balance: accData.balance - totalDeduction });
 
+            const expenseBranchId = accData.branchId || 'sede_principal';
+
             if (tax > 0) {
                 t.set(doc(collection(db, "expenses")), {
                     description: `4x1000 ${desc}`,
@@ -424,7 +438,8 @@ form.addEventListener('submit', async (e) => {
                     paymentMethod: accountName,
                     date: Timestamp.fromDate(localDate),
                     createdAt: Timestamp.now(), // Store escucha esto
-                    supplierName: "DIAN / Banco"
+                    supplierName: "DIAN / Banco",
+                    branchId: expenseBranchId
                 });
             }
 
@@ -437,7 +452,8 @@ form.addEventListener('submit', async (e) => {
                 type: 'EXPENSE',
                 paymentMethod: accountName,
                 date: Timestamp.fromDate(localDate),
-                createdAt: Timestamp.now() // Store escucha esto
+                createdAt: Timestamp.now(), // Store escucha esto
+                branchId: expenseBranchId
             });
         });
 
