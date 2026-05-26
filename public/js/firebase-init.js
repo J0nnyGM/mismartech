@@ -165,14 +165,13 @@ export function initCacheKillSwitch(db) {
                             if (res.ok) {
                                 const html = await res.text();
                                 
-                                // Reemplazamos el documento por el HTML de mantenimiento sin alterar la URL
-                                document.open();
-                                document.write(html);
-                                document.close();
+                                // Reemplazamos el documento por el HTML de mantenimiento sin alterar la URL,
+                                // inyectando el atributo de forma nativa en la cadena HTML para evitar bucles infinitos
+                                const injectedHtml = html.replace('<body', '<body data-maintenance="active"');
                                 
-                                if (document.body) {
-                                    document.body.setAttribute('data-maintenance', 'active');
-                                }
+                                document.open();
+                                document.write(injectedHtml);
+                                document.close();
                             }
                         } catch (e) {
                             console.error("Error al inyectar mantenimiento:", e);
