@@ -1,4 +1,9 @@
 # ----------------------------------------------------------------------
+# 0. CONFIGURACIÓN DEL SERVIDOR Y SEGURIDAD BASE
+# ----------------------------------------------------------------------
+Options -MultiViews -Indexes
+
+# ----------------------------------------------------------------------
 # 1. EJECUTAR PHP DENTRO DE ARCHIVOS HTML (Ajustado para tu cPanel)
 # ----------------------------------------------------------------------
 # Usamos el manejador exacto que tu servidor ya definió al final del archivo
@@ -40,8 +45,8 @@ ErrorDocument 404 /404.html
     RewriteRule ^index\.html$ / [R=301,L]
 
     # REESCRITURA DE SITEMAP Y GOOGLE FEED
-    RewriteRule ^sitemap\.xml$ serve_sitemap.php [L]
-    RewriteRule ^google-feed\.xml$ serve_feed.php [L]
+    RewriteRule ^sitemap\.xml$ /serve_sitemap.php [L]
+    RewriteRule ^google-feed\.xml$ /serve_feed.php [L]
 
     # Ocultar extensión .html
     RewriteCond %{REQUEST_FILENAME} !-f
