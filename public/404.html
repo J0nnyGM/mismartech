@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <!-- --- PRE-OCULTACIÓN INSTANTÁNEA PARA EVITAR FLASH DE CONTENIDO EN MANTENIMIENTO --- -->
+    <script>
+        const _preloadPath = window.location.pathname;
+        if (localStorage.getItem('mismartech_maintenance_active') === 'true' && !_preloadPath.includes('/admin/') && !_preloadPath.includes('mantenimiento.html')) {
+            const style = document.createElement('style');
+            style.id = 'maintenance-preload-hide';
+            style.innerHTML = 'html { display: none !important; }';
+            document.documentElement.appendChild(style);
+        }
+    </script>
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#F8FAFC">
     <link rel="apple-touch-icon" href="/img/icons/icon-192x192.webp">
