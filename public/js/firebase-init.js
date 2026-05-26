@@ -1,4 +1,13 @@
 // public/js/firebase-init.js
+// --- PRE-OCULTACIÓN INSTANTÁNEA PARA EVITAR FLASH DE CONTENIDO EN MANTENIMIENTO ---
+const _preloadPath = window.location.pathname;
+if (localStorage.getItem('mismartech_maintenance_active') === 'true' && !_preloadPath.includes('/admin/') && !_preloadPath.includes('mantenimiento.html')) {
+    const style = document.createElement('style');
+    style.id = 'maintenance-preload-hide';
+    style.innerHTML = 'html { display: none !important; }';
+    document.documentElement.appendChild(style);
+}
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
@@ -137,7 +146,63 @@ export function initCacheKillSwitch(db) {
         
         onSnapshot(configRef, async (snap) => {
             if (snap.exists()) {
-                const serverVersion = snap.data().cacheVersion || 1;
+                const data = snap.data();
+                
+                // --- 🛡️ MODO MANTENIMIENTO INTEGRADO (URL ESTÁTICA) ---
+                const maintenanceMode = data.maintenanceMode || false;
+                const path = window.location.pathname;
+                const isShowingMaintenance = document.body && document.body.getAttribute('data-maintenance') === 'active';
+                
+                if (maintenanceMode) {
+                    // Guardamos estado para la pre-ocultación rápida en el siguiente page load
+                    localStorage.setItem('mismartech_maintenance_active', 'true');
+
+                    // Si no estamos en administración y no estamos mostrando ya el mantenimiento
+                    if (!path.includes('/admin/') && !path.includes('mantenimiento.html') && !isShowingMaintenance) {
+                        console.warn("🛡️ MODO MANTENIMIENTO ACTIVO. Cargando interfaz de mantenimiento en pantalla...");
+                        try {
+                            const res = await fetch('/mantenimiento.html');
+                            if (res.ok) {
+                                const html = await res.text();
+                                
+                                // Reemplazamos el documento por el HTML de mantenimiento sin alterar la URL
+                                document.open();
+                                document.write(html);
+                                document.close();
+                                
+                                if (document.body) {
+                                    document.body.setAttribute('data-maintenance', 'active');
+                                }
+                            }
+                        } catch (e) {
+                            console.error("Error al inyectar mantenimiento:", e);
+                            if (document.body) {
+                                document.body.innerHTML = `
+                                    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background-color:#0a0a0a;color:white;font-family:sans-serif;text-align:center;padding:20px;z-index:99999;position:fixed;inset:0;">
+                                        <h1 style="color:#F05A28;font-size:2.5rem;font-weight:900;margin-bottom:10px;">Estamos mejorando para ti</h1>
+                                        <p style="color:#a0a0a0;max-width:500px;font-weight:500;">MiSmartech se encuentra temporalmente en labores de mantenimiento técnico. Volveremos muy pronto.</p>
+                                    </div>
+                                `;
+                            }
+                        }
+                        return; // Detenemos la ejecución posterior
+                    }
+                } else {
+                    localStorage.setItem('mismartech_maintenance_active', 'false');
+
+                    // Si se quitó el mantenimiento, removemos la pre-ocultación si existía
+                    const preloadHide = document.getElementById('maintenance-preload-hide');
+                    if (preloadHide) preloadHide.remove();
+
+                    // Si el mantenimiento finalizó, pero seguimos mostrando la interfaz o estamos físicamente en /mantenimiento.html
+                    if (isShowingMaintenance || path.includes('mantenimiento.html')) {
+                        console.log("🔓 MODO MANTENIMIENTO DESACTIVADO. Restableciendo sitio original...");
+                        window.location.reload();
+                        return;
+                    }
+                }
+
+                const serverVersion = data.cacheVersion || 1;
                 const localVersionString = localStorage.getItem('mismartech_cache_version');
 
                 if (localVersionString === null) {

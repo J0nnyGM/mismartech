@@ -88,20 +88,166 @@
                         </div>
                     </div>
 
+                    <!-- Sistecrédito Card -->
+                    <div class="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-xl relative overflow-hidden">
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="flex items-center gap-4">
+                                <div class="w-14 h-14 bg-green-50 rounded-2xl flex items-center justify-center">
+                                    <span class="text-green-600 font-black text-xl">SC</span>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-xl text-gray-900">Sistecrédito</h3>
+                                    <p class="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">Crédito de Consumo</p>
+                                </div>
+                            </div>
+                            <span class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-green-100 text-green-600 border border-green-200">
+                                ACTIVO
+                            </span>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-4">
+                            Permite a tus clientes comprar a crédito de forma inmediata y pagar después. Integración directa B2B.
+                        </p>
+                        <div class="p-4 bg-gray-50 rounded-xl border border-gray-200 flex items-center gap-3">
+                            <i class="fa-solid fa-server text-gray-400"></i>
+                            <p class="text-xs text-gray-500 font-medium">Gestión vía Servidor (Cloud Functions)</p>
+                        </div>
+                    </div>
+
+                    <!-- Modo Mantenimiento Card -->
+                    <div class="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-xl relative overflow-hidden">
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="flex items-center gap-4">
+                                <div class="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-500 text-2xl">
+                                    <i class="fa-solid fa-screwdriver-wrench"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-xl text-gray-900">Modo Mantenimiento</h3>
+                                    <p class="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">Control Global</p>
+                                </div>
+                            </div>
+                            <!-- Toggle Switch -->
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="maintenance-toggle" class="sr-only peer">
+                                <div class="w-14 h-7 bg-gray-200 peer-focus:outline-none rounded-[1rem] peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-amber-500"></div>
+                            </label>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-4">
+                            Cuando está activado, la tienda pública se deshabilitará por completo y mostrará una página de mantenimiento a los clientes. El panel de administración seguirá accesible para ti en todo momento.
+                        </p>
+                        <div id="maintenance-status-badge" class="p-4 bg-gray-50 rounded-xl border border-gray-200 flex items-center gap-3">
+                            <div class="w-2.5 h-2.5 rounded-full bg-gray-300" id="maintenance-pulse"></div>
+                            <p class="text-xs text-gray-500 font-bold" id="maintenance-status-text">Cargando estado...</p>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </main>
     </div>
 
     <script type="module">
-        import { auth, onAuthStateChanged } from '../js/firebase-init.js';
+        import { auth, onAuthStateChanged, db, doc, setDoc, onSnapshot } from '../js/firebase-init.js';
         import { loadAdminSidebar } from '../js/admin/admin-ui.js';
 
-        document.addEventListener('DOMContentLoaded', () => loadAdminSidebar());
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAdminSidebar();
+            initMaintenanceSettings();
+        });
 
         onAuthStateChanged(auth, (user) => {
             if (!user) window.location.href = '/auth/login.html';
         });
+
+        function initMaintenanceSettings() {
+            const toggle = document.getElementById('maintenance-toggle');
+            const pulse = document.getElementById('maintenance-pulse');
+            const statusText = document.getElementById('maintenance-status-text');
+            const configRef = doc(db, "config", "system");
+
+            // Escuchar cambios en tiempo real
+            onSnapshot(configRef, (snap) => {
+                if (snap.exists()) {
+                    const data = snap.data();
+                    const active = data.maintenanceMode || false;
+                    toggle.checked = active;
+
+                    if (active) {
+                        pulse.className = "w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse";
+                        statusText.innerText = "Modo Mantenimiento: ACTIVO (Acceso público bloqueado)";
+                        statusText.className = "text-xs text-amber-600 font-bold";
+                    } else {
+                        pulse.className = "w-2.5 h-2.5 rounded-full bg-green-500";
+                        statusText.innerText = "Modo Mantenimiento: INACTIVO (Tienda pública operativa)";
+                        statusText.className = "text-xs text-green-600 font-bold";
+                    }
+                } else {
+                    // Si el documento no existe en absoluto (base de datos limpia), inicializamos inactivo
+                    toggle.checked = false;
+                    pulse.className = "w-2.5 h-2.5 rounded-full bg-green-500";
+                    statusText.innerText = "Modo Mantenimiento: INACTIVO (Configuración inicial lista)";
+                    statusText.className = "text-xs text-green-600 font-bold";
+                }
+            }, (error) => {
+                console.error("Error al leer configuración:", error);
+                statusText.innerText = "Error de red o permisos para leer la configuración.";
+            });
+
+            // Guardar cambios al activar/desactivar (creando el documento si no existe)
+            toggle.addEventListener('change', async () => {
+                const active = toggle.checked;
+                try {
+                    statusText.innerText = "Guardando en Firestore...";
+                    await setDoc(configRef, {
+                        maintenanceMode: active,
+                        maintenanceUpdatedAt: new Date(),
+                        maintenanceUpdatedBy: auth.currentUser ? auth.currentUser.email : 'system'
+                    }, { merge: true });
+                    showNotification(active ? "Modo mantenimiento ACTIVADO" : "Modo mantenimiento DESACTIVADO", active ? "warning" : "success");
+                } catch (error) {
+                    console.error("Error al actualizar mantenimiento:", error);
+                    showNotification("Error al guardar cambios", "error");
+                    toggle.checked = !active; // Revertir
+                }
+            });
+        }
+
+        function showNotification(message, type) {
+            let container = document.getElementById('toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toast-container';
+                container.className = 'fixed bottom-5 right-5 z-[9999] flex flex-col gap-3';
+                document.body.appendChild(container);
+            }
+
+            const toast = document.createElement('div');
+            let bgClass = "bg-green-600";
+            let icon = "fa-check-circle";
+            if (type === "warning") {
+                bgClass = "bg-amber-600";
+                icon = "fa-exclamation-triangle";
+            } else if (type === "error") {
+                bgClass = "bg-red-600";
+                icon = "fa-times-circle";
+            }
+
+            toast.className = `flex items-center gap-3 text-white px-5 py-4 rounded-2xl shadow-2xl transition-all duration-300 transform translate-y-5 opacity-0 ${bgClass}`;
+            toast.innerHTML = `
+                <i class="fa-solid ${icon} text-lg animate-bounce"></i>
+                <span class="font-bold text-sm">${message}</span>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-5', 'opacity-0');
+            }, 50);
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-5', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
     </script>
     <script type="module" src="../js/admin/admin-guard.js"></script>
 </body>
