@@ -1,6 +1,6 @@
 <?php
 // 1. Cabeceras: Le decimos a Google que es XML y que puede guardar esto en memoria por 1 hora
-header('Content-Type: text/xml; charset=utf-8');
+header('Content-Type: application/xml; charset=utf-8');
 header('Cache-Control: public, max-age=3600');
 
 // 2. URL de tu Cloud Function
@@ -24,13 +24,12 @@ $xml = curl_exec($ch);
 $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 curl_close($ch);
 
-// 4. Si todo salió perfecto, imprimimos el XML y cortamos la ejecución
+// 4. Si todo salió perfecto, imprimimos el XML
 if ($http_code == 200 && !empty($xml)) {
-    // Limpiamos cualquier espacio en blanco invisible que pueda traer la Cloud Function
-    echo trim($xml);
-    exit; 
+    echo $xml;
 } else {
     // Si Firebase falla, entregamos un Sitemap vacío válido en vez de un error 500.
+    // Esto evita que Google te penalice si justo escanea cuando hay un micro-corte.
     http_response_code(200);
     echo '<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -40,5 +39,5 @@ if ($http_code == 200 && !empty($xml)) {
         <priority>1.0</priority>
     </url>
 </urlset>';
-    exit;
 }
+?>
