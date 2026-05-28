@@ -1,7 +1,7 @@
 // public/js/firebase-init.js
 // --- PRE-OCULTACIÓN INSTANTÁNEA PARA EVITAR FLASH DE CONTENIDO EN MANTENIMIENTO ---
 const _preloadPath = window.location.pathname;
-if (localStorage.getItem('mismartech_maintenance_active') === 'true' && !_preloadPath.includes('/admin/') && !_preloadPath.includes('mantenimiento.html')) {
+if (localStorage.getItem('mismartech_maintenance_active') === 'true' && !_preloadPath.includes('/admin/') && !_preloadPath.includes('/auth/') && !_preloadPath.includes('mantenimiento.html')) {
     const style = document.createElement('style');
     style.id = 'maintenance-preload-hide';
     style.innerHTML = 'html { display: none !important; }';
@@ -157,8 +157,8 @@ export function initCacheKillSwitch(db) {
                     // Guardamos estado para la pre-ocultación rápida en el siguiente page load
                     localStorage.setItem('mismartech_maintenance_active', 'true');
 
-                    // Si no estamos en administración y no estamos mostrando ya el mantenimiento
-                    if (!path.includes('/admin/') && !path.includes('mantenimiento.html') && !isShowingMaintenance) {
+                    // Si no estamos en administración, ni en autenticación y no estamos mostrando ya el mantenimiento
+                    if (!path.includes('/admin/') && !path.includes('/auth/') && !path.includes('mantenimiento.html') && !isShowingMaintenance) {
                         console.warn("🛡️ MODO MANTENIMIENTO ACTIVO. Cargando interfaz de mantenimiento en pantalla...");
                         try {
                             const res = await fetch('/mantenimiento.html');

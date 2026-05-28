@@ -155,11 +155,19 @@
                     </table>
                 </div>
 
-                <div id="load-more-container" class="p-6 text-center hidden border-t border-gray-100">
-                    <button onclick="window.loadMoreOrders()"
-                        class="text-xs font-bold text-gray-400 hover:text-brand-orange transition uppercase tracking-widest flex items-center justify-center gap-2 mx-auto">
-                        <i class="fa-solid fa-circle-plus"></i> Cargar siguientes 50
-                    </button>
+                <!-- Bar de Paginación Premium Híbrida -->
+                <div id="pagination-container" class="px-8 py-5 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/50">
+                    <div class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]" id="pagination-info">
+                        Mostrando <span class="text-brand-black font-black" id="page-start">--</span> - <span class="text-brand-black font-black" id="page-end">--</span> de <span class="text-brand-black font-black" id="page-total">--</span> pedidos
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button id="btn-page-prev" onclick="window.prevPage()" class="px-4 py-2.5 bg-white border border-gray-200 text-brand-black hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-sm transform active:scale-95">
+                            <i class="fa-solid fa-chevron-left"></i> Anterior
+                        </button>
+                        <button id="btn-page-next" onclick="window.nextPage()" class="px-4 py-2.5 bg-white border border-gray-200 text-brand-black hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-sm transform active:scale-95">
+                            Siguiente <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -515,7 +523,7 @@
 
     <script type="module">
         import '../js/admin/admin-guard.js';
-        import { db, collection, getDocs, orderBy, query, limit, auth, doc, getDoc, where, onSnapshot } from '../js/firebase-init.js';
+        import { db, collection, getDocs, orderBy, query, limit, auth, doc, getDoc, where, onSnapshot, startAfter } from '../js/firebase-init.js';
         import { loadAdminSidebar } from '../js/admin/admin-ui.js';
         import { initManualSale, openManualSaleModal } from '../js/admin/manual-sale.js';
         import { AdminStore } from '../js/admin/admin-store.js';
@@ -527,6 +535,20 @@
         let currentFilter = 'ACTIONABLE';
         let globalConfig = { cutoffTime: "14:00" };
         let adminOrdersCache = []; // Array en RAM para filtrar rápido
+
+        // --- ESTADO DE PAGINACIÓN HÍBRIDA ---
+        let currentPage = 1;
+        const ORDERS_PAGE_SIZE = 100;
+        const OVERFILL_MARGIN = 50;
+        let isHistoricalLoading = false;
+        let noMoreHistoricalData = {
+            ACTIONABLE: false,
+            WAITING: false,
+            DISPATCHED: false,
+            REFUNDS: false,
+            FAILED: false,
+            ALL: false
+        };
 
         initManualSale(() => { window.switchTab('ACTIONABLE'); });
         document.getElementById('btn-open-manual').onclick = openManualSaleModal;
@@ -562,6 +584,7 @@
 
         window.switchTab = (tabName) => {
             currentFilter = tabName;
+            currentPage = 1; // Reset to page 1
             document.getElementById('search-input').value = "";
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             const activeBtn = document.getElementById(`tab-${tabName.toLowerCase()}`);
@@ -680,6 +703,23 @@
             }
         };
 
+        // --- FUNCIÓN DE PARTICIÓN DINÁMICA (SMART OVERFILL / RELLENO INTELIGENTE) ---
+        function getPaginatedChunks(items) {
+            const chunks = [];
+            let i = 0;
+            while (i < items.length) {
+                const remaining = items.length - i;
+                if (remaining <= ORDERS_PAGE_SIZE + OVERFILL_MARGIN) {
+                    chunks.push(items.slice(i));
+                    break;
+                } else {
+                    chunks.push(items.slice(i, i + ORDERS_PAGE_SIZE));
+                    i += ORDERS_PAGE_SIZE;
+                }
+            }
+            return chunks;
+        }
+
         // --- FILTRADO Y RENDERIZADO EN MEMORIA RAM (CERO LECTURAS) ---
         function renderOrdersFromMemory() {
             const tableBody = document.getElementById('orders-table-body');
@@ -704,12 +744,53 @@
                 filtered = [...adminOrdersCache];
             }
 
+            const pageStartEl = document.getElementById('page-start');
+            const pageEndEl = document.getElementById('page-end');
+            const pageTotalEl = document.getElementById('page-total');
+            const btnPrev = document.getElementById('btn-page-prev');
+            const btnNext = document.getElementById('btn-page-next');
+
             if (filtered.length === 0) {
                 tableBody.innerHTML = `<tr><td colspan="7" class="p-10 text-center text-xs text-brand-black font-bold uppercase">No hay pedidos en esta sección.</td></tr>`;
+                
+                if (pageStartEl) pageStartEl.textContent = "0";
+                if (pageEndEl) pageEndEl.textContent = "0";
+                if (pageTotalEl) pageTotalEl.textContent = "0";
+                if (btnPrev) btnPrev.disabled = true;
+                if (btnNext) {
+                    btnNext.disabled = noMoreHistoricalData[currentFilter];
+                    btnNext.innerHTML = isHistoricalLoading 
+                        ? `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Cargando`
+                        : `Siguiente <i class="fa-solid fa-chevron-right"></i>`;
+                }
                 return;
             }
 
-            // Lógica de separación de prioridades
+            const chunks = getPaginatedChunks(filtered);
+            if (currentPage > chunks.length) currentPage = chunks.length;
+            if (currentPage < 1) currentPage = 1;
+
+            const currentChunk = chunks[currentPage - 1];
+
+            // Rango de índices visibles basados en la posición real en la lista filtrada
+            const startIndex = filtered.indexOf(currentChunk[0]) + 1;
+            const endIndex = filtered.indexOf(currentChunk[currentChunk.length - 1]) + 1;
+
+            if (pageStartEl) pageStartEl.textContent = startIndex;
+            if (pageEndEl) pageEndEl.textContent = endIndex;
+            if (pageTotalEl) pageTotalEl.textContent = filtered.length;
+
+            // Actualizar botones de navegación
+            if (btnPrev) btnPrev.disabled = (currentPage === 1);
+            if (btnNext) {
+                const isLastPage = (currentPage === chunks.length);
+                btnNext.disabled = isLastPage && noMoreHistoricalData[currentFilter];
+                btnNext.innerHTML = isHistoricalLoading 
+                    ? `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Cargando`
+                    : `Siguiente <i class="fa-solid fa-chevron-right"></i>`;
+            }
+
+            // Lógica de separación de prioridades en el chunk de la página actual
             if (currentFilter === 'ACTIONABLE') {
                 const cutoffTimeStr = globalConfig.cutoffTime || "14:00";
                 const now = new Date();
@@ -720,7 +801,7 @@
                 const todayOrders = [];
                 const tomorrowOrders = [];
 
-                filtered.forEach(o => {
+                currentChunk.forEach(o => {
                     const orderDate = new Date(o.createdAt);
                     const isToday = orderDate.toDateString() === now.toDateString();
                     if (isToday && orderDate > cutoffDateToday) tomorrowOrders.push(o);
@@ -736,7 +817,144 @@
                     tomorrowOrders.forEach(o => renderRow(o));
                 }
             } else {
-                filtered.forEach(o => renderRow(o));
+                currentChunk.forEach(o => renderRow(o));
+            }
+        }
+
+        // --- CONTROLES DE PAGINACIÓN NAVEGACIÓN LOCAL Y BÚSQUEDA HÍBRIDA ---
+        window.prevPage = () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderOrdersFromMemory();
+                const mainEl = document.querySelector('main');
+                if (mainEl) mainEl.scrollTop = 0;
+            }
+        };
+
+        window.nextPage = async () => {
+            let filtered = [];
+            if (currentFilter === 'ACTIONABLE') {
+                filtered = adminOrdersCache.filter(o => ["PAGADO", "PENDIENTE", "ALISTADO"].includes(o.status));
+            } else if (currentFilter === 'WAITING') {
+                filtered = adminOrdersCache.filter(o => o.status === "PENDIENTE_PAGO");
+            } else if (currentFilter === 'DISPATCHED') {
+                filtered = adminOrdersCache.filter(o => o.status === "DESPACHADO");
+            } else if (currentFilter === 'REFUNDS') {
+                filtered = adminOrdersCache.filter(o => ["DEVUELTO", "DEVOLUCION_PARCIAL"].includes(o.status));
+            } else if (currentFilter === 'FAILED') {
+                filtered = adminOrdersCache.filter(o => ["CANCELADO", "RECHAZADO"].includes(o.status));
+            } else if (currentFilter === 'ALL') {
+                filtered = [...adminOrdersCache];
+            }
+
+            const chunks = getPaginatedChunks(filtered);
+            if (currentPage < chunks.length) {
+                currentPage++;
+                renderOrdersFromMemory();
+                const mainEl = document.querySelector('main');
+                if (mainEl) mainEl.scrollTop = 0;
+            } else {
+                // Estamos en la última página local. Consultamos el servidor para historial antiguo
+                if (noMoreHistoricalData[currentFilter] || isHistoricalLoading) return;
+
+                const currentChunk = chunks[currentPage - 1];
+                if (!currentChunk || currentChunk.length === 0) return;
+
+                const lastOrder = currentChunk[currentChunk.length - 1];
+                await fetchHistoricalOrdersFromFirebase(lastOrder.id);
+            }
+        };
+
+        async function fetchHistoricalOrdersFromFirebase(lastOrderId) {
+            isHistoricalLoading = true;
+            renderOrdersFromMemory(); // Forzar render para mostrar estado de carga (spinner)
+
+            try {
+                console.log(`☁️ [Orders] Buscando historial más antiguo en servidor después de la orden ID: ${lastOrderId}`);
+                const ordersRef = collection(db, "orders");
+                const lastDocSnap = await getDoc(doc(db, "orders", lastOrderId));
+
+                if (!lastDocSnap.exists()) {
+                    console.warn(`No se pudo encontrar la orden puntero ${lastOrderId} en Firestore.`);
+                    noMoreHistoricalData[currentFilter] = true;
+                    return;
+                }
+
+                let qStatus = null;
+                if (currentFilter === 'ACTIONABLE') qStatus = ["PAGADO", "PENDIENTE", "ALISTADO"];
+                else if (currentFilter === 'WAITING') qStatus = ["PENDIENTE_PAGO"];
+                else if (currentFilter === 'DISPATCHED') qStatus = ["DESPACHADO"];
+                else if (currentFilter === 'REFUNDS') qStatus = ["DEVUELTO", "DEVOLUCION_PARCIAL"];
+                else if (currentFilter === 'FAILED') qStatus = ["CANCELADO", "RECHAZADO"];
+
+                let q;
+                if (qStatus) {
+                    q = query(
+                        ordersRef,
+                        where("status", "in", qStatus),
+                        orderBy("createdAt", "desc"),
+                        startAfter(lastDocSnap),
+                        limit(100)
+                    );
+                } else {
+                    q = query(
+                        ordersRef,
+                        orderBy("createdAt", "desc"),
+                        startAfter(lastDocSnap),
+                        limit(100)
+                    );
+                }
+
+                let querySnap;
+                try {
+                    querySnap = await getDocs(q);
+                } catch (err) {
+                    console.warn("⚠️ Error en consulta segmentada. Intentando consulta fallback sin filtro de estado:", err);
+                    const fallbackQ = query(
+                        ordersRef,
+                        orderBy("createdAt", "desc"),
+                        startAfter(lastDocSnap),
+                        limit(100)
+                    );
+                    querySnap = await getDocs(fallbackQ);
+                }
+
+                if (querySnap.empty) {
+                    noMoreHistoricalData[currentFilter] = true;
+                    console.log(`📭 No hay más registros antiguos en el servidor para la sección: ${currentFilter}`);
+                } else {
+                    console.log(`📥 Recibidos ${querySnap.size} registros antiguos desde Firestore.`);
+                    
+                    querySnap.forEach(docSnap => {
+                        const data = docSnap.data();
+                        const id = docSnap.id;
+
+                        // Normalización obligatoria
+                        if (!data.updatedAt) data.updatedAt = data.createdAt;
+                        if (data.createdAt?.toDate) data.createdAt = data.createdAt.toDate().toISOString();
+                        if (data.updatedAt?.toDate) data.updatedAt = data.updatedAt.toDate().toISOString();
+
+                        // Guardar en el mapa local
+                        SmartAdminOrdersSync.runtimeMap[id] = { id, ...data };
+                    });
+
+                    // Actualizar el caché global y persistir en localStorage
+                    SmartAdminOrdersSync.updateGlobalArray();
+                    localStorage.setItem(SmartAdminOrdersSync.STORAGE_KEY, JSON.stringify({
+                        map: SmartAdminOrdersSync.runtimeMap,
+                        lastSync: SmartAdminOrdersSync.lastSyncTime
+                    }));
+
+                    currentPage++; // Avanzamos al nuevo chunk cargado
+                }
+            } catch (e) {
+                console.error("Error cargando pedidos históricos:", e);
+                alert("⚠️ Ocurrió un error al cargar pedidos antiguos del servidor.");
+            } finally {
+                isHistoricalLoading = false;
+                renderOrdersFromMemory();
+                const mainEl = document.querySelector('main');
+                if (mainEl) mainEl.scrollTop = 0;
             }
         }
         

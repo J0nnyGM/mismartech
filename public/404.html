@@ -4,7 +4,7 @@
     <!-- --- PRE-OCULTACIÓN INSTANTÁNEA PARA EVITAR FLASH DE CONTENIDO EN MANTENIMIENTO --- -->
     <script>
         const _preloadPath = window.location.pathname;
-        if (localStorage.getItem('mismartech_maintenance_active') === 'true' && !_preloadPath.includes('/admin/') && !_preloadPath.includes('mantenimiento.html')) {
+        if (localStorage.getItem('mismartech_maintenance_active') === 'true' && !_preloadPath.includes('/admin/') && !_preloadPath.includes('/auth/') && !_preloadPath.includes('mantenimiento.html')) {
             const style = document.createElement('style');
             style.id = 'maintenance-preload-hide';
             style.innerHTML = 'html { display: none !important; }';
