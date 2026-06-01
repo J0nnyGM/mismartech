@@ -148,6 +148,7 @@ exports.cancelAbandonedPayments = onSchedule({
             batch.update(doc.ref, {
                 status: 'CANCELADO',
                 statusDetail: 'expired_by_system',
+                billingStatus: 'CANCELLED',
                 updatedAt: admin.firestore.FieldValue.serverTimestamp(),
                 notes: (orderData.notes || "") + " [Sistema: Cancelado por inactividad de pago online mayor a 4h]"
             });
@@ -176,6 +177,7 @@ exports.cancelAbandonedPayments = onSchedule({
                 batch.update(doc.ref, {
                     status: 'CANCELADO',
                     statusDetail: 'expired_by_system',
+                    billingStatus: 'CANCELLED',
                     updatedAt: admin.firestore.FieldValue.serverTimestamp(),
                     notes: (orderData.notes || "") + " [Sistema: Cancelado por superar 36h de espera en Transferencia Manual]"
                 });

@@ -1,5 +1,6 @@
 import { auth, db, storage, doc, getDoc, updateDoc, collection, getDocs, addDoc, query, orderBy, limit, ref, uploadBytes, getDownloadURL, writeBatch } from '../firebase-init.js';
 import { loadAdminSidebar } from './admin-ui.js';
+import { AdminStore } from './admin-store.js';
 
 loadAdminSidebar();
 
@@ -587,35 +588,24 @@ if(!pSubCategoryHidden) {
     document.querySelector('.admin-input-group.relative').appendChild(pSubCategoryHidden);
 }
 
-async function loadCategoriesToMemory() {
-    if (cachedCategories.length > 0) return;
-    const CACHE_KEY = 'admin_categories_cache_v2';
-    const stored = sessionStorage.getItem(CACHE_KEY);
-    if (stored) { cachedCategories = JSON.parse(stored); return; }
-
-    try {
-        const q = query(collection(db, "categories"), orderBy("name"));
-        const snap = await getDocs(q);
-        cachedCategories = [];
-        snap.forEach(d => {
-            const data = d.data();
-            const catName = data.name || "Sin Nombre";
-            if (data.subcategories && Array.isArray(data.subcategories) && data.subcategories.length > 0) {
-                data.subcategories.forEach(sub => {
-                    let subName = sub;
-                    if (typeof sub === 'object' && sub !== null) subName = sub.name || sub.label || "Subcategoría";
-                    cachedCategories.push({ category: catName, subcategory: subName, searchStr: `${subName} ${catName}`.toLowerCase() });
-                });
-            } else {
-                cachedCategories.push({ category: catName, subcategory: null, searchStr: catName.toLowerCase() });
-            }
-        });
-        sessionStorage.setItem(CACHE_KEY, JSON.stringify(cachedCategories));
-    } catch (e) { console.error("Error cats:", e); }
-}
+AdminStore.subscribeToCategories((categories) => {
+    cachedCategories = [];
+    categories.forEach(cat => {
+        const catName = cat.name || "Sin Nombre";
+        const subs = cat.subcategories || [];
+        if (subs.length > 0) {
+            subs.forEach(sub => {
+                let subName = sub;
+                if (typeof sub === 'object' && sub !== null) subName = sub.name || sub.label || "Subcategoría";
+                cachedCategories.push({ category: catName, subcategory: subName, searchStr: `${subName} ${catName}`.toLowerCase() });
+            });
+        } else {
+            cachedCategories.push({ category: catName, subcategory: null, searchStr: catName.toLowerCase() });
+        }
+    });
+});
 
 if (catSearchInput) {
-    catSearchInput.addEventListener('focus', loadCategoriesToMemory);
     catSearchInput.addEventListener('input', (e) => {
         const term = e.target.value.toLowerCase().trim();
         if (term.length < 1) { catResults.classList.add('hidden'); return; }

@@ -387,6 +387,7 @@ exports.webhook = async (req, res) => {
                     await orderRef.update({
                         status: 'RECHAZADO',
                         statusDetail: status,
+                        billingStatus: 'CANCELLED',
                         updatedAt: admin.firestore.FieldValue.serverTimestamp() // 🔥 NUEVO
                     });
                     console.log("❌ Orden Rechazada por ADDI");

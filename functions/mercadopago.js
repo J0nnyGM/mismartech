@@ -315,6 +315,7 @@ exports.webhook = async (req, res) => {
                     status: 'RECHAZADO', 
                     paymentId, 
                     statusDetail: paymentData.status_detail,
+                    billingStatus: 'CANCELLED',
                     updatedAt: admin.firestore.FieldValue.serverTimestamp()
                 });
                 console.log("❌ MP Order Rejected:", orderId);

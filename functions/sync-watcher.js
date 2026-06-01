@@ -11,7 +11,8 @@ const COLLECTIONS_TO_WATCH = [
     "purchases",
     "warranties",
     "warranty_inventory",
-    "accounts"
+    "accounts",
+    "categories"
 ];
 
 // Generamos un trigger dinámico para cada colección

@@ -313,6 +313,7 @@ async function cancelManualOrder(order) {
                 status: 'CANCELADO',
                 paymentStatus: oData.amountPaid > 0 ? 'REFUNDED' : 'CANCELLED',
                 refundedAmount: (oData.refundedAmount || 0) + (oData.amountPaid || 0),
+                billingStatus: 'CANCELLED',
                 cancelReason: 'Anulada por Administrador',
                 updatedAt: serverTimestamp()
             });

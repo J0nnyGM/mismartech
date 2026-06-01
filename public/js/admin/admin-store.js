@@ -255,8 +255,15 @@ const modules = {
         collection: 'orders',
         dateField: 'createdAt',
         queryConstraints: [where("requiresInvoice", "==", true)],
-        clientSideFilter: (i) => i.requiresInvoice === true,
+        clientSideFilter: (i) => i.requiresInvoice === true && i.billingStatus !== 'CANCELLED' && i.billingStatus !== 'CANCELADO' && !['CANCELADO', 'RECHAZADO'].includes(i.status),
         lightweight: (i) => ({ id: i.id, billingStatus: i.billingStatus, billingInfo: i.billingInfo, billingData: i.billingData, userName: i.userName, clientDoc: i.clientDoc, total: i.total, invoiceUrl: i.invoiceUrl, invoiceNumber: i.invoiceNumber, createdAt: i.createdAt, updatedAt: i.updatedAt })
+    }),
+
+    categories: new StoreModule({
+        name: 'categories',
+        collection: 'categories',
+        dateField: 'createdAt',
+        lightweight: (c) => ({ id: c.id, name: c.name, subcategories: c.subcategories || [], createdAt: c.createdAt, updatedAt: c.updatedAt })
     }),
 
     accounts: new StoreModule({
@@ -282,6 +289,7 @@ export const AdminStore = {
     subscribeToRma: (cb) => modules.rma.subscribe(cb),
     subscribeToInvoices: (cb) => modules.invoices.subscribe(cb),
     subscribeToAccounts: (cb) => modules.accounts.subscribe(cb),
+    subscribeToCategories: (cb) => modules.categories.subscribe(cb),
 
     forceSyncAll() {
         Object.values(modules).forEach(mod => mod.forceSync());

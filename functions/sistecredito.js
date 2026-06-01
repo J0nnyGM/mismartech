@@ -291,7 +291,9 @@ exports.webhook = async (req, res) => {
                 if (docCheck.exists && docCheck.data().paymentStatus !== 'PAID') {
                     await orderRef.update({ 
                         status: 'RECHAZADO', 
-                        statusDetail: rawStatus 
+                        statusDetail: rawStatus,
+                        billingStatus: 'CANCELLED',
+                        updatedAt: admin.firestore.FieldValue.serverTimestamp()
                     });
                     console.log(`❌ Orden ${orderId} Rechazada/Cancelada por Sistecrédito`);
                 }
