@@ -28,6 +28,9 @@ let currentPage = 1;
 let currentFilterDate = null;
 let adminExpensesCache = []; // Base de datos maestra de gastos en RAM
 let accountsList = [];
+let localSuppliersIndex = [];
+
+const normalizeText = (str) => str ? str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
 
 const getCurrentAdminName = () => document.getElementById('admin-name')?.textContent || 'Admin Desconocido';
 const cleanNumber = (val) => {
@@ -65,6 +68,10 @@ AdminStore.subscribeToAccounts((accs) => {
 AdminStore.subscribeToExpenses((expenses) => {
     adminExpensesCache = expenses;
     renderExpensesFromMemory();
+});
+
+AdminStore.subscribeToSuppliers((suppliers) => {
+    localSuppliersIndex = suppliers;
 });
 
 // ==========================================================================
@@ -324,47 +331,45 @@ window.openTrashModal = async () => {
 // FORMULARIO Y CREACIÓN DE GASTOS
 // ==========================================================================
 
-let supplierTimeout = null;
 supplierSearch.addEventListener('input', (e) => {
-    const term = e.target.value.trim();
+    const rawTerm = e.target.value.trim();
     selectedSupplierId.value = "";
-    supplierDropdown.innerHTML = `<div class="p-3 text-xs text-gray-400"><i class="fa-solid fa-spinner fa-spin"></i></div>`;
+    supplierDropdown.innerHTML = "";
+
+    if (rawTerm.length < 1) { supplierDropdown.classList.add('hidden'); return; }
+
+    const divGen = document.createElement('div');
+    divGen.className = "p-3 hover:bg-slate-50 cursor-pointer text-xs font-bold text-gray-500 border-b border-gray-50 italic";
+    divGen.textContent = "-- Gasto General / Varios --";
+    divGen.onclick = () => {
+        supplierSearch.value = "General / Varios";
+        selectedSupplierId.value = "general";
+        supplierDropdown.classList.add('hidden');
+    };
+    supplierDropdown.appendChild(divGen);
+
+    const term = normalizeText(rawTerm);
+    const words = term.split(" ").filter(w => w.length > 0);
+
+    // Filtrar en memoria (RAM)
+    const results = localSuppliersIndex.filter(s => {
+        const searchableText = normalizeText(`${s.name} ${s.nit || ''} ${s.contactName || ''}`);
+        return words.every(word => searchableText.includes(word));
+    });
+
+    results.slice(0, 5).forEach(s => {
+        const item = document.createElement('div');
+        item.className = "p-3 hover:bg-slate-50 cursor-pointer text-xs font-bold text-brand-black border-b border-gray-50 last:border-0 transition-colors";
+        item.textContent = s.name;
+        item.onclick = () => {
+            supplierSearch.value = s.name;
+            selectedSupplierId.value = s.id;
+            supplierDropdown.classList.add('hidden');
+        };
+        supplierDropdown.appendChild(item);
+    });
+
     supplierDropdown.classList.remove('hidden');
-
-    if (term.length < 1) { supplierDropdown.classList.add('hidden'); return; }
-
-    clearTimeout(supplierTimeout);
-    supplierTimeout = setTimeout(async () => {
-        try {
-            const termCap = term.charAt(0).toUpperCase() + term.slice(1).toLowerCase();
-            const q = query(collection(db, "suppliers"), orderBy('name'), startAt(termCap), endAt(termCap + '\uf8ff'), limit(5));
-            const snap = await getDocs(q);
-            
-            supplierDropdown.innerHTML = "";
-            const divGen = document.createElement('div');
-            divGen.className = "p-3 hover:bg-slate-50 cursor-pointer text-xs font-bold text-gray-500 border-b border-gray-50 italic";
-            divGen.textContent = "-- Gasto General / Varios --";
-            divGen.onclick = () => {
-                supplierSearch.value = "General / Varios";
-                selectedSupplierId.value = "general";
-                supplierDropdown.classList.add('hidden');
-            };
-            supplierDropdown.appendChild(divGen);
-
-            snap.forEach(d => {
-                const s = d.data();
-                const item = document.createElement('div');
-                item.className = "p-3 hover:bg-slate-50 cursor-pointer text-xs font-bold text-brand-black border-b border-gray-50 last:border-0 transition-colors";
-                item.textContent = s.name;
-                item.onclick = () => {
-                    supplierSearch.value = s.name;
-                    selectedSupplierId.value = d.id;
-                    supplierDropdown.classList.add('hidden');
-                };
-                supplierDropdown.appendChild(item);
-            });
-        } catch(e) { console.error(e); }
-    }, 300);
 });
 
 amountDisplay.addEventListener('input', (e) => {

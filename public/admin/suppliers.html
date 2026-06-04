@@ -183,8 +183,9 @@
     </div>
 
 <script type="module">
-        import { db, collection, getDocs, getDoc, addDoc, updateDoc, doc, deleteDoc, orderBy, query, limit, startAfter, onSnapshot } from '../js/firebase-init.js';
+        import { db, collection, getDocs, getDoc, addDoc, updateDoc, doc, deleteDoc, orderBy, query, limit, startAfter } from '../js/firebase-init.js';
         import { loadAdminSidebar } from '../js/admin/admin-ui.js';
+        import { AdminStore } from '../js/admin/admin-store.js';
 
         loadAdminSidebar();
 
@@ -206,100 +207,27 @@
 
         // Caché Real-time para Proveedores
         let adminSuppliersCache = []; 
-        let unsubscribeSuppliers = null;
 
         // ====================================================================
         // 1. SMART REAL-TIME CACHE: PROVEEDORES
         // ====================================================================
         function initSmartSuppliersList() {
-            const STORAGE_KEY = 'mismartech_admin_suppliers_cache';
-            let lastSyncTime = 0;
-            let runtimeMap = {};
-
-            // A. Carga Instantánea del Caché
-            const cachedRaw = localStorage.getItem(STORAGE_KEY);
-            if (cachedRaw) {
-                try {
-                    const parsed = JSON.parse(cachedRaw);
-                    if (parsed.map && parsed.lastSync) {
-                        runtimeMap = parsed.map;
-                        lastSyncTime = parsed.lastSync;
-                        
-                        updateSuppliersArray(runtimeMap);
-                        if (adminSuppliersCache.length > 0) {
-                            renderSuppliersFromMemory();
-                        }
-                    }
-                } catch (e) {
-                    localStorage.removeItem(STORAGE_KEY);
-                }
-            }
-
             if (adminSuppliersCache.length === 0) {
                 loading.classList.remove('hidden');
             }
 
-            // B. Conexión a Firebase (Solo Deltas)
-            if (unsubscribeSuppliers) unsubscribeSuppliers();
-
-            const colRef = collection(db, "suppliers");
-            let q;
-
-            if (lastSyncTime === 0 || Object.keys(runtimeMap).length === 0) {
-                // Primera vez, nos traemos todo el directorio (suelen ser < 100 docs, es muy barato)
-                q = query(colRef); 
-            } else {
-                // Solo traemos los que fueron editados recientemente
-                q = query(colRef, where("updatedAt", ">", new Date(lastSyncTime)));
-            }
-
-            unsubscribeSuppliers = onSnapshot(q, (snapshot) => {
-                if (snapshot.empty) {
-                    loading.classList.add('hidden');
-                    if(adminSuppliersCache.length === 0) {
-                        tableBody.innerHTML = `<tr><td colspan="6" class="p-12 text-center opacity-50"><i class="fa-solid fa-folder-open text-4xl mb-4 text-gray-300"></i><p class="font-bold text-gray-400">No hay proveedores registrados.</p></td></tr>`;
-                    }
-                    return;
-                }
-
-                let hasChanges = false;
-
-                snapshot.docChanges().forEach(change => {
-                    const data = change.doc.data();
-                    const id = change.doc.id;
-                    
-                    // Aseguramos campo de búsqueda limpio en memoria
-                    data.searchStr = `${data.name} ${data.nit || ''} ${data.contactName || ''}`.toLowerCase();
-                    if (!data.updatedAt) data.updatedAt = data.createdAt || new Date();
-
-                    if (change.type === 'added' || change.type === 'modified') {
-                        runtimeMap[id] = { id, ...data };
-                        hasChanges = true;
-                    } else if (change.type === 'removed') {
-                        if (runtimeMap[id]) {
-                            delete runtimeMap[id];
-                            hasChanges = true;
-                        }
-                    }
+            AdminStore.subscribeToSuppliers((suppliers) => {
+                // Ordenar alfabéticamente por nombre
+                adminSuppliersCache = [...suppliers].sort((a, b) => a.name.localeCompare(b.name));
+                
+                // Asegurar campo de búsqueda en memoria
+                adminSuppliersCache.forEach(s => {
+                    s.searchStr = `${s.name} ${s.nit || ''} ${s.contactName || ''}`.toLowerCase();
                 });
 
-                if (hasChanges) {
-                    updateSuppliersArray(runtimeMap);
-                    
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-                        map: runtimeMap,
-                        lastSync: Date.now()
-                    }));
-
-                    renderSuppliersFromMemory();
-                    loading.classList.add('hidden');
-                }
+                renderSuppliersFromMemory();
+                loading.classList.add('hidden');
             });
-        }
-
-        function updateSuppliersArray(map) {
-            // Ordenamos alfabéticamente por nombre
-            adminSuppliersCache = Object.values(map).sort((a, b) => a.name.localeCompare(b.name));
         }
 
         function renderSuppliersFromMemory() {

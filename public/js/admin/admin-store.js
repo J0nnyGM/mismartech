@@ -154,7 +154,7 @@ class StoreModule {
         limitDate.setMonth(limitDate.getMonth() - 3);
 
         sortedArray.forEach(item => {
-            if (['products', 'clients', 'accounts'].includes(this.name) || !item.dateObj || item.dateObj >= limitDate) {
+            if (['products', 'clients', 'accounts', 'suppliers', 'categories'].includes(this.name) || !item.dateObj || item.dateObj >= limitDate) {
                 lightMap[item.id] = this.mapLightweight(item);
             }
         });
@@ -271,6 +271,14 @@ const modules = {
         collection: 'accounts',
         dateField: 'createdAt', 
         lightweight: (a) => ({ id: a.id, name: a.name, type: a.type, balance: a.balance, isExempt: a.isExempt, branchId: a.branchId || 'sede_principal', updatedAt: a.updatedAt })
+    }),
+
+    suppliers: new StoreModule({
+        name: 'suppliers',
+        collection: 'suppliers',
+        dateField: 'createdAt',
+        searchFields: ['name', 'nit', 'contactName', 'phone'],
+        lightweight: (s) => ({ id: s.id, name: s.name, nit: s.nit || '', contactName: s.contactName || '', phone: s.phone || '', email: s.email || '', bankName: s.bankName || '', accNum: s.accNum || '', accType: s.accType || 'Ahorros', totalInvested: s.totalInvested || 0, ordersCount: s.ordersCount || 0, createdAt: s.createdAt, updatedAt: s.updatedAt })
     })
 };
 
@@ -290,6 +298,7 @@ export const AdminStore = {
     subscribeToInvoices: (cb) => modules.invoices.subscribe(cb),
     subscribeToAccounts: (cb) => modules.accounts.subscribe(cb),
     subscribeToCategories: (cb) => modules.categories.subscribe(cb),
+    subscribeToSuppliers: (cb) => modules.suppliers.subscribe(cb),
 
     forceSyncAll() {
         Object.values(modules).forEach(mod => mod.forceSync());

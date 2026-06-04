@@ -201,8 +201,9 @@
     </main>
 
 <script type="module">
-        import { db, collection, getDocs, doc, runTransaction, orderBy, query, limit, startAt, endAt } from '../js/firebase-init.js';
+        import { db, collection, getDocs, doc, runTransaction } from '../js/firebase-init.js';
         import { loadAdminSidebar } from '../js/admin/admin-ui.js';
+        import { AdminStore } from '../js/admin/admin-store.js';
 
         loadAdminSidebar();
 
@@ -254,6 +255,11 @@
         // --- ESTADO LOCAL (CACHÉ) ---
         let localProductIndex = []; 
         let isProductIndexLoading = false;
+        let localSuppliersIndex = [];
+
+        AdminStore.subscribeToSuppliers((suppliers) => {
+            localSuppliersIndex = suppliers;
+        });
 
         // --- HELPER: Capitalizar ---
         function capitalizeFirst(str) {
@@ -262,56 +268,43 @@
         }
 
         // ========================================================================
-        // 1. BUSCADOR DE PROVEEDORES (Híbrido: Server-Side Optimizado)
+        // 1. BUSCADOR DE PROVEEDORES (Reactivo en RAM)
         // ========================================================================
-        let supplierTimeout = null;
         supplierSearchInput.addEventListener('input', (e) => {
             const rawTerm = e.target.value.trim();
-            supplierResults.innerHTML = `<div class="p-3 text-xs text-gray-400 text-center"><i class="fa-solid fa-circle-notch fa-spin"></i> Buscando...</div>`;
-            supplierResults.classList.remove('hidden');
+            supplierResults.innerHTML = "";
             supplierIdField.value = ""; 
 
-            if (rawTerm.length < 2) { 
+            if (rawTerm.length < 1) { 
                 supplierResults.classList.add('hidden'); 
                 return; 
             }
 
-            clearTimeout(supplierTimeout);
-            supplierTimeout = setTimeout(async () => {
-                try {
-                    const queries = [];
-                    const coll = collection(db, "suppliers");
-                    const termCap = capitalizeFirst(rawTerm); 
+            const term = normalizeText(rawTerm);
+            const words = term.split(" ").filter(w => w.length > 0);
 
-                    queries.push(getDocs(query(coll, orderBy('name'), startAt(termCap), endAt(termCap + '\uf8ff'), limit(3))));
-                    queries.push(getDocs(query(coll, orderBy('nit'), startAt(rawTerm), endAt(rawTerm + '\uf8ff'), limit(3))));
-                    
-                    const snapshots = await Promise.all(queries);
-                    const resultsMap = new Map();
-                    
-                    snapshots.forEach(snap => snap.forEach(doc => resultsMap.set(doc.id, doc.data())));
+            // Filtrar proveedores en memoria (RAM)
+            const results = localSuppliersIndex.filter(s => {
+                const searchableText = normalizeText(`${s.name} ${s.nit || ''} ${s.contactName || ''}`);
+                return words.every(word => searchableText.includes(word));
+            });
 
-                    supplierResults.innerHTML = "";
-                    if (resultsMap.size === 0) {
-                        supplierResults.innerHTML = `<div class="p-3 text-xs text-gray-400 font-bold text-center">No encontrado</div>`;
-                    } else {
-                        resultsMap.forEach((s, id) => {
-                            const div = document.createElement('div');
-                            div.className = "p-3 hover:bg-brand-orange/5 cursor-pointer border-b border-gray-50 last:border-0 rounded-lg flex justify-between items-center transition-colors";
-                            div.innerHTML = `<div><p class="text-[11px] font-black uppercase text-brand-black">${s.name}</p><p class="text-[9px] font-bold text-gray-400">NIT: ${s.nit || '---'}</p></div><i class="fa-solid fa-check text-brand-orange text-xs opacity-0 group-hover:opacity-100"></i>`;
-                            div.onclick = () => {
-                                supplierSearchInput.value = s.name;
-                                supplierIdField.value = id;
-                                supplierResults.classList.add('hidden');
-                            };
-                            supplierResults.appendChild(div);
-                        });
-                    }
-                } catch (e) {
-                    console.error(e);
-                    supplierResults.innerHTML = `<div class="p-3 text-xs text-red-400 text-center">Error</div>`;
-                }
-            }, 300); 
+            if (results.length === 0) {
+                supplierResults.innerHTML = `<div class="p-3 text-xs text-gray-400 font-bold text-center">No encontrado</div>`;
+            } else {
+                results.slice(0, 10).forEach(s => {
+                    const div = document.createElement('div');
+                    div.className = "p-3 hover:bg-brand-orange/5 cursor-pointer border-b border-gray-50 last:border-0 rounded-lg flex justify-between items-center transition-colors";
+                    div.innerHTML = `<div><p class="text-[11px] font-black uppercase text-brand-black">${s.name}</p><p class="text-[9px] font-bold text-gray-400">NIT: ${s.nit || '---'}</p></div><i class="fa-solid fa-check text-brand-orange text-xs opacity-0 group-hover:opacity-100"></i>`;
+                    div.onclick = () => {
+                        supplierSearchInput.value = s.name;
+                        supplierIdField.value = s.id;
+                        supplierResults.classList.add('hidden');
+                    };
+                    supplierResults.appendChild(div);
+                });
+            }
+            supplierResults.classList.remove('hidden');
         });
 
         document.addEventListener('click', (e) => {
