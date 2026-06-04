@@ -92,7 +92,7 @@ const QUICK_REPLIES = [
     { title: "🛵 Envío Itagüí", text: "Para Itaguí contamos con envío pago contra entrega por $12.000 😊\nTambién puedes pasar directamente por el producto si lo prefieres.\nAceptamos efectivo, transferencia y Sistecrédito.\n👉 ¿Cómo te gustaría recibirlo?" },
     { title: "🛵 Envío Sabaneta/Copa", text: "Para sabaneta o Copacabana contamos con envío pago contra entrega por $13.000 😊\nTambién puedes pasar directamente por el producto si lo prefieres.\nAceptamos efectivo, transferencia y Sistecrédito.\n👉 ¿Cómo te gustaría recibirlo?" },
     { title: "🚚 Envío Nacional", text: "Realizamos envíos a toda Colombia 🇨🇴. Si confirmas antes de las 3:00 PM sale hoy mismo.\n\n📸 Te enviamos foto del paquete y la guía de rastreo.\n💰 Costo promedio: $18.000 (varía según ubicación)." },
-    //{ title: "📍 Pasar a Recoger", text: "Estamos en el Centro internacional, Bogotá (a media cuadra de la 34).\n\n🏢 *Calle 31 # 13A-51*\nEdificio Panorama, Oficina 223." },
+    { title: "📍 Ubicación", text: "📍Estamos ubicados en:\n\n🏪 Mi Smartech\n📍Bolivar #51 #49-23, La Candelaria, Medellín, La Candelaria, Medellín\n🏢 Centro Comercial Wala, Local 1046" },
     { title: "⏰ Horarios", text: "Nuestros horarios de atención son:\n\n📅 Lunes a Viernes: 9:30 AM - 6:00 PM\n📅 Sábados: 9:30 AM - 3:00 PM" },
     { title: "🟣 Cuentas Cobro", text: "Puedes realizar el pago a:\n\n🏦 *Bancolombia Ahorros* \n*Mi Smartech SAS* \n*NIT:* 902.033.894-1 \n*Cuenta:* 245-000218-71 \n\n📱 *Nequi / Daviplata*\n3196276426\nJeison Cuervo\n\n🗝️ *Llave / Bre-B:*\n3196276426 \nJeison Cuervo" },
     { title: "📝 Pedir Datos", text: "Para procesar tu pedido, regálame por favor estos datos:\n\n🧑🏻 Nombre:\n🎫 C.C:\n📲 Cel:\n🏠 Dirección:\n🏭 Barrio:\n🌆 Ciudad:\n📩 Email:" },

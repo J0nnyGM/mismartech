@@ -78,6 +78,10 @@ export async function viewOrderDetail(orderId) {
                 'ADDI': { label: 'Crédito ADDI', icon: 'fa-solid fa-hand-holding-dollar', color: 'text-[#00D6D6]' },
                 'SISTECREDITO': { label: 'Sistecrédito', icon: 'fa-solid fa-money-check-dollar', color: 'text-emerald-500' },
                 'PSE': { label: 'Pago con PSE', icon: 'fa-solid fa-building-columns', color: 'text-blue-600' },
+                'MERCADOLIBRE': { label: 'MercadoLibre 1', icon: 'fa-solid fa-handshake', color: 'text-yellow-500' },
+                'MERCADOLIBRE_2': { label: 'MercadoLibre 2', icon: 'fa-solid fa-handshake', color: 'text-yellow-500' },
+                'MERCADOLIBRE_3': { label: 'MercadoLibre 3', icon: 'fa-solid fa-handshake', color: 'text-yellow-500' },
+                'FALABELLA': { label: 'Falabella Marketplace', icon: 'fa-solid fa-store', color: 'text-green-600' },
                 'MANUAL': { label: 'Venta Manual', icon: 'fa-solid fa-cash-register', color: 'text-gray-500' }
             };
             const methodKey = (o.paymentMethod || 'MANUAL').toUpperCase();
@@ -193,9 +197,36 @@ export async function viewOrderDetail(orderId) {
         const footerActions = getEl('modal-footer-actions');
         const footerMsg = getEl('modal-footer-msg');
         
-        ['btn-refund-action', 'btn-cancel-action', 'btn-edit-action'].forEach(id => {
+        ['btn-refund-action', 'btn-cancel-action', 'btn-edit-action', 'btn-ml-label', 'btn-falabella-label'].forEach(id => {
             const btn = document.getElementById(id); if(btn) btn.remove();
         });
+
+        if (o.shippingId && o.source && o.source.toUpperCase().startsWith('MERCADOLIBRE')) {
+            if (footerActions) {
+                footerActions.classList.remove('hidden');
+                const btnLabel = document.createElement('button');
+                btnLabel.id = 'btn-ml-label';
+                btnLabel.className = "h-12 flex-1 md:flex-none md:w-auto bg-yellow-400 text-brand-black border border-yellow-500 px-4 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-yellow-500 transition-all shadow-sm flex items-center justify-center gap-2 shrink-0";
+                btnLabel.innerHTML = `<i class="fa-solid fa-print text-sm"></i> <span class="">Rótulo ML</span>`;
+                const storeVal = o.mlStore || "1";
+                const labelUrl = `https://getmercadolibrelabel-wghz2bdqpq-uc.a.run.app?shipmentId=${o.shippingId}&store=${storeVal}`;
+                btnLabel.onclick = () => window.open(labelUrl, '_blank');
+                footerActions.prepend(btnLabel);
+            }
+        }
+
+        if (o.source && o.source.toUpperCase() === 'FALABELLA') {
+            if (footerActions) {
+                footerActions.classList.remove('hidden');
+                const btnLabel = document.createElement('button');
+                btnLabel.id = 'btn-falabella-label';
+                btnLabel.className = "h-12 flex-1 md:flex-none md:w-auto bg-green-600 text-white border border-green-700 px-4 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-green-700 transition-all shadow-sm flex items-center justify-center gap-2 shrink-0";
+                btnLabel.innerHTML = `<i class="fa-solid fa-print text-sm"></i> <span class="">Rótulo Falabella</span>`;
+                const labelUrl = `https://getfalabellalabel-wghz2bdqpq-uc.a.run.app?orderId=${o.id.replace('FAL-', '')}`;
+                btnLabel.onclick = () => window.open(labelUrl, '_blank');
+                footerActions.prepend(btnLabel);
+            }
+        }
 
         if (footerActions) {
             footerActions.classList.add('hidden');
@@ -881,7 +912,50 @@ function showTransferRequestModal(def, branchesWithStock, activeBranchId, active
     modal.classList.remove('hidden');
 }
 
-export function openDispatchModal() { getEl('dispatch-modal').classList.remove('hidden'); }
+export async function openDispatchModal() {
+    if (!currentOrderId || !currentOrderData) return;
+
+    const addressText = currentOrderData.shippingData?.address || currentOrderData.address || 'Retiro en Tienda / Local';
+    const addressLower = normalizeText(addressText);
+    const isPickup = addressLower.includes('recogida') || 
+                      addressLower.includes('retiro') || 
+                      addressLower.includes('pickup') || 
+                      addressLower.includes('recoge') || 
+                      addressLower.trim() === '';
+
+    if (isPickup) {
+        if (confirm("¿Seguro desea realizar la entrega?")) {
+            const btnDespachar = getEl('btn-set-despachado');
+            if (btnDespachar) btnDespachar.disabled = true;
+            try {
+                await updateDoc(doc(db, "orders", currentOrderId), { 
+                    status: 'DESPACHADO', 
+                    shippingCarrier: 'Recogida en Local', 
+                    shippingTracking: 'Entregado en Local', 
+                    shippedAt: new Date(), 
+                    updatedAt: new Date() 
+                });
+                alert("🚚 Pedido entregado y despachado con éxito");
+                getEl('order-modal').classList.add('hidden');
+                
+                // Recargar o cambiar tab según la página donde estemos
+                if (window.switchTab) {
+                    window.switchTab('ACTIONABLE');
+                } else {
+                    location.reload();
+                }
+            } catch (e) {
+                console.error(e);
+                alert("Error al despachar: " + e.message);
+            } finally {
+                if (btnDespachar) btnDespachar.disabled = false;
+            }
+        }
+    } else {
+        getEl('dispatch-modal').classList.remove('hidden');
+    }
+}
+
 
 export async function confirmDispatch(onSuccess) {
     if (!currentOrderId) return;

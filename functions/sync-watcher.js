@@ -28,6 +28,30 @@ COLLECTIONS_TO_WATCH.forEach(collectionName => {
         const newData = event.data.after.data();
         const previousData = event.data.before.exists ? event.data.before.data() : null;
 
+        // 🔥 CENTRALIZACIÓN DE CANCELACIÓN DE FACTURAS (BULLETPROOF CATCH-ALL) 🔥
+        if (collectionName === "orders") {
+            const status = newData.status;
+            const requiresInvoice = newData.requiresInvoice;
+            const billingStatus = newData.billingStatus;
+
+            if ((status === 'CANCELADO' || status === 'RECHAZADO') && 
+                requiresInvoice === true && 
+                billingStatus !== 'CANCELLED' && 
+                billingStatus !== 'CANCELADO') {
+                
+                try {
+                    await event.data.after.ref.update({
+                        billingStatus: 'CANCELLED',
+                        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+                    });
+                    console.log(`[SyncWatcher] Orden ${event.params.docId} cancelada/rechazada. Sincronizando billingStatus a CANCELLED.`);
+                    return null; 
+                } catch (error) {
+                    console.error(`[SyncWatcher Error Facturación] orders/${event.params.docId}:`, error);
+                }
+            }
+        }
+
         // EVITAR BUCLES INFINITOS:
         const now = admin.firestore.Timestamp.now();
         let needsUpdate = false;

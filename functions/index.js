@@ -28,6 +28,7 @@ const mercadolibreModule = require('./mercadolibre');
 const mercadolibre2Module = require('./mercadolibre2');
 const mercadolibre3Module = require('./mercadolibre3');
 const syncWatcherModule = require('./sync-watcher'); // 🔥 NUEVO: Importar el centinela
+const falabellaModule = require('./falabella'); // 🔥 NUEVO: Importar módulo Falabella
 
 
 // --- 3. EXPORTAR FUNCIONES ---
@@ -87,6 +88,7 @@ exports.assignSequentialNumber = orderCounterModule.assignSequentialNumber;
 // Tienda 1
 exports.mercadolibreWebhook = functions.https.onRequest(mercadolibreModule.webhook);
 exports.renewMercadoLibreToken = onSchedule("every 5 hours", mercadolibreModule.renewTokenTask);
+exports.getMercadoLibreLabel = functions.https.onRequest(mercadolibreModule.getLabel);
 
 // Tienda 2
 exports.mercadolibreStore2Webhook = functions.https.onRequest(mercadolibre2Module.webhook);
@@ -95,6 +97,10 @@ exports.renewMercadoLibreStore2Token = onSchedule("every 5 hours", mercadolibre2
 // Tienda 3
 exports.mercadolibreStore3Webhook = functions.https.onRequest(mercadolibre3Module.webhook);
 exports.renewMercadoLibreStore3Token = onSchedule("every 5 hours", mercadolibre3Module.renewTokenTask);
+
+// Falabella Marketplace
+exports.falabellaWebhook = functions.https.onRequest(falabellaModule.webhook);
+exports.getFalabellaLabel = functions.https.onRequest(falabellaModule.getLabel);
 
 // 🔥 NUEVO: Exportar los Centinelas de Sincronización (Delta Sync)
 exports.watchers = syncWatcherModule;

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mismartech-shell-v0.4'; // 🔥 Subimos la versión
+const CACHE_NAME = 'mismartech-shell-v0.5'; // 🔥 Subimos la versión
 
 // Archivos vitales para que la app arranque sin internet
 const urlsToCache = [

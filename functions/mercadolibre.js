@@ -18,7 +18,9 @@ async function fetchML(endpoint, token) {
  * BUSCADOR INTELIGENTE DE EAN/SKU
  */
 async function findProductByEAN(db, eanToFind) {
+    if (!eanToFind) return null;
     const ean = String(eanToFind).trim().toUpperCase();
+    if (ean === "" || ean === "UNDEFINED" || ean === "NULL") return null;
     
     const simpleQuery = await db.collection('products').where('sku', '==', ean).limit(1).get();
     if (!simpleQuery.empty) {
@@ -72,7 +74,72 @@ exports.webhook = async (req, res) => {
         const orderId = `ML-${orderData.id}`;
 
         const orderCheck = await db.collection('orders').doc(orderId).get();
-        if (orderCheck.exists) return;
+        if (orderCheck.exists) {
+            const existingOrder = orderCheck.data();
+            const newMLStatus = orderData.status;
+
+            if (newMLStatus === 'cancelled' && existingOrder.status !== 'CANCELADO') {
+                console.log(`⚠️ Orden de MercadoLibre ${orderId} fue CANCELADA. Revirtiendo stock y estado.`);
+                await db.runTransaction(async (t) => {
+                    // 1. Devolver Stock
+                    for (const item of existingOrder.items || []) {
+                        if (item.id && !item.id.includes('UNKNOWN')) {
+                            const pRef = db.collection('products').doc(item.id);
+                            const pDoc = await t.get(pRef);
+                            if (pDoc.exists) {
+                                const pData = pDoc.data();
+                                let newStock = (pData.stock || 0) + item.quantity;
+                                let updatePayload = { stock: newStock, updatedAt: admin.firestore.FieldValue.serverTimestamp() };
+
+                                if (item.color || item.capacity) {
+                                    let newCombos = [...(pData.combinations || [])];
+                                    const idx = newCombos.findIndex(c => 
+                                        (c.color === item.color || (!c.color && !item.color)) &&
+                                        (c.capacity === item.capacity || (!c.capacity && !item.capacity))
+                                    );
+                                    if (idx >= 0) {
+                                        newCombos[idx].stock = (newCombos[idx].stock || 0) + item.quantity;
+                                        updatePayload.combinations = newCombos;
+                                    }
+                                }
+                                t.update(pRef, updatePayload);
+                            }
+                        }
+                    }
+
+                    // 2. Descontar balance de la cuenta de tesorería (Reverso)
+                    if (existingOrder.paymentAccountId) {
+                        const accRef = db.collection('accounts').doc(existingOrder.paymentAccountId);
+                        const accDoc = await t.get(accRef);
+                        if (accDoc.exists) {
+                            t.update(accRef, { balance: Math.max(0, (Number(accDoc.data().balance) || 0) - Number(existingOrder.total)) });
+                            
+                            // Crear un reverso (EXPENSE) de anulación
+                            const expenseRef = db.collection('expenses').doc();
+                            t.set(expenseRef, {
+                                amount: Number(existingOrder.total),
+                                category: "Anulación de Venta",
+                                description: `Reverso por cancelación de Orden MercadoLibre #${orderData.id}`,
+                                paymentMethod: accDoc.data().name, type: 'EXPENSE', orderId: orderId,
+                                isRefund: true, date: admin.firestore.FieldValue.serverTimestamp(),
+                                createdAt: admin.firestore.FieldValue.serverTimestamp()
+                            });
+                        }
+                    }
+
+                    // 3. Marcar Orden como CANCELADA
+                    t.update(db.collection('orders').doc(orderId), {
+                        status: 'CANCELADO',
+                        paymentStatus: 'CANCELLED',
+                        billingStatus: 'CANCELLED',
+                        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+                        notes: (existingOrder.notes || "") + " [Webhook ML: Orden cancelada por el comprador/plataforma]"
+                    });
+                });
+                console.log(`✅ Stock y estado de la orden ${orderId} revertidos correctamente.`);
+            }
+            return;
+        }
 
         // --- DATOS DE ENVÍO Y GUÍA ---
         let shippingData = { address: "Acordar con el vendedor", city: "", guideNumber: "", carrier: "" };
@@ -185,6 +252,8 @@ exports.webhook = async (req, res) => {
                 source: 'MERCADOLIBRE', createdAt: admin.firestore.FieldValue.serverTimestamp(),
                 userId: userId, userName: buyerName, phone: buyerPhone, clientDoc: buyerDoc,
                 shippingData: shippingData, shippingCarrier: shippingData.carrier, shippingTracking: shippingData.guideNumber,
+                shippingId: orderData.shipping && orderData.shipping.id ? String(orderData.shipping.id) : "",
+                mlStore: 1,
                 items: dbItems, subtotal: orderData.total_amount, shippingCost: 0, total: orderData.total_amount,
                 status: shippingData.guideNumber !== 'Pendiente' ? 'DESPACHADO' : 'ALISTADO',
                 paymentMethod: 'MERCADOLIBRE', paymentStatus: 'PAID', amountPaid: orderData.total_amount,
@@ -252,5 +321,70 @@ exports.renewTokenTask = async () => {
 
     } catch (error) {
         console.error("❌ Error Crítico renovando token de ML:", error);
+    }
+};
+
+// ============================================================================
+// 3. OBTENER RÓTULO DE DESPACHO EN PDF
+// ============================================================================
+exports.getLabel = async (req, res) => {
+    const db = admin.firestore();
+    
+    // Configurar cabeceras CORS básicas
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (req.method === 'OPTIONS') {
+        return res.status(204).send('');
+    }
+
+    try {
+        const shipmentId = req.query.shipmentId || req.query.shipment_id;
+        const store = req.query.store || "1"; // "1", "2" o "3"
+
+        if (!shipmentId) {
+            return res.status(400).send("Error: Falta el shipmentId en los parámetros.");
+        }
+
+        let configDocName = "mercadolibre";
+        if (store === "2") configDocName = "mercadolibre_store2";
+        else if (store === "3") configDocName = "mercadolibre_store3";
+
+        const mlConfigDoc = await db.collection('config').doc(configDocName).get();
+        if (!mlConfigDoc.exists) {
+            return res.status(404).send(`Error: No se encontró la configuración para la tienda ${store} en base de datos.`);
+        }
+
+        const ML_TOKEN = mlConfigDoc.data().accessToken;
+        if (!ML_TOKEN) {
+            return res.status(500).send(`Error: Falta el token de acceso para la tienda ${store}.`);
+        }
+
+        console.log(`☁️ Descargando etiqueta ML para envío: ${shipmentId} (Tienda ${store})`);
+
+        const mlUrl = `https://api.mercadolibre.com/shipment_labels?shipment_ids=${shipmentId}&savePdf=Y`;
+        const mlResponse = await fetch(mlUrl, {
+            headers: {
+                "Authorization": `Bearer ${ML_TOKEN}`
+            }
+        });
+
+        if (!mlResponse.ok) {
+            const errText = await mlResponse.text();
+            console.error("❌ Error de MercadoLibre al descargar etiqueta:", errText);
+            return res.status(mlResponse.status).send(`Error de MercadoLibre: ${mlResponse.statusText}`);
+        }
+
+        const arrayBuffer = await mlResponse.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader("Content-Disposition", `inline; filename="rotulo_ml_${shipmentId}.pdf"`);
+        return res.status(200).send(buffer);
+
+    } catch (error) {
+        console.error("❌ Error en getLabel:", error);
+        return res.status(500).send("Error interno del servidor al obtener el rótulo.");
     }
 };

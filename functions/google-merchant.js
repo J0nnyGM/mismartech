@@ -17,6 +17,45 @@ function escapeXml(unsafe) {
     });
 }
 
+const htmlEntitiesMap = {
+    'nbsp': ' ',
+    'amp': '&',
+    'lt': '<',
+    'gt': '>',
+    'quot': '"',
+    'apos': "'",
+    'aacute': 'á', 'eacute': 'é', 'iacute': 'í', 'oacute': 'ó', 'uacute': 'ú',
+    'Aacute': 'Á', 'Eacute': 'É', 'Iacute': 'Í', 'Oacute': 'Ó', 'Uacute': 'Ú',
+    'ntilde': 'ñ', 'Ntilde': 'Ñ',
+    'uuml': 'ü', 'Uuml': 'Ü',
+    'iexcl': '¡', 'iquest': '¿',
+    'deg': '°', 'bull': '•',
+    'ndash': '–', 'mdash': '—',
+    'ldquo': '“', 'rdquo': '”',
+    'lsquo': '‘', 'rsquo': '’',
+    'trade': '™', 'reg': '®', 'copy': '©',
+    'euro': '€', 'middot': '·',
+    'ordf': 'ª', 'ordm': 'º',
+    'laquo': '«', 'raquo': '»'
+};
+
+function decodeHtmlEntities(str) {
+    if (!str) return "";
+    return str.replace(/&(#?[a-zA-Z0-9]+);/g, function (match, entity) {
+        if (entity.startsWith('#')) {
+            let code;
+            if (entity.startsWith('#x') || entity.startsWith('#X')) {
+                code = parseInt(entity.substring(2), 16);
+            } else {
+                code = parseInt(entity.substring(1), 10);
+            }
+            return isNaN(code) ? match : String.fromCharCode(code);
+        }
+        const decoded = htmlEntitiesMap[entity];
+        return decoded !== undefined ? decoded : match;
+    });
+}
+
 function getIdentifierTags(rawSku) {
     if (!rawSku || rawSku.trim() === '') return '<g:identifier_exists>no</g:identifier_exists>';
     const cleanSku = rawSku.replace(/\s|-/g, '');
@@ -84,7 +123,13 @@ exports.generateProductFeed = onRequest({ timeoutSeconds: 60, cors: true }, asyn
                 if (!p.name || !p.price) return;
 
                 let rawDesc = p.description || p.name;
-                rawDesc = rawDesc.replace(/<[^>]*>?/gm, ' ').replace(/&nbsp;/g, ' ').replace(/\s\s+/g, ' ').trim(); 
+                // 1. Strip HTML tags
+                rawDesc = rawDesc.replace(/<[^>]*>?/gm, ' ');
+                // 2. Decode HTML entities
+                rawDesc = decodeHtmlEntities(rawDesc);
+                // 3. Clean up white spaces
+                rawDesc = rawDesc.replace(/\s+/g, ' ').trim();
+                
                 rawDesc += " | Política de Devolución: Únicamente se aceptan devoluciones si el producto presenta daños, defectos de fábrica o llega en mal estado.";
                 const description = escapeXml(rawDesc.substring(0, 5000));
 
