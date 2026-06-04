@@ -20,13 +20,13 @@
     <div id="admin-sidebar" class="shrink-0 z-50"></div>
     
     <main class="flex-grow overflow-y-auto custom-scroll relative">
-        <header class="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center sticky top-0 z-10 shadow-sm shrink-0">
+        <header class="bg-white border-b border-gray-200 px-4 md:px-8 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sticky top-0 z-10 shadow-sm shrink-0">
             <div>
-                <h1 class="text-2xl font-black uppercase tracking-tighter">Sedes & <span class="text-brand-orange">Caja Chica</span></h1>
+                <h1 class="text-2xl font-black uppercase tracking-tighter">Sedes & <span class="text-brand-orange">Caja Menor</span></h1>
                 <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Multi-Sede, Traslados y Arqueo de Caja</p>
             </div>
             <!-- Botones dinámicos basados en la pestaña activa -->
-            <div id="header-actions" class="flex items-center gap-4">
+            <div id="header-actions" class="flex flex-wrap items-center gap-2 sm:gap-4">
                 <button id="btn-new-branch" class="hidden bg-brand-black text-white px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-orange hover:text-brand-black transition shadow-lg flex items-center gap-2">
                     <i class="fa-solid fa-store"></i> Nueva Sede
                 </button>
@@ -40,40 +40,42 @@
         </header>
 
         <!-- Navegación de pestañas premium -->
-        <div class="px-8 mt-6">
-            <div class="flex gap-2 p-1.5 bg-white border border-gray-100 rounded-2xl w-fit shadow-sm">
-                <button id="tab-branches" class="tab-btn active px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300 border border-transparent hover:bg-slate-50 text-gray-500">
+        <div class="px-4 md:px-8 mt-6">
+            <div class="flex gap-2 p-1.5 bg-white border border-gray-100 rounded-2xl w-fit max-w-full overflow-x-auto custom-scroll shadow-sm shrink-0">
+                <button id="tab-branches" class="tab-btn active px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300 border border-transparent hover:bg-slate-50 text-gray-500 shrink-0">
                     <i class="fa-solid fa-store mr-2"></i> Sedes Físicas
                 </button>
-                <button id="tab-closings" class="tab-btn px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300 border border-transparent hover:bg-slate-50 text-gray-500">
+                <button id="tab-closings" class="tab-btn px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300 border border-transparent hover:bg-slate-50 text-gray-500 shrink-0">
                     <i class="fa-solid fa-vault mr-2"></i> Cierres de Caja
                 </button>
-                <button id="tab-transfers" class="tab-btn px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300 border border-transparent hover:bg-slate-50 text-gray-500">
+                <button id="tab-transfers" class="tab-btn px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300 border border-transparent hover:bg-slate-50 text-gray-500 shrink-0">
                     <i class="fa-solid fa-truck-ramp-box mr-2"></i> Traslados de Stock
                 </button>
-                <button id="tab-inventory" class="tab-btn px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300 border border-transparent hover:bg-slate-50 text-gray-500">
+                <button id="tab-inventory" class="tab-btn px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300 border border-transparent hover:bg-slate-50 text-gray-500 shrink-0">
                     <i class="fa-solid fa-boxes-stacked mr-2"></i> Inventario Sede
                 </button>
             </div>
         </div>
 
-        <div class="p-8">
+        <div class="p-4 md:p-8 pb-24 md:pb-8">
             <!-- TAB 1: SEDES FÍSICAS -->
             <section id="sec-branches" class="tab-content block space-y-6">
                 <div class="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
-                    <table class="w-full text-left">
-                        <thead class="bg-gray-50 text-[9px] font-black uppercase text-gray-400 tracking-widest border-b border-gray-100">
-                            <tr>
-                                <th class="px-6 py-4">ID de Sede</th>
-                                <th class="px-6 py-4">Nombre de Sede</th>
-                                <th class="px-6 py-4">Cuenta de Caja / Banco Asignada</th>
-                                <th class="px-6 py-4 text-center">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="branches-table-body" class="divide-y divide-gray-50 text-sm">
-                            <tr><td colspan="4" class="p-10 text-center"><i class="fa-solid fa-circle-notch fa-spin text-brand-orange text-2xl"></i></td></tr>
-                        </tbody>
-                    </table>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50 text-[9px] font-black uppercase text-gray-400 tracking-widest border-b border-gray-100">
+                                <tr>
+                                    <th class="px-6 py-4">ID de Sede</th>
+                                    <th class="px-6 py-4">Nombre de Sede</th>
+                                    <th class="px-6 py-4">Cuenta de Caja / Banco Asignada</th>
+                                    <th class="px-6 py-4 text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="branches-table-body" class="divide-y divide-gray-50 text-sm">
+                                <tr><td colspan="4" class="p-10 text-center"><i class="fa-solid fa-circle-notch fa-spin text-brand-orange text-2xl"></i></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
 
@@ -85,23 +87,25 @@
                             <h3 class="font-black text-xs uppercase tracking-wider text-gray-400">Historial de Arqueos</h3>
                         </div>
                     </div>
-                    <table class="w-full text-left">
-                        <thead class="bg-gray-50 text-[9px] font-black uppercase text-gray-400 tracking-widest border-b border-gray-100">
-                            <tr>
-                                <th class="px-6 py-4">Fecha Cierre</th>
-                                <th class="px-6 py-4">Sede / Punto</th>
-                                <th class="px-6 py-4">Cuenta Vinculada</th>
-                                <th class="px-6 py-4">Esperado (Sistema)</th>
-                                <th class="px-6 py-4">Físico (Arqueo)</th>
-                                <th class="px-6 py-4">Diferencia</th>
-                                <th class="px-6 py-4">Responsable</th>
-                                <th class="px-6 py-4">Notas</th>
-                            </tr>
-                        </thead>
-                        <tbody id="closings-table-body" class="divide-y divide-gray-50 text-sm">
-                            <tr><td colspan="8" class="p-10 text-center"><i class="fa-solid fa-circle-notch fa-spin text-brand-orange text-2xl"></i></td></tr>
-                        </tbody>
-                    </table>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50 text-[9px] font-black uppercase text-gray-400 tracking-widest border-b border-gray-100">
+                                <tr>
+                                    <th class="px-6 py-4">Fecha Cierre</th>
+                                    <th class="px-6 py-4">Sede / Punto</th>
+                                    <th class="px-6 py-4">Cuenta Vinculada</th>
+                                    <th class="px-6 py-4">Esperado (Sistema)</th>
+                                    <th class="px-6 py-4">Físico (Arqueo)</th>
+                                    <th class="px-6 py-4">Diferencia</th>
+                                    <th class="px-6 py-4">Responsable</th>
+                                    <th class="px-6 py-4">Notas</th>
+                                </tr>
+                            </thead>
+                            <tbody id="closings-table-body" class="divide-y divide-gray-50 text-sm">
+                                <tr><td colspan="8" class="p-10 text-center"><i class="fa-solid fa-circle-notch fa-spin text-brand-orange text-2xl"></i></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
 
@@ -113,23 +117,26 @@
                             <h3 class="font-black text-xs uppercase tracking-wider text-gray-400">Solicitudes de Rotación y Traslado</h3>
                         </div>
                     </div>
-                    <table class="w-full text-left">
-                        <thead class="bg-gray-50 text-[9px] font-black uppercase text-gray-400 tracking-widest border-b border-gray-100">
-                            <tr>
-                                <th class="px-6 py-4">Fecha</th>
-                                <th class="px-6 py-4">Producto / Variante</th>
-                                <th class="px-6 py-4 text-center">Cant.</th>
-                                <th class="px-6 py-4">Origen</th>
-                                <th class="px-6 py-4">Destino</th>
-                                <th class="px-6 py-4">Estado</th>
-                                <th class="px-6 py-4">Solicitante</th>
-                                <th class="px-6 py-4 text-center">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="transfers-table-body" class="divide-y divide-gray-50 text-sm">
-                            <tr><td colspan="8" class="p-10 text-center"><i class="fa-solid fa-circle-notch fa-spin text-brand-orange text-2xl"></i></td></tr>
-                        </tbody>
-                    </table>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50 text-[9px] font-black uppercase text-gray-400 tracking-widest border-b border-gray-100">
+                                <tr>
+                                    <th class="px-6 py-4">Fecha</th>
+                                    <th class="px-6 py-4">Producto / Variante</th>
+                                    <th class="px-6 py-4 text-center">Cant.</th>
+                                    <th class="px-6 py-4">Origen</th>
+                                    <th class="px-6 py-4">Destino</th>
+                                    <th class="px-6 py-4">Estado</th>
+                                    <th class="px-6 py-4">Solicitante</th>
+                                    <th class="px-6 py-4 text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transfers-table-body" class="divide-y divide-gray-50 text-sm">
+                                <tr><td colspan="8" class="p-10 text-center"><i class="fa-solid fa-circle-notch fa-spin text-brand-orange text-2xl"></i></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </section>
 
             <!-- TAB 4: INVENTARIO DE LA SEDE -->
@@ -146,7 +153,7 @@
                         </div>
                     </div>
                     
-                    <div class="overflow-hidden border border-gray-50 rounded-2xl">
+                    <div class="overflow-x-auto border border-gray-50 rounded-2xl">
                         <table class="w-full text-left">
                             <thead class="bg-gray-50 text-[9px] font-black uppercase text-gray-400 tracking-widest border-b border-gray-100">
                                 <tr>

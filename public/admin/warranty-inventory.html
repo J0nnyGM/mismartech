@@ -41,34 +41,29 @@
     <div id="admin-sidebar"></div>
 
     <main class="flex-grow overflow-y-auto custom-scroll relative">
-        <header class="bg-white/90 backdrop-blur-xl border-b border-gray-100 px-10 py-6 sticky top-0 z-30 shadow-sm">
-            <div class="flex justify-between items-center mb-6">
+        <header class="bg-white/90 backdrop-blur-xl border-b border-gray-100 px-4 md:px-10 py-4 flex flex-col gap-4 sticky top-0 z-30 shadow-sm shrink-0">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h2 class="font-black text-[10px] uppercase tracking-[0.3em] text-gray-400 mb-1">Logística Inversa
-                    </h2>
-                    <h1 class="text-3xl font-black text-brand-black tracking-tighter uppercase">Inventario de <span
-                            class="text-brand-orange">Garantías</span></h1>
+                    <h2 class="font-black text-[10px] uppercase tracking-[0.3em] text-gray-400 mb-1">Logística Inversa</h2>
+                    <h1 class="text-3xl font-black text-brand-black tracking-tighter uppercase">Inventario de <span class="text-brand-orange">Garantías</span></h1>
                 </div>
-                <div class="flex items-center gap-4 bg-slate-50 px-4 py-2 rounded-xl border border-gray-200">
+                <div class="flex items-center gap-4 bg-slate-50 px-4 py-2 rounded-xl border border-gray-200 w-full sm:w-auto">
                     <i class="fa-solid fa-filter text-gray-400"></i>
-                    <input type="text" id="rma-search" placeholder="Buscar producto o SN..."
-                        class="bg-transparent text-xs font-bold outline-none w-64">
+                    <input type="text" id="rma-search" placeholder="Buscar producto o SN..." class="bg-transparent text-xs font-bold outline-none w-full sm:w-64">
                 </div>
             </div>
 
-            <div class="flex gap-4">
-                <button id="tab-active"
-                    class="tab-btn active px-6 py-3 rounded-t-xl border-b-2 border-transparent font-black text-xs uppercase tracking-widest text-gray-400 hover:text-brand-orange transition">
+            <div class="flex gap-4 overflow-x-auto max-w-full custom-scroll shrink-0">
+                <button id="tab-active" onclick="setView('active')" class="tab-btn active px-6 py-3 rounded-t-xl border-b-2 border-transparent font-black text-xs uppercase tracking-widest text-gray-400 hover:text-brand-orange transition shrink-0">
                     Inventario Activo
                 </button>
-                <button id="tab-history"
-                    class="tab-btn px-6 py-3 rounded-t-xl border-b-2 border-transparent font-black text-xs uppercase tracking-widest text-gray-400 hover:text-brand-orange transition">
+                <button id="tab-history" onclick="setView('history')" class="tab-btn px-6 py-3 rounded-t-xl border-b-2 border-transparent font-black text-xs uppercase tracking-widest text-gray-400 hover:text-brand-orange transition shrink-0">
                     Historial de Salidas
                 </button>
             </div>
         </header>
 
-        <div class="p-10 max-w-7xl mx-auto pb-24">
+        <div class="p-4 md:p-10 max-w-7xl mx-auto pb-24 md:pb-8">
             <div id="rma-container" class="space-y-6"></div>
 
             <div id="load-more-container" class="py-8 text-center hidden">
@@ -83,7 +78,7 @@
     <div id="status-modal"
         class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/90 backdrop-blur-sm">
         <div
-            class="bg-white w-full max-w-lg rounded-[2.5rem] p-8 shadow-2xl animate-in zoom-in-95 max-h-[90vh] overflow-y-auto custom-scroll">
+            class="bg-white w-full max-w-lg rounded-[2.5rem] p-6 md:p-8 shadow-2xl animate-in zoom-in-95 max-h-[90vh] overflow-y-auto custom-scroll">
 
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-xl font-black uppercase tracking-tighter">Gestionar <span

@@ -353,6 +353,7 @@ supplierSearch.addEventListener('input', (e) => {
 
     // Filtrar en memoria (RAM)
     const results = localSuppliersIndex.filter(s => {
+        if (s.status === 'inactive') return false;
         const searchableText = normalizeText(`${s.name} ${s.nit || ''} ${s.contactName || ''}`);
         return words.every(word => searchableText.includes(word));
     });

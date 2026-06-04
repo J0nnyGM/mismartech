@@ -278,7 +278,7 @@ const modules = {
         collection: 'suppliers',
         dateField: 'createdAt',
         searchFields: ['name', 'nit', 'contactName', 'phone'],
-        lightweight: (s) => ({ id: s.id, name: s.name, nit: s.nit || '', contactName: s.contactName || '', phone: s.phone || '', email: s.email || '', bankName: s.bankName || '', accNum: s.accNum || '', accType: s.accType || 'Ahorros', totalInvested: s.totalInvested || 0, ordersCount: s.ordersCount || 0, createdAt: s.createdAt, updatedAt: s.updatedAt })
+        lightweight: (s) => ({ id: s.id, name: s.name, nit: s.nit || '', contactName: s.contactName || '', phone: s.phone || '', email: s.email || '', bankName: s.bankName || '', accNum: s.accNum || '', accType: s.accType || 'Ahorros', totalInvested: s.totalInvested || 0, ordersCount: s.ordersCount || 0, status: s.status || 'active', createdAt: s.createdAt, updatedAt: s.updatedAt })
     })
 };
 
