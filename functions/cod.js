@@ -29,6 +29,7 @@ exports.createCODOrder = async (data, context) => {
     const rawItems = data.items || (data.data && data.data.items);
     const shippingCost = Number(data.shippingCost || (data.data && data.data.shippingCost) || 0);
     const extraData = data.extraData || (data.data && data.data.extraData) || {};
+    const promoCodes = data.promoCodes || (data.data && data.data.promoCodes) || [];
     
     // 🔥 AQUÍ CAPTURAMOS EL MÉTODO ENVIADO DESDE EL shop/checkout.js 🔥
     const paymentMethod = data.paymentMethod || (data.data && data.data.paymentMethod) || 'CONTRAENTREGA';
@@ -36,6 +37,10 @@ exports.createCODOrder = async (data, context) => {
     if (!rawItems || !rawItems.length) throw new functions.https.HttpsError('invalid-argument', 'Carrito vacío.');
 
     try {
+        const promoValidator = require('./promo-validator');
+        // Validar precios reales y cupones en DB para seguridad
+        const result = await promoValidator.validateAndApplyDiscounts(rawItems, promoCodes, shippingCost, uid);
+
         // IDs generados fuera de la transacción para usarlos en escrituras
         const newOrderRef = db.collection('orders').doc();
         // Enlazamos la remisión al ID exacto de la orden
@@ -47,19 +52,16 @@ exports.createCODOrder = async (data, context) => {
         // --- 3. TRANSACCIÓN ATÓMICA ---
         await db.runTransaction(async (t) => {
             const pendingUpdates = []; // Array para guardar las actualizaciones pendientes
-            const dbItems = [];
-            let subtotal = 0;
 
             // --- FASE 1: LECTURAS Y CÁLCULOS (Solo .get()) ---
-            for (const item of rawItems) {
+            for (const item of result.dbItems) {
                 const pRef = db.collection('products').doc(item.id);
                 const pDoc = await t.get(pRef); 
                 
                 if (!pDoc.exists) throw new Error(`Producto ${item.id} no existe.`);
                 
                 const pData = pDoc.data();
-                const price = Number(pData.price) || 0;
-                const qty = parseInt(item.quantity) || 1;
+                const qty = item.quantity;
                 
                 // Cálculo de Stock
                 let newStock = (pData.stock || 0) - qty;
@@ -68,10 +70,13 @@ exports.createCODOrder = async (data, context) => {
                 let newCombinations = pData.combinations || [];
                 if (item.color || item.capacity) {
                     if (newCombinations.length > 0) {
-                        const idx = newCombinations.findIndex(c => 
-                            (c.color === item.color || (!c.color && !item.color)) &&
-                            (c.capacity === item.capacity || (!c.capacity && !item.capacity))
-                        );
+                        const idx = newCombinations.findIndex(c => {
+                            const cColor = (c.color || "").trim().toLowerCase();
+                            const itemColor = (item.color || "").trim().toLowerCase();
+                            const cCapacity = (c.capacity || "").trim().toLowerCase();
+                            const itemCapacity = (item.capacity || "").trim().toLowerCase();
+                            return cColor === itemColor && cCapacity === itemCapacity;
+                        });
                         if (idx >= 0) {
                             if (newCombinations[idx].stock < qty) throw new Error(`Sin stock variante: ${pData.name}`);
                             newCombinations[idx].stock -= qty;
@@ -82,34 +87,32 @@ exports.createCODOrder = async (data, context) => {
                 // Guardar la actualización para la Fase 2 (NO EJECUTAR AÚN)
                 pendingUpdates.push({
                     ref: pRef,
-                    // 🔥 NUEVO: Agregamos updatedAt al producto para que el inventario lo detecte
                     data: { 
                         stock: newStock, 
                         combinations: newCombinations,
                         updatedAt: admin.firestore.FieldValue.serverTimestamp()
                     }
                 });
+            }
 
-                subtotal += price * qty;
-                
-                dbItems.push({
-                    id: item.id, name: pData.name, price: price, quantity: qty,
-                    color: item.color||"", capacity: item.capacity||"", mainImage: pData.mainImage||""
-                });
+            // Registrar Uso de Cupones en la misma transacción (NUEVO)
+            if (result.appliedPromos && result.appliedPromos.length > 0) {
+                await promoValidator.registerPromoUsagesInTransaction(t, result.appliedPromos, uid, newOrderRef.id, extraData.userName || "Cliente");
             }
 
             // Preparar datos finales de la orden
-            const total = subtotal + shippingCost;
             const shippingData = extraData.shippingData || {};
             
             orderDataToSave = {
                 source: 'TIENDA_WEB', 
                 createdAt: admin.firestore.FieldValue.serverTimestamp(),
-                updatedAt: admin.firestore.FieldValue.serverTimestamp(), // 🔥 NUEVO
+                updatedAt: admin.firestore.FieldValue.serverTimestamp(),
                 userId: uid, userEmail: email, userName: extraData.userName || "Cliente",
                 phone: extraData.phone || shippingData.phone || "", clientDoc: extraData.clientDoc || "",
                 shippingData, billingData: extraData.billingData || null, requiresInvoice: extraData.needsInvoice || false,
-                items: dbItems, subtotal, shippingCost, total,
+                items: result.dbItems, subtotal: result.subtotal, shippingCost: result.finalShippingCost, total: result.totalAmount,
+                discountAmount: result.totalDiscounts, appliedPromos: result.appliedPromos,
+                appliedPromoCodes: promoCodes.map(c => c.trim().toUpperCase()),
                 status: 'PENDIENTE', paymentStatus: 'PENDING', 
                 paymentMethod: paymentMethod, 
                 isStockDeducted: true,
@@ -119,10 +122,10 @@ exports.createCODOrder = async (data, context) => {
             remissionDataToSave = {
                 orderId: newOrderRef.id, source: 'TIENDA_WEB',
                 clientName: orderDataToSave.userName, clientPhone: orderDataToSave.phone, clientDoc: orderDataToSave.clientDoc,
-                clientAddress: `${shippingData.address}, ${shippingData.city}`,
-                items: dbItems, total, status: 'PENDIENTE_ALISTAMIENTO', type: 'VENTA_WEB',
+                clientAddress: `${shippingData.address || ''}, ${shippingData.city || ''}`,
+                items: result.dbItems, total: result.totalAmount, status: 'PENDIENTE_ALISTAMIENTO', type: 'VENTA_WEB',
                 createdAt: admin.firestore.FieldValue.serverTimestamp(),
-                updatedAt: admin.firestore.FieldValue.serverTimestamp() // 🔥 NUEVO
+                updatedAt: admin.firestore.FieldValue.serverTimestamp()
             };
 
             // --- FASE 2: ESCRITURAS (Solo .update() y .set()) ---

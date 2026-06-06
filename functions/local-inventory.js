@@ -104,7 +104,7 @@ exports.generateLocalInventoryFeed = onRequest({ timeoutSeconds: 60, cors: true 
                 <channel>
                     <title>Inventario Local - MiSmartech</title>
                     <link>https://mismartech.com</link>
-                    <description>Inventario físico en la tienda de Bogotá</description>
+                    <description>Inventario físico en la tienda de Medellin</description>
                     ${allItemsXml}
                 </channel>
             </rss>`;

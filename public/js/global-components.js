@@ -209,17 +209,24 @@ export async function loadGlobalFooter() {
     }
 }
 
-window.showToast = (msg, type = 'success') => {
+window.showToast = (msg, type = 'success', duration = 0) => {
     const container = document.getElementById('toast-container');
     if (!container) return;
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     let icon = '<i class="fa-solid fa-circle-check text-brand-orange toast-icon"></i>';
     if (type === 'error') icon = '<i class="fa-solid fa-circle-exclamation text-brand-red toast-icon"></i>';
-    toast.innerHTML = `${icon}<span class="toast-msg">${msg}</span>`;
+    toast.innerHTML = `${icon}<span class="toast-msg flex-grow pr-2">${msg}</span><button type="button" class="text-gray-400 hover:text-gray-600 transition focus:outline-none shrink-0" onclick="const t = this.parentElement; t.classList.remove('show'); setTimeout(() => t.remove(), 400);"><i class="fa-solid fa-xmark text-[10px]"></i></button>`;
     container.appendChild(toast);
     requestAnimationFrame(() => { toast.classList.add('show'); });
-    setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
+    
+    const time = duration || (type === 'error' ? 6500 : 4000);
+    setTimeout(() => { 
+        if (toast.parentElement) {
+            toast.classList.remove('show'); 
+            setTimeout(() => { if (toast.parentElement) toast.remove(); }, 400); 
+        }
+    }, time);
 };
 
 // --- LÓGICA DE BÚSQUEDA ---

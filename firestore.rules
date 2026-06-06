@@ -126,6 +126,18 @@ service cloud.firestore {
     match /accounts/{accountId} { allow read, write: if isStaff(); }
     match /payables/{payableId} { allow read, write: if isStaff(); }
     
+    // 🔥 NUEVO: CÓDIGOS DE DESCUENTO Y USO (SEGURIDAD CRÍTICA)
+    match /promo_codes/{promoId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /promo_usages/{usageId} {
+      allow read, write: if isAdmin();
+    }
+    match /gift_cards/{cardId} {
+      allow read, write: if isAdmin();
+    }
+    
     match /config/{configDoc} {
       allow read: if true;
       allow write: if isAdmin(); // Configuraciones críticas solo Admin

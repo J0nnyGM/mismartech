@@ -46,29 +46,18 @@ exports.createSistecreditoCheckout = async (data, context) => {
     const shippingCost = Number(data.shippingCost || (data.data && data.data.shippingCost) || 0);
     const extraData = data.extraData || (data.data && data.data.extraData) || {};
     const buyerInfo = data.buyerInfo || (data.data && data.data.buyerInfo) || {};
+    const promoCodes = data.promoCodes || (data.data && data.data.promoCodes) || [];
 
     if (!rawItems || !rawItems.length) throw new functions.https.HttpsError('invalid-argument', 'Cart empty');
 
-    let dbItems = [];
-    let subtotal = 0;
     const removeAccents = (str) => str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
 
-    for (const item of rawItems) {
-        const pDoc = await db.collection('products').doc(item.id).get();
-        if (!pDoc.exists) continue;
-        const pData = pDoc.data();
-        const price = Number(pData.price) || 0;
-        const qty = parseInt(item.quantity) || 1;
-        subtotal += price * qty;
+    const newOrderRef = db.collection('orders').doc();
+    const firebaseOrderId = newOrderRef.id;
 
-        dbItems.push({
-            id: item.id, name: pData.name, price: price, quantity: qty,
-            color: item.color || "", capacity: item.capacity || "",
-            mainImage: pData.mainImage || pData.image || "https://mismartech.com/img/logo.webp"
-        });
-    }
-
-    const totalAmount = subtotal + shippingCost;
+    const promoValidator = require('./promo-validator');
+    // Validar precios reales y cupones en DB para seguridad
+    const result = await promoValidator.validateAndApplyDiscounts(rawItems, promoCodes, shippingCost, uid);
     
     const shippingData = extraData.shippingData || { 
         address: buyerInfo.address, 
@@ -81,15 +70,30 @@ exports.createSistecreditoCheckout = async (data, context) => {
     let clientPhone = String(extraData.phone || buyerInfo.phone || "");
 
     // 3. Guardar Orden en Firebase
-    const newOrderRef = db.collection('orders').doc();
-    const firebaseOrderId = newOrderRef.id;
-
     await newOrderRef.set({
-        source: 'TIENDA_WEB', createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        userId: uid, userEmail: email, userName: clientName, phone: clientPhone, clientDoc: clientDoc,
-        shippingData: shippingData, billingData: extraData.billingData || null, requiresInvoice: extraData.needsInvoice || false,
-        items: dbItems, subtotal: subtotal, shippingCost: shippingCost, total: totalAmount,
-        status: 'PENDIENTE_PAGO', paymentMethod: 'SISTECREDITO', paymentStatus: 'PENDING', isStockDeducted: false, buyerInfo: buyerInfo
+        source: 'TIENDA_WEB', 
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        userId: uid, 
+        userEmail: email, 
+        userName: clientName, 
+        phone: clientPhone, 
+        clientDoc: clientDoc,
+        shippingData: shippingData, 
+        billingData: extraData.billingData || null, 
+        requiresInvoice: extraData.needsInvoice || false,
+        items: result.dbItems, 
+        subtotal: result.subtotal, 
+        shippingCost: result.finalShippingCost, 
+        discountAmount: result.totalDiscounts,
+        appliedPromos: result.appliedPromos,
+        appliedPromoCodes: promoCodes.map(c => c.trim().toUpperCase()),
+        total: result.totalAmount,
+        status: 'PENDIENTE_PAGO', 
+        paymentMethod: 'SISTECREDITO', 
+        paymentStatus: 'PENDING', 
+        isStockDeducted: false, 
+        buyerInfo: buyerInfo
     });
 
     // 4. Preparar Payload SISTECRÉDITO
@@ -119,7 +123,7 @@ exports.createSistecreditoCheckout = async (data, context) => {
             userType: 0 
         },
         currency: "COP", 
-        value: Math.round(totalAmount), 
+        value: Math.round(result.totalAmount), 
         tax: 0, 
         taxBase: 0, 
         sandbox: { isActive: IS_SC_SANDBOX, status: "Approved" }, 
@@ -220,10 +224,13 @@ exports.webhook = async (req, res) => {
                                 
                                 if (i.color || i.capacity) {
                                     if (newC.length > 0) {
-                                        const idx = newC.findIndex(c =>
-                                            (c.color === i.color || (!c.color && !i.color)) &&
-                                            (c.capacity === i.capacity || (!c.capacity && !i.capacity))
-                                        );
+                                        const idx = newC.findIndex(c => {
+                                            const cColor = (c.color || "").trim().toLowerCase();
+                                            const iColor = (i.color || "").trim().toLowerCase();
+                                            const cCapacity = (c.capacity || "").trim().toLowerCase();
+                                            const iCapacity = (i.capacity || "").trim().toLowerCase();
+                                            return cColor === iColor && cCapacity === iCapacity;
+                                        });
                                         if (idx >= 0) newC[idx].stock = Math.max(0, newC[idx].stock - i.quantity);
                                     }
                                 }
@@ -273,6 +280,12 @@ exports.webhook = async (req, res) => {
                             total: oData.total, status: 'PENDIENTE_ALISTAMIENTO', type: 'VENTA_WEB',
                             createdAt: admin.firestore.FieldValue.serverTimestamp()
                         });
+                    }
+
+                    // Registrar Uso de Cupones si existen (NUEVO)
+                    if (oData.appliedPromos && oData.appliedPromos.length > 0) {
+                        const promoValidator = require('./promo-validator');
+                        await promoValidator.registerPromoUsagesInTransaction(t, oData.appliedPromos, oData.userId, orderId, oData.userName);
                     }
 
                     t.update(orderRef, {

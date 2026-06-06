@@ -29,9 +29,13 @@ const mercadolibre2Module = require('./mercadolibre2');
 const mercadolibre3Module = require('./mercadolibre3');
 const syncWatcherModule = require('./sync-watcher'); // 🔥 NUEVO: Importar el centinela
 const falabellaModule = require('./falabella'); // 🔥 NUEVO: Importar módulo Falabella
+const promoValidator = require('./promo-validator');
 
 
 // --- 3. EXPORTAR FUNCIONES ---
+
+// Validación de Cupones (NUEVO)
+exports.validatePromoCodes = functions.https.onCall(promoValidator.validatePromoCodes);
 
 // MercadoPago
 exports.createMercadoPagoPreference = functions.https.onCall(mpModule.createPreference);

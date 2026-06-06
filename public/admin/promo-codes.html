@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cupones y Promociones | Mi Smartech Admin</title>
+    <link href="../css/styles.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #F05A28; border-radius: 10px; }
+        .payment-disabled { opacity: 0.5; pointer-events: none; }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans text-brand-black flex h-screen overflow-hidden" style="display: none;">
+    <div id="admin-sidebar" class="shrink-0 z-50"></div>
+    
+    <main class="flex-grow overflow-y-auto custom-scroll relative">
+        <header class="bg-white border-b border-gray-200 px-4 md:px-8 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sticky top-0 z-10 shadow-sm shrink-0">
+            <div>
+                <h1 class="text-2xl font-black uppercase tracking-tighter">Descuentos & <span class="text-brand-orange">Fidelización</span></h1>
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Gestión de Cupones, Gift Cards y Reglas de Descuento</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <button id="btn-new-promo" class="bg-brand-black text-white px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-orange hover:text-brand-black transition shadow-lg flex items-center gap-2">
+                    <i class="fa-solid fa-ticket"></i> Nuevo Cupón
+                </button>
+                <button id="btn-new-giftcard" class="bg-brand-black text-white px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-orange hover:text-brand-black transition shadow-lg flex items-center gap-2 hidden">
+                    <i class="fa-solid fa-gift"></i> Nueva Gift Card
+                </button>
+            </div>
+        </header>
+
+        <!-- Tabs Header -->
+        <div class="bg-white border-b border-gray-200 px-4 md:px-8 flex gap-6 shrink-0">
+            <button id="tab-coupons" class="pb-4 pt-4 px-2 font-black text-xs uppercase tracking-widest border-b-2 border-brand-orange text-brand-orange transition-all duration-300 outline-none flex items-center gap-2">
+                <i class="fa-solid fa-ticket"></i> Cupones de Descuento
+            </button>
+            <button id="tab-giftcards" class="pb-4 pt-4 px-2 font-black text-xs uppercase tracking-widest border-b-2 border-transparent text-gray-400 hover:text-brand-black transition-all duration-300 outline-none flex items-center gap-2">
+                <i class="fa-solid fa-gift"></i> Tarjetas de Regalo (Gift Cards)
+            </button>
+        </div>
+
+        <div class="p-4 md:p-8 pb-24 md:pb-8">
+            <!-- Container: Coupons -->
+            <div id="container-coupons" class="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-50 text-[9px] font-black uppercase text-gray-400 tracking-widest border-b border-gray-100">
+                            <tr>
+                                <th class="px-6 py-4">Código</th>
+                                <th class="px-6 py-4">Tipo y Valor</th>
+                                <th class="px-6 py-4">Uso (Total/Límite)</th>
+                                <th class="px-6 py-4">Restricciones</th>
+                                <th class="px-6 py-4">Acumulable</th>
+                                <th class="px-6 py-4">Vigencia</th>
+                                <th class="px-6 py-4">Estado</th>
+                                <th class="px-6 py-4 text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="promo-table-body" class="divide-y divide-gray-50 text-sm">
+                            <tr><td colspan="8" class="p-10 text-center"><i class="fa-solid fa-circle-notch fa-spin text-brand-orange text-2xl"></i></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Container: Gift Cards -->
+            <div id="container-giftcards" class="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-50 text-[9px] font-black uppercase text-gray-400 tracking-widest border-b border-gray-100">
+                            <tr>
+                                <th class="px-6 py-4">Código</th>
+                                <th class="px-6 py-4">PIN</th>
+                                <th class="px-6 py-4">Saldo (Inicial / Actual)</th>
+                                <th class="px-6 py-4">Redenciones</th>
+                                <th class="px-6 py-4">Vigencia</th>
+                                <th class="px-6 py-4">Estado</th>
+                                <th class="px-6 py-4 text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="giftcard-table-body" class="divide-y divide-gray-50 text-sm">
+                            <tr><td colspan="7" class="p-10 text-center"><i class="fa-solid fa-circle-notch fa-spin text-brand-orange text-2xl"></i></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODAL: CREAR/EDITAR CUPÓN -->
+    <div id="promo-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
+        <div class="absolute inset-0" onclick="closePromoModal()"></div>
+        <div class="relative bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300 max-h-[90vh] flex flex-col">
+            <div class="p-8 border-b border-gray-50 flex justify-between items-center bg-slate-50/50 shrink-0">
+                <h3 id="promo-modal-title" class="font-black text-xl uppercase tracking-tighter">Nuevo <span class="text-brand-orange">Cupón Promocional</span></h3>
+                <button onclick="closePromoModal()" class="w-10 h-10 rounded-full bg-white border border-gray-200 text-gray-400 hover:text-brand-red transition flex items-center justify-center"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <form id="promo-form" class="p-8 overflow-y-auto custom-scroll flex-1 space-y-4">
+                <input type="hidden" id="edit-promo-id">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="promo-code" class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2">Código del Cupón *</label>
+                        <input type="text" id="promo-code" required placeholder="Ej: SMARTECH10" class="w-full bg-slate-50 border border-gray-200 p-4 rounded-2xl text-xs font-bold outline-none focus:ring-1 focus:ring-brand-orange transition uppercase">
+                    </div>
+                    <div>
+                        <label for="promo-status" class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2">Estado inicial</label>
+                        <select id="promo-status" class="w-full bg-slate-50 border border-gray-200 p-4 rounded-2xl text-xs font-bold outline-none focus:ring-1 focus:ring-brand-orange transition">
+                            <option value="active">Activo</option>
+                            <option value="inactive">Inactivo</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label for="promo-type" class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2">Tipo de Descuento</label>
+                        <select id="promo-type" class="w-full bg-slate-50 border border-gray-200 p-4 rounded-2xl text-xs font-bold outline-none focus:ring-1 focus:ring-brand-orange transition">
+                            <option value="percentage">Porcentaje (%)</option>
+                            <option value="fixed_amount">Monto Fijo ($)</option>
+                            <option value="free_shipping">Envío Gratis</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="promo-value" class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2">Valor</label>
+                        <input type="text" id="promo-value" required placeholder="Ej: 10 o 50.000" class="w-full bg-slate-50 border border-gray-200 p-4 rounded-2xl text-xs font-bold outline-none focus:ring-1 focus:ring-brand-orange transition">
+                    </div>
+                    <div>
+                        <label for="promo-max-discount" class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2">Descuento Máximo ($)</label>
+                        <input type="text" id="promo-max-discount" placeholder="Opcional para %" class="w-full bg-slate-50 border border-gray-200 p-4 rounded-2xl text-xs font-bold outline-none focus:ring-1 focus:ring-brand-orange transition">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="promo-min-order" class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2">Compra Mínima ($)</label>
+                        <input type="text" id="promo-min-order" placeholder="Opcional" class="w-full bg-slate-50 border border-gray-200 p-4 rounded-2xl text-xs font-bold outline-none focus:ring-1 focus:ring-brand-orange transition">
+                    </div>
+                    <div>
+                        <label for="promo-user-limit" class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2">Límite por Usuario</label>
+                        <input type="number" id="promo-user-limit" value="1" placeholder="Ej: 1" class="w-full bg-slate-50 border border-gray-200 p-4 rounded-2xl text-xs font-bold outline-none focus:ring-1 focus:ring-brand-orange transition">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="promo-usage-limit" class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2">Límite de Usos Globales</label>
+                        <input type="number" id="promo-usage-limit" placeholder="Opcional" class="w-full bg-slate-50 border border-gray-200 p-4 rounded-2xl text-xs font-bold outline-none focus:ring-1 focus:ring-brand-orange transition">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2">Acumulabilidad & Grupo</label>
+                        <div class="flex items-center gap-4 bg-slate-50 border border-gray-200 px-4 rounded-2xl h-[50px]">
+                            <label class="relative inline-flex items-center cursor-pointer select-none">
+                                <input type="checkbox" id="promo-stackable" class="sr-only peer">
+                                <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-orange"></div>
+                                <span class="ml-2 text-[9px] font-black text-gray-400 uppercase tracking-widest peer-checked:text-brand-orange shrink-0">¿Acumulable?</span>
+                            </label>
+                            <div class="h-5 w-px bg-gray-300"></div>
+                            <select id="promo-stackable-group" class="flex-grow bg-transparent text-[10px] font-bold uppercase outline-none cursor-pointer">
+                                <option value="general">Grupo: General</option>
+                                <option value="shipping">Grupo: Envío</option>
+                                <option value="category">Grupo: Categoría</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="promo-start-date" class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2">Fecha Inicio</label>
+                        <input type="datetime-local" id="promo-start-date" class="w-full bg-slate-50 border border-gray-200 p-4 rounded-2xl text-xs font-bold outline-none focus:ring-1 focus:ring-brand-orange transition">
+                    </div>
+                    <div>
+                        <label for="promo-end-date" class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2">Fecha Expiración</label>
+                        <input type="datetime-local" id="promo-end-date" class="w-full bg-slate-50 border border-gray-200 p-4 rounded-2xl text-xs font-bold outline-none focus:ring-1 focus:ring-brand-orange transition">
+                    </div>
+                </div>
+
+                <!-- RESTRICCIONES AVANZADAS -->
+                <div class="border-t border-gray-100 pt-6">
+                    <h4 class="font-black text-xs uppercase tracking-widest text-brand-orange mb-4"><i class="fa-solid fa-ban"></i> Restricciones Avanzadas</h4>
+                    
+                    <div class="space-y-4">
+                        <!-- Productos Aplicables -->
+                        <div>
+                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2">Productos Específicos (Dejar vacío para todos)</label>
+                            <select id="promo-products" class="w-full bg-slate-50 border border-gray-200 p-4 rounded-2xl text-xs font-bold outline-none focus:ring-1 focus:ring-brand-orange transition" multiple size="4">
+                                <!-- Cargado dinámicamente -->
+                            </select>
+                            <p class="text-[8px] font-bold text-gray-400 mt-1 uppercase">Mantén presionado Ctrl (Cmd) para seleccionar múltiples productos.</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Categorías Aplicables -->
+                            <div>
+                                <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2">Categorías Permitidas</label>
+                                <select id="promo-categories" class="w-full bg-slate-50 border border-gray-200 p-4 rounded-2xl text-xs font-bold outline-none focus:ring-1 focus:ring-brand-orange transition" multiple size="3">
+                                    <!-- Cargado dinámicamente -->
+                                </select>
+                            </div>
+                            <!-- Marcas Aplicables -->
+                            <div>
+                                <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2">Marcas Permitidas</label>
+                                <select id="promo-brands" class="w-full bg-slate-50 border border-gray-200 p-4 rounded-2xl text-xs font-bold outline-none focus:ring-1 focus:ring-brand-orange transition" multiple size="3">
+                                    <!-- Cargado dinámicamente -->
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Métodos de Pago Aplicables -->
+                        <div>
+                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2">Métodos de Pago Autorizados (Ninguno = Todos)</label>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+                                <label class="flex items-center gap-2 bg-slate-50 border border-gray-200 p-3 rounded-xl cursor-pointer hover:bg-slate-100 transition text-[9px] font-black uppercase tracking-wider">
+                                    <input type="checkbox" name="promo-payments" value="MANUAL" class="rounded border-gray-300 text-brand-orange focus:ring-brand-orange">
+                                    Manual
+                                </label>
+                                <label class="flex items-center gap-2 bg-slate-50 border border-gray-200 p-3 rounded-xl cursor-pointer hover:bg-slate-100 transition text-[9px] font-black uppercase tracking-wider">
+                                    <input type="checkbox" name="promo-payments" value="COD" class="rounded border-gray-300 text-brand-orange focus:ring-brand-orange">
+                                    Contra Entrega
+                                </label>
+                                <label class="flex items-center gap-2 bg-slate-50 border border-gray-200 p-3 rounded-xl cursor-pointer hover:bg-slate-100 transition text-[9px] font-black uppercase tracking-wider">
+                                    <input type="checkbox" name="promo-payments" value="ONLINE" class="rounded border-gray-300 text-brand-orange focus:ring-brand-orange">
+                                    MercadoPago
+                                </label>
+                                <label class="flex items-center gap-2 bg-slate-50 border border-gray-200 p-3 rounded-xl cursor-pointer hover:bg-slate-100 transition text-[9px] font-black uppercase tracking-wider">
+                                    <input type="checkbox" name="promo-payments" value="ADDI" class="rounded border-gray-300 text-brand-orange focus:ring-brand-orange">
+                                    ADDI
+                                </label>
+                                <label class="flex items-center gap-2 bg-slate-50 border border-gray-200 p-3 rounded-xl cursor-pointer hover:bg-slate-100 transition text-[9px] font-black uppercase tracking-wider">
+                                    <input type="checkbox" name="promo-payments" value="SISTECREDITO" class="rounded border-gray-300 text-brand-orange focus:ring-brand-orange">
+                                    Sistecrédito
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-6 shrink-0">
+                    <button type="submit" class="w-full bg-brand-black text-white py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-brand-orange hover:text-brand-black transition-all">
+                        Guardar Información
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: CREAR/EDITAR GIFT CARD -->
+    <div id="giftcard-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
+        <div class="absolute inset-0" onclick="closeGiftCardModal()"></div>
+        <div class="relative bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300 max-h-[90vh] flex flex-col">
+            <div class="p-8 border-b border-gray-50 flex justify-between items-center bg-slate-50/50 shrink-0">
+                <h3 id="giftcard-modal-title" class="font-black text-xl uppercase tracking-tighter">Nueva <span class="text-brand-orange">Tarjeta de Regalo</span></h3>
+                <button onclick="closeGiftCardModal()" class="w-10 h-10 rounded-full bg-white border border-gray-200 text-gray-400 hover:text-brand-red transition flex items-center justify-center"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <form id="giftcard-form" class="p-8 overflow-y-auto custom-scroll flex-1 space-y-4">
+                <input type="hidden" id="edit-giftcard-id">
+                
+                <div>
+                    <label for="giftcard-code" class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2">Código de Tarjeta *</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="giftcard-code" required placeholder="GC-XXXX-XXXX-XXXX" class="flex-1 bg-slate-50 border border-gray-200 p-4 rounded-2xl text-xs font-bold outline-none focus:ring-1 focus:ring-brand-orange transition uppercase font-mono">
+                        <button type="button" id="btn-gen-gc-code" class="bg-brand-black text-white px-4 rounded-2xl text-[10px] font-black uppercase hover:bg-brand-orange hover:text-brand-black transition outline-none">Generar</button>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="giftcard-pin" class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2">PIN de Seguridad (4 dígitos) *</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="giftcard-pin" required placeholder="Ej: 1234" maxlength="4" class="flex-1 bg-slate-50 border border-gray-200 p-4 rounded-2xl text-xs font-bold outline-none focus:ring-1 focus:ring-brand-orange transition font-mono">
+                        <button type="button" id="btn-gen-gc-pin" class="bg-brand-black text-white px-4 rounded-2xl text-[10px] font-black uppercase hover:bg-brand-orange hover:text-brand-black transition outline-none">Generar</button>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="giftcard-status" class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2">Estado</label>
+                    <select id="giftcard-status" class="w-full bg-slate-50 border border-gray-200 p-4 rounded-2xl text-xs font-bold outline-none focus:ring-1 focus:ring-brand-orange transition">
+                        <option value="active">Activa</option>
+                        <option value="inactive">Inactiva</option>
+                        <option value="redeemed">Canjeada (Saldo 0)</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="giftcard-initial-balance" class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2">Saldo Inicial ($) *</label>
+                        <input type="text" id="giftcard-initial-balance" required placeholder="Ej: 100.000" class="w-full bg-slate-50 border border-gray-200 p-4 rounded-2xl text-xs font-bold outline-none focus:ring-1 focus:ring-brand-orange transition">
+                    </div>
+                    <div>
+                        <label for="giftcard-current-balance" class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2">Saldo Actual ($)</label>
+                        <input type="text" id="giftcard-current-balance" placeholder="Dejar vacío para igual al inicial" class="w-full bg-slate-50 border border-gray-200 p-4 rounded-2xl text-xs font-bold outline-none focus:ring-1 focus:ring-brand-orange transition">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="giftcard-start-date" class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2">Fecha Inicio</label>
+                        <input type="datetime-local" id="giftcard-start-date" class="w-full bg-slate-50 border border-gray-200 p-4 rounded-2xl text-xs font-bold outline-none focus:ring-1 focus:ring-brand-orange transition">
+                    </div>
+                    <div>
+                        <label for="giftcard-end-date" class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2">Fecha Expiración</label>
+                        <input type="datetime-local" id="giftcard-end-date" class="w-full bg-slate-50 border border-gray-200 p-4 rounded-2xl text-xs font-bold outline-none focus:ring-1 focus:ring-brand-orange transition">
+                    </div>
+                </div>
+
+                <div class="pt-6 shrink-0">
+                    <button type="submit" class="w-full bg-brand-black text-white py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-brand-orange hover:text-brand-black transition-all font-bold">
+                        Guardar Tarjeta
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: HISTORIAL DE REDENCIONES -->
+    <div id="history-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
+        <div class="absolute inset-0" onclick="closeHistoryModal()"></div>
+        <div class="relative bg-white w-full max-w-3xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300 max-h-[90vh] flex flex-col">
+            <div class="p-8 border-b border-gray-50 flex justify-between items-center bg-slate-50/50 shrink-0">
+                <div>
+                    <h3 class="font-black text-xl uppercase tracking-tighter">Historial de <span class="text-brand-orange">Uso/Redenciones</span></h3>
+                    <p id="history-modal-subtitle" class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Código: ---</p>
+                </div>
+                <button onclick="closeHistoryModal()" class="w-10 h-10 rounded-full bg-white border border-gray-200 text-gray-400 hover:text-brand-red transition flex items-center justify-center"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <div class="p-8 overflow-y-auto custom-scroll flex-1">
+                <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-50 text-[8px] font-black uppercase text-gray-400 tracking-widest border-b border-gray-100">
+                            <tr>
+                                <th class="px-6 py-3">Fecha y Hora</th>
+                                <th class="px-6 py-3">ID Pedido / Cliente</th>
+                                <th class="px-6 py-3">Total Pedido</th>
+                                <th class="px-6 py-3">Descuento Aplicado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body" class="divide-y divide-gray-50 text-xs">
+                            <tr><td colspan="4" class="p-8 text-center text-gray-400 font-semibold">Cargando...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { db, collection, getDocs, addDoc, updateDoc, doc, orderBy, query, Timestamp, where, limit } from '../js/firebase-init.js';
+        import { loadAdminSidebar } from '../js/admin/admin-ui.js';
+        
+        loadAdminSidebar();
+
+        const tableBody = document.getElementById('promo-table-body');
+        const promoModal = document.getElementById('promo-modal');
+        const promoForm = document.getElementById('promo-form');
+        
+        const valInput = document.getElementById('promo-value');
+        const maxInput = document.getElementById('promo-max-discount');
+        const minInput = document.getElementById('promo-min-order');
+        const typeSelect = document.getElementById('promo-type');
+
+        let promoCodesList = [];
+        let giftCardsList = [];
+
+        // Dynamic formatting to Colombian Peso
+        function formatInputPesos(input) {
+            let raw = input.value.replace(/\D/g, "");
+            input.value = raw ? raw.replace(/\B(?=(\d{3})+(?!\d))/g, ".") : "";
+        }
+        
+        function getRawNumber(valueStr) {
+            if (!valueStr) return 0;
+            return Number(valueStr.replace(/\D/g, "")) || 0;
+        }
+
+        function updateValueInputFormatting() {
+            if (typeSelect.value === 'fixed_amount') {
+                formatInputPesos(valInput);
+            } else {
+                valInput.value = valInput.value.replace(/\D/g, "");
+            }
+        }
+
+        valInput.addEventListener('input', updateValueInputFormatting);
+        typeSelect.addEventListener('change', updateValueInputFormatting);
+        maxInput.addEventListener('input', () => formatInputPesos(maxInput));
+        minInput.addEventListener('input', () => formatInputPesos(minInput));
+
+        // Gift card input formatting
+        const gcInitBalance = document.getElementById('giftcard-initial-balance');
+        const gcCurrBalance = document.getElementById('giftcard-current-balance');
+        gcInitBalance.addEventListener('input', () => formatInputPesos(gcInitBalance));
+        gcCurrBalance.addEventListener('input', () => formatInputPesos(gcCurrBalance));
+
+        // Generate GC code/pin
+        function generateGiftCardCode() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let code = 'GC-';
+            for (let i = 0; i < 3; i++) {
+                let block = '';
+                for (let j = 0; j < 4; j++) {
+                    block += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                code += block + (i < 2 ? '-' : '');
+            }
+            return code;
+        }
+
+        function generateGiftCardPIN() {
+            let pin = '';
+            for (let i = 0; i < 4; i++) {
+                pin += Math.floor(Math.random() * 10);
+            }
+            return pin;
+        }
+
+        document.getElementById('btn-gen-gc-code').onclick = () => {
+            document.getElementById('giftcard-code').value = generateGiftCardCode();
+        };
+        document.getElementById('btn-gen-gc-pin').onclick = () => {
+            document.getElementById('giftcard-pin').value = generateGiftCardPIN();
+        };
+
+        // Multi-select helpers
+        function getSelectValues(selectEl) {
+            const result = [];
+            const options = selectEl && selectEl.options;
+            for (let i = 0; i < options.length; i++) {
+                const opt = options[i];
+                if (opt.selected) {
+                    result.push(opt.value);
+                }
+            }
+            return result;
+        }
+
+        function setSelectValues(selectEl, values) {
+            if (!values) values = [];
+            const options = selectEl && selectEl.options;
+            for (let i = 0; i < options.length; i++) {
+                const opt = options[i];
+                opt.selected = values.includes(opt.value);
+            }
+        }
+
+        function getCheckedPayments() {
+            const checked = [];
+            const boxes = document.querySelectorAll('input[name="promo-payments"]:checked');
+            boxes.forEach(b => checked.push(b.value));
+            return checked;
+        }
+
+        function setCheckedPayments(values) {
+            const boxes = document.querySelectorAll('input[name="promo-payments"]');
+            boxes.forEach(b => {
+                b.checked = values && values.includes(b.value);
+            });
+        }
+
+        // Fetch Restrictions lists
+        async function loadRestrictionsLists() {
+            try {
+                // Products
+                const prodSnap = await getDocs(query(collection(db, "products"), orderBy("name", "asc")));
+                const selectProducts = document.getElementById('promo-products');
+                selectProducts.innerHTML = "";
+                prodSnap.forEach(d => {
+                    const p = d.data();
+                    const opt = document.createElement('option');
+                    opt.value = d.id;
+                    opt.textContent = p.name;
+                    selectProducts.appendChild(opt);
+                });
+
+                // Categories
+                const catSnap = await getDocs(query(collection(db, "categories"), orderBy("name", "asc")));
+                const selectCategories = document.getElementById('promo-categories');
+                selectCategories.innerHTML = "";
+                catSnap.forEach(d => {
+                    const c = d.data();
+                    const opt = document.createElement('option');
+                    opt.value = c.name;
+                    opt.textContent = c.name;
+                    selectCategories.appendChild(opt);
+                });
+
+                // Brands
+                const brandSnap = await getDocs(query(collection(db, "brands"), orderBy("name", "asc")));
+                const selectBrands = document.getElementById('promo-brands');
+                selectBrands.innerHTML = "";
+                brandSnap.forEach(d => {
+                    const b = d.data();
+                    const opt = document.createElement('option');
+                    opt.value = b.name;
+                    opt.textContent = b.name;
+                    selectBrands.appendChild(opt);
+                });
+            } catch(e) {
+                console.error("Error loading restrictions dropdowns:", e);
+            }
+        }
+
+        // Tabs Toggle logic
+        const tabCoupons = document.getElementById('tab-coupons');
+        const tabGiftCards = document.getElementById('tab-giftcards');
+        const containerCoupons = document.getElementById('container-coupons');
+        const containerGiftCards = document.getElementById('container-giftcards');
+        const btnNewPromo = document.getElementById('btn-new-promo');
+        const btnNewGiftCard = document.getElementById('btn-new-giftcard');
+
+        tabCoupons.onclick = () => {
+            tabCoupons.classList.add('border-brand-orange', 'text-brand-orange');
+            tabCoupons.classList.remove('border-transparent', 'text-gray-400');
+            tabGiftCards.classList.remove('border-brand-orange', 'text-brand-orange');
+            tabGiftCards.classList.add('border-transparent', 'text-gray-400');
+            
+            containerCoupons.classList.remove('hidden');
+            containerGiftCards.classList.add('hidden');
+            btnNewPromo.classList.remove('hidden');
+            btnNewGiftCard.classList.add('hidden');
+            fetchPromoCodes();
+        };
+
+        tabGiftCards.onclick = () => {
+            tabGiftCards.classList.add('border-brand-orange', 'text-brand-orange');
+            tabGiftCards.classList.remove('border-transparent', 'text-gray-400');
+            tabCoupons.classList.remove('border-brand-orange', 'text-brand-orange');
+            tabCoupons.classList.add('border-transparent', 'text-gray-400');
+            
+            containerGiftCards.classList.remove('hidden');
+            containerCoupons.classList.add('hidden');
+            btnNewGiftCard.classList.remove('hidden');
+            btnNewPromo.classList.add('hidden');
+            fetchGiftCards();
+        };
+
+        // Fetch Coupons
+        async function fetchPromoCodes() {
+            tableBody.innerHTML = `<tr><td colspan="8" class="p-10 text-center"><i class="fa-solid fa-circle-notch fa-spin text-brand-orange text-2xl"></i></td></tr>`;
+            try {
+                const q = query(collection(db, "promo_codes"), orderBy("createdAt", "desc"));
+                const snap = await getDocs(q);
+                
+                promoCodesList = [];
+                snap.forEach(d => {
+                    promoCodesList.push({ id: d.id, ...d.data() });
+                });
+                renderPromoCodesTable();
+            } catch(e) {
+                console.error(e);
+                tableBody.innerHTML = `<tr><td colspan="8" class="p-10 text-center text-red-500 font-bold">Error: ${e.message}</td></tr>`;
+            }
+        }
+
+        function renderPromoCodesTable() {
+            tableBody.innerHTML = "";
+            if (promoCodesList.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="8" class="p-10 text-center text-gray-400 font-bold uppercase">No hay cupones registrados.</td></tr>`;
+                return;
+            }
+
+            promoCodesList.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition-colors border-b border-gray-50 last:border-0";
+                
+                const typeText = p.type === 'percentage' ? `${p.value}%` : p.type === 'fixed_amount' ? `$${p.value.toLocaleString('es-CO')}` : 'Envío Gratis';
+                const statusBadge = p.status === 'active' 
+                    ? `<span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest">Activo</span>`
+                    : `<span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest">Inactivo</span>`;
+                
+                const stackableBadge = p.isStackable 
+                    ? `<span class="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded text-[8px] font-bold uppercase">SÍ (${p.stackableGroup || 'general'})</span>`
+                    : `<span class="bg-gray-100 text-gray-500 px-2 py-0.5 rounded text-[8px] font-bold uppercase">NO</span>`;
+
+                const startStr = p.startDate ? (p.startDate.toDate ? p.startDate.toDate().toLocaleString() : new Date(p.startDate).toLocaleString()) : '---';
+                const endStr = p.endDate ? (p.endDate.toDate ? p.endDate.toDate().toLocaleString() : new Date(p.endDate).toLocaleString()) : '---';
+                
+                const minOrderText = p.minOrderValue ? `$${p.minOrderValue.toLocaleString('es-CO')}` : '---';
+
+                // Restricciones labels
+                let restrs = [];
+                if (p.applicableProducts && p.applicableProducts.length > 0) restrs.push(`${p.applicableProducts.length} Prod.`);
+                if (p.applicableCategories && p.applicableCategories.length > 0) restrs.push(`${p.applicableCategories.length} Cat.`);
+                if (p.applicableBrands && p.applicableBrands.length > 0) restrs.push(`${p.applicableBrands.length} Marcas`);
+                if (p.applicablePaymentMethods && p.applicablePaymentMethods.length > 0) restrs.push(`${p.applicablePaymentMethods.length} Pagos`);
+                const restrictionsText = restrs.length > 0 ? restrs.join(', ') : 'Ninguna';
+
+                tr.innerHTML = `
+                    <td class="px-6 py-4 font-mono font-black text-xs text-brand-orange uppercase">${p.code}</td>
+                    <td class="px-6 py-4 font-bold text-gray-700">${typeText}</td>
+                    <td class="px-6 py-4 font-semibold text-gray-500">${p.usageCount || 0} / ${p.usageLimit || '∞'}</td>
+                    <td class="px-6 py-4 text-xs font-semibold text-gray-500">
+                        <div><b>Mín:</b> ${minOrderText}</div>
+                        <div class="text-[9px] text-gray-400"><b>Límit:</b> ${restrictionsText}</div>
+                    </td>
+                    <td class="px-6 py-4">${stackableBadge}</td>
+                    <td class="px-6 py-4 text-[10px] text-gray-400">
+                        <div><b>Inicia:</b> ${startStr}</div>
+                        <div><b>Expira:</b> ${endStr}</div>
+                    </td>
+                    <td class="px-6 py-4">${statusBadge}</td>
+                    <td class="px-6 py-4 text-center">
+                        <div class="flex items-center justify-center gap-2">
+                            <button onclick="editPromoCode('${p.id}')" class="w-8 h-8 rounded-lg border border-gray-200 text-gray-400 hover:bg-brand-orange hover:text-brand-black hover:border-transparent transition flex items-center justify-center shadow-sm" title="Editar">
+                                <i class="fa-solid fa-pen text-xs"></i>
+                            </button>
+                            <button onclick="viewRedemptionHistory('${p.code}', false)" class="w-8 h-8 rounded-lg border border-gray-200 text-gray-400 hover:bg-indigo-600 hover:text-white hover:border-transparent transition flex items-center justify-center shadow-sm" title="Historial">
+                                <i class="fa-solid fa-clock-rotate-left text-xs"></i>
+                            </button>
+                            <button onclick="togglePromoStatus('${p.id}', '${p.status}')" class="w-8 h-8 rounded-lg border border-gray-200 text-gray-400 hover:bg-brand-red hover:text-white hover:border-transparent transition flex items-center justify-center shadow-sm" title="Activar/Desactivar">
+                                <i class="fa-solid fa-power-off text-xs"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        // Fetch Gift Cards
+        async function fetchGiftCards() {
+            const gcTableBody = document.getElementById('giftcard-table-body');
+            gcTableBody.innerHTML = `<tr><td colspan="7" class="p-10 text-center"><i class="fa-solid fa-circle-notch fa-spin text-brand-orange text-2xl"></i></td></tr>`;
+            try {
+                const q = query(collection(db, "gift_cards"), orderBy("createdAt", "desc"));
+                const snap = await getDocs(q);
+                
+                giftCardsList = [];
+                snap.forEach(d => {
+                    giftCardsList.push({ id: d.id, ...d.data() });
+                });
+                renderGiftCardsTable();
+            } catch(e) {
+                console.error(e);
+                gcTableBody.innerHTML = `<tr><td colspan="7" class="p-10 text-center text-red-500 font-bold">Error: ${e.message}</td></tr>`;
+            }
+        }
+
+        function renderGiftCardsTable() {
+            const gcTableBody = document.getElementById('giftcard-table-body');
+            gcTableBody.innerHTML = "";
+            if (giftCardsList.length === 0) {
+                gcTableBody.innerHTML = `<tr><td colspan="7" class="p-10 text-center text-gray-400 font-bold uppercase">No hay tarjetas de regalo registradas.</td></tr>`;
+                return;
+            }
+
+            giftCardsList.forEach(g => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition-colors border-b border-gray-50 last:border-0";
+                
+                const initialText = `$${(g.initialBalance || 0).toLocaleString('es-CO')}`;
+                const currentText = `$${(g.currentBalance || 0).toLocaleString('es-CO')}`;
+                
+                const statusBadge = g.status === 'active' 
+                    ? `<span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest">Activa</span>`
+                    : g.status === 'redeemed'
+                    ? `<span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest font-black">Canjeada</span>`
+                    : `<span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest">Inactiva</span>`;
+
+                const startStr = g.startDate ? (g.startDate.toDate ? g.startDate.toDate().toLocaleString() : new Date(g.startDate).toLocaleString()) : '---';
+                const endStr = g.endDate ? (g.endDate.toDate ? g.endDate.toDate().toLocaleString() : new Date(g.endDate).toLocaleString()) : '---';
+                
+                const usagesCount = g.usages ? g.usages.length : 0;
+
+                tr.innerHTML = `
+                    <td class="px-6 py-4 font-mono font-black text-xs text-brand-orange uppercase">${g.code}</td>
+                    <td class="px-6 py-4 font-mono font-bold text-gray-700">${g.pin || '---'}</td>
+                    <td class="px-6 py-4 font-semibold text-gray-500">
+                        <div><b>Inicial:</b> ${initialText}</div>
+                        <div><b>Actual:</b> ${currentText}</div>
+                    </td>
+                    <td class="px-6 py-4 font-semibold text-gray-500">
+                        <button onclick="viewRedemptionHistory('${g.code}', true)" class="text-xs text-indigo-600 hover:text-indigo-800 font-bold underline transition">
+                            Ver Usos (${usagesCount})
+                        </button>
+                    </td>
+                    <td class="px-6 py-4 text-[10px] text-gray-400">
+                        <div><b>Inicia:</b> ${startStr}</div>
+                        <div><b>Expira:</b> ${endStr}</div>
+                    </td>
+                    <td class="px-6 py-4">${statusBadge}</td>
+                    <td class="px-6 py-4 text-center">
+                        <div class="flex items-center justify-center gap-2">
+                            <button onclick="editGiftCard('${g.id}')" class="w-8 h-8 rounded-lg border border-gray-200 text-gray-400 hover:bg-brand-orange hover:text-brand-black hover:border-transparent transition flex items-center justify-center shadow-sm" title="Editar">
+                                <i class="fa-solid fa-pen text-xs"></i>
+                            </button>
+                            <button onclick="toggleGiftCardStatus('${g.id}', '${g.status}')" class="w-8 h-8 rounded-lg border border-gray-200 text-gray-400 hover:bg-brand-red hover:text-white hover:border-transparent transition flex items-center justify-center shadow-sm" title="Activar/Desactivar">
+                                <i class="fa-solid fa-power-off text-xs"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                gcTableBody.appendChild(tr);
+            });
+        }
+
+        // Open/Close and Submits
+        window.editPromoCode = (id) => {
+            const p = promoCodesList.find(promo => promo.id === id);
+            if (!p) return;
+
+            document.getElementById('edit-promo-id').value = p.id;
+            document.getElementById('promo-code').value = p.code;
+            document.getElementById('promo-status').value = p.status || 'active';
+            document.getElementById('promo-type').value = p.type || 'percentage';
+            
+            document.getElementById('promo-value').value = p.value || 0;
+            if (p.type === 'fixed_amount') formatInputPesos(document.getElementById('promo-value'));
+            
+            document.getElementById('promo-max-discount').value = p.maxDiscount || "";
+            if (p.maxDiscount) formatInputPesos(document.getElementById('promo-max-discount'));
+            
+            document.getElementById('promo-min-order').value = p.minOrderValue || "";
+            if (p.minOrderValue) formatInputPesos(document.getElementById('promo-min-order'));
+            
+            document.getElementById('promo-user-limit').value = p.perUserLimit || 1;
+            document.getElementById('promo-usage-limit').value = p.usageLimit || "";
+            document.getElementById('promo-stackable').checked = p.isStackable || false;
+            document.getElementById('promo-stackable-group').value = p.stackableGroup || "general";
+            
+            // Set restrictions
+            setSelectValues(document.getElementById('promo-products'), p.applicableProducts || []);
+            setSelectValues(document.getElementById('promo-categories'), p.applicableCategories || []);
+            setSelectValues(document.getElementById('promo-brands'), p.applicableBrands || []);
+            setCheckedPayments(p.applicablePaymentMethods || []);
+
+            const formatDate = (dateVal) => {
+                if (!dateVal) return "";
+                const d = dateVal.toDate ? dateVal.toDate() : new Date(dateVal);
+                return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+            };
+
+            document.getElementById('promo-start-date').value = formatDate(p.startDate);
+            document.getElementById('promo-end-date').value = formatDate(p.endDate);
+
+            document.getElementById('promo-modal-title').innerHTML = `Editar <span class="text-brand-orange">Cupón</span>`;
+            promoModal.classList.remove('hidden');
+        };
+
+        window.togglePromoStatus = async (id, currentStatus) => {
+            const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+            try {
+                await updateDoc(doc(db, "promo_codes", id), { status: newStatus });
+                await fetchPromoCodes();
+            } catch(e) {
+                alert("Error: " + e.message);
+            }
+        };
+
+        window.closePromoModal = () => {
+            promoModal.classList.add('hidden');
+            promoForm.reset();
+            document.getElementById('edit-promo-id').value = "";
+            setSelectValues(document.getElementById('promo-products'), []);
+            setSelectValues(document.getElementById('promo-categories'), []);
+            setSelectValues(document.getElementById('promo-brands'), []);
+            setCheckedPayments([]);
+        };
+
+        document.getElementById('btn-new-promo').onclick = () => {
+            promoForm.reset();
+            document.getElementById('edit-promo-id').value = "";
+            setSelectValues(document.getElementById('promo-products'), []);
+            setSelectValues(document.getElementById('promo-categories'), []);
+            setSelectValues(document.getElementById('promo-brands'), []);
+            setCheckedPayments([]);
+            document.getElementById('promo-modal-title').innerHTML = `Nuevo <span class="text-brand-orange">Cupón Promocional</span>`;
+            promoModal.classList.remove('hidden');
+        };
+
+        promoForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = promoForm.querySelector('button[type="submit"]');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Guardando...';
+
+            const id = document.getElementById('edit-promo-id').value;
+            const code = document.getElementById('promo-code').value.trim().toUpperCase();
+            
+            const startDateVal = document.getElementById('promo-start-date').value;
+            const endDateVal = document.getElementById('promo-end-date').value;
+
+            const isFixed = document.getElementById('promo-type').value === 'fixed_amount';
+            const valueVal = isFixed ? getRawNumber(valInput.value) : (Number(valInput.value) || 0);
+
+            const data = {
+                code: code,
+                status: document.getElementById('promo-status').value,
+                type: document.getElementById('promo-type').value,
+                value: valueVal,
+                maxDiscount: getRawNumber(maxInput.value),
+                minOrderValue: getRawNumber(minInput.value),
+                perUserLimit: Number(document.getElementById('promo-user-limit').value) || 1,
+                usageLimit: Number(document.getElementById('promo-usage-limit').value) || 0,
+                isStackable: document.getElementById('promo-stackable').checked,
+                stackableGroup: document.getElementById('promo-stackable-group').value,
+                applicableProducts: getSelectValues(document.getElementById('promo-products')),
+                applicableCategories: getSelectValues(document.getElementById('promo-categories')),
+                applicableBrands: getSelectValues(document.getElementById('promo-brands')),
+                applicablePaymentMethods: getCheckedPayments(),
+                startDate: startDateVal ? Timestamp.fromDate(new Date(startDateVal)) : null,
+                endDate: endDateVal ? Timestamp.fromDate(new Date(endDateVal)) : null,
+                updatedAt: new Date()
+            };
+
+            try {
+                if (id) {
+                    await updateDoc(doc(db, "promo_codes", id), data);
+                } else {
+                    await addDoc(collection(db, "promo_codes"), {
+                        ...data,
+                        usageCount: 0,
+                        createdAt: new Date()
+                    });
+                }
+                closePromoModal();
+                await fetchPromoCodes();
+            } catch(err) {
+                alert("Error: " + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        };
+
+        // Gift card modal actions
+        window.editGiftCard = (id) => {
+            const g = giftCardsList.find(card => card.id === id);
+            if (!g) return;
+
+            document.getElementById('edit-giftcard-id').value = g.id;
+            document.getElementById('giftcard-code').value = g.code;
+            document.getElementById('giftcard-pin').value = g.pin || "";
+            document.getElementById('giftcard-status').value = g.status || 'active';
+            
+            document.getElementById('giftcard-initial-balance').value = g.initialBalance || 0;
+            formatInputPesos(document.getElementById('giftcard-initial-balance'));
+            
+            document.getElementById('giftcard-current-balance').value = g.currentBalance !== undefined ? g.currentBalance : g.initialBalance;
+            formatInputPesos(document.getElementById('giftcard-current-balance'));
+            
+            const formatDate = (dateVal) => {
+                if (!dateVal) return "";
+                const d = dateVal.toDate ? dateVal.toDate() : new Date(dateVal);
+                return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+            };
+
+            document.getElementById('giftcard-start-date').value = formatDate(g.startDate);
+            document.getElementById('giftcard-end-date').value = formatDate(g.endDate);
+
+            document.getElementById('giftcard-modal-title').innerHTML = `Editar <span class="text-brand-orange">Tarjeta de Regalo</span>`;
+            document.getElementById('giftcard-modal').classList.remove('hidden');
+        };
+
+        window.toggleGiftCardStatus = async (id, currentStatus) => {
+            const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+            try {
+                await updateDoc(doc(db, "gift_cards", id), { status: newStatus });
+                await fetchGiftCards();
+            } catch(e) {
+                alert("Error: " + e.message);
+            }
+        };
+
+        window.closeGiftCardModal = () => {
+            document.getElementById('giftcard-modal').classList.add('hidden');
+            document.getElementById('giftcard-form').reset();
+            document.getElementById('edit-giftcard-id').value = "";
+        };
+
+        btnNewGiftCard.onclick = () => {
+            document.getElementById('giftcard-form').reset();
+            document.getElementById('edit-giftcard-id').value = "";
+            document.getElementById('giftcard-modal-title').innerHTML = `Nueva <span class="text-brand-orange">Tarjeta de Regalo</span>`;
+            document.getElementById('giftcard-code').value = generateGiftCardCode();
+            document.getElementById('giftcard-pin').value = generateGiftCardPIN();
+            document.getElementById('giftcard-modal').classList.remove('hidden');
+        };
+
+        const giftcardForm = document.getElementById('giftcard-form');
+        giftcardForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = giftcardForm.querySelector('button[type="submit"]');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Guardando...';
+
+            const id = document.getElementById('edit-giftcard-id').value;
+            const code = document.getElementById('giftcard-code').value.trim().toUpperCase();
+            const pin = document.getElementById('giftcard-pin').value.trim();
+            
+            const startDateVal = document.getElementById('giftcard-start-date').value;
+            const endDateVal = document.getElementById('giftcard-end-date').value;
+
+            const initialBalance = getRawNumber(gcInitBalance.value);
+            let currentBalance = getRawNumber(gcCurrBalance.value);
+            if (gcCurrBalance.value === "") {
+                currentBalance = initialBalance;
+            }
+
+            const data = {
+                code: code,
+                pin: pin,
+                status: document.getElementById('giftcard-status').value,
+                initialBalance: initialBalance,
+                currentBalance: currentBalance,
+                startDate: startDateVal ? Timestamp.fromDate(new Date(startDateVal)) : null,
+                endDate: endDateVal ? Timestamp.fromDate(new Date(endDateVal)) : null,
+                updatedAt: new Date()
+            };
+
+            try {
+                if (id) {
+                    await updateDoc(doc(db, "gift_cards", id), data);
+                } else {
+                    await addDoc(collection(db, "gift_cards"), {
+                        ...data,
+                        usages: [],
+                        createdAt: new Date()
+                    });
+                }
+                closeGiftCardModal();
+                await fetchGiftCards();
+            } catch(err) {
+                alert("Error: " + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        };
+
+        // History modal actions
+        window.closeHistoryModal = () => {
+            document.getElementById('history-modal').classList.add('hidden');
+        };
+
+        window.viewRedemptionHistory = async (code, isGiftCard = false) => {
+            document.getElementById('history-modal-subtitle').textContent = `Código: ${code} (${isGiftCard ? 'Tarjeta de Regalo' : 'Cupón'})`;
+            const tbody = document.getElementById('history-table-body');
+            tbody.innerHTML = `<tr><td colspan="4" class="p-8 text-center"><i class="fa-solid fa-circle-notch fa-spin text-brand-orange text-2xl"></i></td></tr>`;
+            document.getElementById('history-modal').classList.remove('hidden');
+
+            try {
+                // Query orders where appliedPromoCodes array contains the coupon or card code
+                const q = query(
+                    collection(db, "orders"),
+                    where("appliedPromoCodes", "array-contains", code)
+                );
+                const snap = await getDocs(q);
+                
+                tbody.innerHTML = "";
+                let count = 0;
+                
+                snap.forEach(d => {
+                    const o = d.data();
+                    count++;
+                    const dateStr = o.createdAt ? (o.createdAt.toDate ? o.createdAt.toDate().toLocaleString() : new Date(o.createdAt).toLocaleString()) : '---';
+                    
+                    // Find specific discount applied by this code
+                    let specificDiscount = 0;
+                    if (o.appliedPromos) {
+                        const promo = o.appliedPromos.find(ap => ap.code === code);
+                        if (promo) {
+                            specificDiscount = promo.deductedAmount || promo.value || 0;
+                            if (promo.type === 'percentage') {
+                                specificDiscount = o.discountAmount || 0;
+                            }
+                        }
+                    }
+                    if (specificDiscount === 0 && o.discountAmount) {
+                        specificDiscount = o.discountAmount; // Fallback
+                    }
+
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-50 transition-colors border-b border-gray-50 last:border-0";
+                    tr.innerHTML = `
+                        <td class="px-6 py-4 text-gray-500 font-medium">${dateStr}</td>
+                        <td class="px-6 py-4 font-semibold text-gray-700">
+                            <div><a href="order-details.html?id=${d.id}" class="text-brand-orange hover:underline font-mono">#${d.id.slice(0, 8)}</a></div>
+                            <div class="text-[10px] text-gray-400 font-bold uppercase">${o.userName || 'Cliente'}</div>
+                        </td>
+                        <td class="px-6 py-4 font-bold text-gray-600">$${(o.total || 0).toLocaleString('es-CO')}</td>
+                        <td class="px-6 py-4 font-bold text-green-600">$${specificDiscount.toLocaleString('es-CO')}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                if (count === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-gray-400 font-bold uppercase">No se encontraron redenciones registradas.</td></tr>`;
+                }
+            } catch(e) {
+                console.error("Error fetching history:", e);
+                tbody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-red-500 font-bold">Error: ${e.message}</td></tr>`;
+            }
+        };
+
+        // Initial setup
+        loadRestrictionsLists();
+        fetchPromoCodes();
+    </script>
+    <script type="module" src="../js/admin/admin-guard.js"></script>
+</body>
+</html>

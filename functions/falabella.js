@@ -224,7 +224,7 @@ exports.webhook = async (req, res) => {
 
         // --- PROCESAR DATOS DE ENVÍO ---
         const address = orderDetails.AddressShipping?.Address1 || "Acordar con comprador";
-        const city = orderDetails.AddressShipping?.City || "Bogotá";
+        const city = orderDetails.AddressShipping?.City || "Medellin";
         const carrier = itemsList[0]?.ShippingProvider || "Falabella Envios";
         const trackingNum = itemsList[0]?.TrackingCode || "Pendiente";
 

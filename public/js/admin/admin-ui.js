@@ -56,6 +56,7 @@ export function loadAdminSidebar(userRole = 'customer') {
                 { name: 'Rentabilidad FIFO', icon: 'fa-chart-pie', path: '/admin/profitability.html' },
                 { name: 'Logística', icon: 'fa-truck-fast', path: '/admin/shipping-config.html' },
                 { name: 'Banners y Promos', icon: 'fa-bullhorn', path: '/admin/promotions.html' },
+                { name: 'Cupones Descuento', icon: 'fa-ticket-simple', path: '/admin/promo-codes.html' },
                 { name: 'Configuración', icon: 'fa-gear', path: '/admin/settings.html' }
             ]
         }
@@ -65,8 +66,8 @@ export function loadAdminSidebar(userRole = 'customer') {
     const filteredGroups = navGroups.map(group => {
         const allowedItems = group.items.filter(item => {
             if (userRole === 'admin') return true;
-            // Configuración y Usuarios siempre restringidos a Admin
-            if (item.name === 'Gestión Usuarios' || item.name === 'Configuración' || item.name === 'Proveedores' || item.name === 'Marcas') return false; 
+            // Configuración, Usuarios y Cupones siempre restringidos a Admin
+            if (item.name === 'Gestión Usuarios' || item.name === 'Configuración' || item.name === 'Proveedores' || item.name === 'Marcas' || item.name === 'Cupones Descuento') return false; 
             return rolePermissions[userRole]?.includes(item.name);
         });
         return { ...group, items: allowedItems };

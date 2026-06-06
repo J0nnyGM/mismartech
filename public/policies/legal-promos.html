@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#F05A28">
+    <link rel="apple-touch-icon" href="/img/icons/icon-192x192.webp">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transparencia de Promociones y Cupones | MiSmartech</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+    <style>
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #F05A28; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans text-brand-black antialiased flex flex-col min-h-screen">
+
+    <div id="header-placeholder"></div>
+
+    <main class="flex-grow w-full max-w-5xl mx-auto px-6 py-12 md:py-20">
+        
+        <div class="text-center mb-12">
+            <h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-brand-black mb-2">
+                Transparencia de <span class="text-brand-orange">Promociones</span>
+            </h1>
+            <div class="h-1 w-20 bg-brand-orange mx-auto rounded-full mb-4"></div>
+            <p class="text-xs text-gray-500 font-bold uppercase tracking-widest leading-relaxed">
+                Términos y condiciones legales de campañas publicitarias y cupones de descuento vigentes y finalizados en los últimos 30 días.
+            </p>
+            <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-1">Cumplimiento del Estatuto del Consumidor (Ley 1480 de 2011)</p>
+        </div>
+
+        <div class="bg-white rounded-3xl p-6 shadow-xl border border-gray-100 mb-8">
+            <div class="relative w-full max-w-md mx-auto">
+                <i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                <input type="text" id="search-legal" placeholder="Buscar por código de cupón..." class="w-full bg-slate-50 border border-gray-200 pl-10 pr-4 py-3.5 rounded-2xl text-xs font-bold outline-none focus:ring-1 focus:ring-brand-orange focus:border-brand-orange transition">
+            </div>
+        </div>
+
+        <!-- LIST CONTAINER -->
+        <div id="legal-promos-container" class="space-y-6">
+            <div class="text-center py-20 bg-white rounded-3xl border border-gray-100 shadow-xl">
+                <i class="fa-solid fa-circle-notch fa-spin text-brand-orange text-3xl mb-4"></i>
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Cargando términos y condiciones oficiales...</p>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <script type="module">
+        import { db, collection, getDocs, orderBy, query, doc, getDoc } from '../js/firebase-init.js';
+        import { loadGlobalHeader, loadGlobalFooter } from '../js/global-components.js';
+        
+        loadGlobalHeader();
+        loadGlobalFooter();
+
+        const container = document.getElementById('legal-promos-container');
+        const searchInput = document.getElementById('search-legal');
+        let promoList = [];
+
+        window.toggleProductList = async function(event, promoId) {
+            event.preventDefault();
+            const listDiv = document.getElementById(`prod-list-${promoId}`);
+            if (!listDiv) return;
+
+            if (listDiv.classList.contains('hidden')) {
+                listDiv.classList.remove('hidden');
+                if (listDiv.dataset.loaded !== 'true') {
+                    listDiv.innerHTML = `<span class="flex items-center gap-1.5 py-1 text-gray-500 font-bold uppercase text-[9px]"><i class="fa-solid fa-spinner fa-spin text-brand-orange"></i> Cargando información...</span>`;
+                    const promo = promoList.find(x => x.id === promoId);
+                    if (!promo) {
+                        listDiv.innerHTML = "No se encontraron detalles para este cupón.";
+                        return;
+                    }
+                    const products = promo.applicableProducts || [];
+                    const categories = promo.applicableCategories || [];
+                    const brands = promo.applicableBrands || [];
+                    
+                    if (products.length > 0) {
+                        try {
+                            const fetchPromises = products.map(async (prodId) => {
+                                try {
+                                    const pDocRef = doc(db, "products", prodId);
+                                    const pDoc = await getDoc(pDocRef);
+                                    if (pDoc.exists()) {
+                                        return pDoc.data().name || `Producto sin nombre (${prodId})`;
+                                    }
+                                } catch (err) {
+                                    console.error(`Error fetching product ${prodId}:`, err);
+                                }
+                                return `ID de Producto: ${prodId}`;
+                            });
+                            const cleanNames = await Promise.all(fetchPromises);
+                            
+                            const finalItems = [];
+                            if (categories.length > 0) {
+                                finalItems.push(`<strong>Categorías aplicables:</strong> ${categories.join(', ')}`);
+                            }
+                            if (brands.length > 0) {
+                                finalItems.push(`<strong>Marcas aplicables:</strong> ${brands.join(', ')}`);
+                            }
+                            if (cleanNames.length > 0) {
+                                finalItems.push(`<strong>Productos aplicables:</strong><br><ul class="list-disc pl-5 mt-1 space-y-0.5">${cleanNames.map(n => `<li>${n}</li>`).join('')}</ul>`);
+                            }
+                            listDiv.innerHTML = finalItems.join('<br class="my-1">');
+                            listDiv.dataset.loaded = 'true';
+                        } catch (e) {
+                            console.error("Error loading products:", e);
+                            listDiv.innerHTML = "Error al cargar la lista de productos.";
+                        }
+                    } else {
+                        const finalItems = [];
+                        if (categories.length > 0) {
+                            finalItems.push(`<strong>Categorías aplicables:</strong> ${categories.join(', ')}`);
+                        }
+                        if (brands.length > 0) {
+                            finalItems.push(`<strong>Marcas aplicables:</strong> ${brands.join(', ')}`);
+                        }
+                        listDiv.innerHTML = finalItems.join('<br class="my-1">');
+                        listDiv.dataset.loaded = 'true';
+                    }
+                }
+            } else {
+                listDiv.classList.add('hidden');
+            }
+        };
+
+        async function fetchLegalPromos() {
+            try {
+                const q = query(collection(db, "promo_codes"), orderBy("createdAt", "desc"));
+                const snap = await getDocs(q);
+                
+                const now = new Date();
+                const thirtyDaysAgo = new Date();
+                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+                promoList = [];
+                snap.forEach(d => {
+                    const data = d.data();
+                    
+                    const endDate = data.endDate ? (data.endDate.toDate ? data.endDate.toDate() : new Date(data.endDate)) : null;
+                    const isActive = data.status === 'active';
+                    
+                    // Filter: active OR expired within last 30 days
+                    let show = false;
+                    if (isActive) {
+                        if (!endDate || endDate >= now) {
+                            show = true; // Still valid
+                        } else if (endDate >= thirtyDaysAgo) {
+                            show = true; // Expired in last 30 days
+                        }
+                    } else {
+                        // Inactive, check if it was updated/ended recently
+                        const updatedAt = data.updatedAt ? (data.updatedAt.toDate ? data.updatedAt.toDate() : new Date(data.updatedAt)) : null;
+                        if (updatedAt && updatedAt >= thirtyDaysAgo) {
+                            show = true;
+                        }
+                    }
+
+                    if (show) {
+                        promoList.push({ id: d.id, ...data, resolvedEndDate: endDate });
+                    }
+                });
+
+                renderLegalPromos(promoList);
+
+            } catch(e) {
+                console.error("Error loading legal promotions page:", e);
+                container.innerHTML = `
+                    <div class="text-center py-10 bg-white rounded-3xl border border-gray-100 shadow-xl">
+                        <i class="fa-solid fa-circle-exclamation text-red-500 text-3xl mb-4"></i>
+                        <p class="text-xs font-bold text-red-500 uppercase tracking-wider">Error cargando información: ${e.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function renderLegalPromos(list) {
+            container.innerHTML = "";
+            if (list.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-16 bg-white rounded-3xl border border-gray-100 shadow-xl">
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">No se encontraron cupones o promociones aplicables en el periodo seleccionado.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.forEach(p => {
+                const now = new Date();
+                const startStr = p.startDate ? (p.startDate.toDate ? p.startDate.toDate().toLocaleString('es-CO') : new Date(p.startDate).toLocaleString('es-CO')) : 'Apertura de campaña';
+                const endStr = p.resolvedEndDate ? p.resolvedEndDate.toLocaleString('es-CO') : 'Hasta agotar existencias';
+
+                const isCurrentlyValid = p.status === 'active' && (!p.resolvedEndDate || p.resolvedEndDate >= now);
+                
+                const statusBadge = isCurrentlyValid
+                    ? `<span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border border-green-200">Vigente / Activo</span>`
+                    : `<span class="bg-gray-100 text-gray-500 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border border-gray-200">Finalizada</span>`;
+
+                const typeText = p.type === 'percentage' 
+                    ? `${p.value}% de descuento sobre productos seleccionados` 
+                    : p.type === 'fixed_amount' 
+                    ? `$${p.value.toLocaleString('es-CO')} COP de descuento sobre productos seleccionados` 
+                    : 'Envío Gratis a nivel nacional';
+
+                const minOrderText = p.minOrderValue > 0 
+                    ? `Compra mínima de $${p.minOrderValue.toLocaleString('es-CO')} COP.` 
+                    : 'Sin compra mínima requerida.';
+
+                const maxDiscountText = (p.type === 'percentage' && p.maxDiscount > 0)
+                    ? `Tope máximo de descuento de $${p.maxDiscount.toLocaleString('es-CO')} COP.`
+                    : 'Sin tope máximo de descuento.';
+
+                // Build restrictions array
+                const rules = [];
+                
+                const hasProductRestrictions = (p.applicableProducts && p.applicableProducts.length > 0) || 
+                                               (p.applicableCategories && p.applicableCategories.length > 0) || 
+                                               (p.applicableBrands && p.applicableBrands.length > 0);
+                if (hasProductRestrictions) {
+                    rules.push(`Aplica únicamente para las categorías y productos seleccionados. <a href="#" onclick="toggleProductList(event, '${p.id}')" class="text-brand-orange underline font-bold hover:text-orange-600 transition">[Ver lista de productos aquí]</a><span id="prod-list-${p.id}" class="hidden block mt-2 p-3 bg-orange-50 rounded-xl text-[11px] text-gray-700 font-normal border border-orange-100"></span>`);
+                }
+                
+                if (p.applicablePaymentMethods && p.applicablePaymentMethods.length > 0) {
+                    const payMethodsMap = {
+                        'MANUAL': 'Transferencia Manual',
+                        'COD': 'Contra Entrega',
+                        'ONLINE': 'MercadoPago / Online',
+                        'ADDI': 'Crédito ADDI',
+                        'SISTECREDITO': 'Sistecrédito'
+                    };
+                    const resolvedPayments = p.applicablePaymentMethods.map(m => payMethodsMap[m.toUpperCase()] || m);
+                    rules.push(`Válido exclusivamente pagando con <strong>${resolvedPayments.join(', ')}</strong>.`);
+                }
+                
+                if (p.isStackable) {
+                    rules.push(`Acumulable con cupones de otros grupos (Envío / Categoría). Máximo 3 cupones en total por transacción.`);
+                } else {
+                    rules.push(`No acumulable con otras promociones o cupones de descuento simultáneos.`);
+                }
+                if (p.perUserLimit > 0) {
+                    rules.push(`Límite de uso máximo de ${p.perUserLimit} vez/veces por cliente.`);
+                }
+                if (p.usageLimit > 0) {
+                    rules.push(`Campaña limitada a un stock de usos globales de ${p.usageLimit} redenciones totales.`);
+                }
+
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-3xl p-8 border border-gray-100 shadow-md hover:shadow-lg transition-all duration-300";
+                card.innerHTML = `
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-100 pb-4 mb-6">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-orange-50 text-brand-orange flex items-center justify-center text-lg"><i class="fa-solid fa-ticket"></i></div>
+                            <div>
+                                <h3 class="font-mono font-black text-base text-brand-orange uppercase leading-none mb-1">${p.code}</h3>
+                                <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Código de Campaña</p>
+                            </div>
+                        </div>
+                        <div>${statusBadge}</div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs md:text-sm">
+                        <div class="md:col-span-2 space-y-4">
+                            <div>
+                                <h4 class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Mecánica del Beneficio</h4>
+                                <p class="font-bold text-brand-black uppercase">${typeText}</p>
+                            </div>
+                            
+                            <div>
+                                <h4 class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Condiciones y Exclusiones</h4>
+                                <ul class="list-none space-y-2 text-gray-600">
+                                    <li class="flex items-start gap-2">
+                                        <i class="fa-solid fa-check text-brand-orange mt-1 text-[10px] shrink-0 font-bold"></i>
+                                        <span>${minOrderText}</span>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <i class="fa-solid fa-check text-brand-orange mt-1 text-[10px] shrink-0 font-bold"></i>
+                                        <span>${maxDiscountText}</span>
+                                    </li>
+                                    ${rules.map(r => `
+                                        <li class="flex items-start gap-2">
+                                            <i class="fa-solid fa-check text-brand-orange mt-1 text-[10px] shrink-0 font-bold"></i>
+                                            <span>${r}</span>
+                                        </li>
+                                    `).join('')}
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="md:col-span-1 bg-slate-50 p-5 rounded-2xl border border-gray-100 flex flex-col justify-between h-fit space-y-4">
+                            <div>
+                                <h4 class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2"><i class="fa-regular fa-calendar-check text-brand-orange"></i> Periodo de Validez</h4>
+                                <div class="text-[10px] text-gray-600 space-y-1">
+                                    <div><strong>Inicio:</strong> ${startStr}</div>
+                                    <div><strong>Finalización:</strong> ${endStr}</div>
+                                </div>
+                            </div>
+                            <div class="text-[9px] text-gray-400 font-medium leading-normal italic pt-2 border-t border-gray-200">
+                                Términos informativos obligatorios vigentes para el territorio de la República de Colombia.
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Search action
+        searchInput.addEventListener('input', (e) => {
+            const val = e.target.value.trim().toUpperCase();
+            if (val === "") {
+                renderLegalPromos(promoList);
+            } else {
+                const filtered = promoList.filter(p => p.code.includes(val));
+                renderLegalPromos(filtered);
+            }
+        });
+
+        // Load initially
+        fetchLegalPromos();
+    </script>
+</body>
+</html>

@@ -260,6 +260,11 @@
                         <p class="text-[9px] font-black text-brand-orange uppercase tracking-widest">Envío</p>
                         <p id="modal-order-shipping" class="text-sm font-bold text-brand-orange">---</p>
                     </div>
+                    <div id="modal-discount-container" class="hidden pl-4 md:pl-8 border-l border-gray-200 text-right md:text-left">
+                        <p class="text-[9px] font-black text-green-600 uppercase tracking-widest">Descuento</p>
+                        <p id="modal-order-discount" class="text-sm font-bold text-green-600">---</p>
+                        <div id="modal-order-promos" class="flex flex-wrap gap-1 mt-1 justify-end md:justify-start"></div>
+                    </div>
                     <div id="modal-total-container" class="pl-4 md:pl-8 border-l border-gray-200 min-w-[120px] md:min-w-[150px] text-right">
                         <p class="text-[9px] font-black text-brand-black uppercase tracking-widest">Total Neto</p>
                         <h4 id="modal-order-total" class="text-2xl md:text-3xl font-black text-brand-black leading-none">---</h4>
@@ -282,7 +287,7 @@
         <div class="relative bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl text-center">
             <h3 class="text-xl font-black text-brand-black uppercase mb-6">Confirmar Envío</h3>
             <div class="space-y-4 mb-8 text-left">
-                <select id="dispatch-carrier" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-3 text-sm font-bold outline-none text-brand-black"><option value="">Transportadora...</option><option value="Servientrega">Servientrega</option><option value="Interrapidisimo">Interrapidísimo</option><option value="Envía">Envía</option><option value="Coordinadora">Coordinadora</option><option value="DespachoBogota">Despacho Bogota</option></select>
+                <select id="dispatch-carrier" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-3 text-sm font-bold outline-none text-brand-black"><option value="">Transportadora...</option><option value="Servientrega">Servientrega</option><option value="Interrapidisimo">Interrapidísimo</option><option value="Envía">Envía</option><option value="Coordinadora">Coordinadora</option><option value="DespachoBogota">Despacho</option></select>
                 <input type="text" id="dispatch-tracking" placeholder="Número de Guía" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-3 text-sm font-mono font-bold outline-none text-brand-black">
             </div>
             <button id="btn-confirm-dispatch" onclick="window.confirmDispatch(() => window.location.reload())" class="w-full bg-green-500 text-white font-black py-4 rounded-xl shadow-lg uppercase text-xs tracking-widest hover:bg-green-600 transition">Confirmar y Enviar</button>

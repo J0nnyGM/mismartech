@@ -97,7 +97,7 @@ export async function viewOrderDetail(orderId) {
         safeSetText('modal-client-contact', o.phone || o.userEmail || '');
 
         const addr = o.shippingData?.address || o.address || 'Retiro en Tienda / Local';
-        const city = o.shippingData?.city || o.city || 'Bogotá';
+        const city = o.shippingData?.city || o.city || 'Medellin';
         const dept = o.shippingData?.department || "";
         safeSetText('modal-delivery-address', addr);
         safeSetText('modal-delivery-city', `${city}${dept ? ', ' + dept : ''}`);
@@ -182,6 +182,30 @@ export async function viewOrderDetail(orderId) {
 
         safeSetText('modal-order-subtotal', `$${subtotal.toLocaleString('es-CO')}`);
         safeSetText('modal-order-shipping', shipping === 0 ? "GRATIS" : `$${shipping.toLocaleString('es-CO')}`);
+        
+        // Mostrar descuento y cupones aplicados si existen
+        const discount = o.discountAmount || 0;
+        const discountContainer = getEl('modal-discount-container');
+        if (discountContainer) {
+            if (discount > 0) {
+                discountContainer.classList.remove('hidden');
+                safeSetText('modal-order-discount', `- $${discount.toLocaleString('es-CO')}`);
+                
+                const promosEl = getEl('modal-order-promos');
+                if (promosEl) {
+                    const promoCodes = o.appliedPromoCodes || (o.appliedPromos ? o.appliedPromos.map(p => p.code) : []);
+                    if (promoCodes.length > 0) {
+                        promosEl.innerHTML = promoCodes.map(code => 
+                            `<span class="bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider">${code}</span>`
+                        ).join('');
+                    } else {
+                        promosEl.innerHTML = '';
+                    }
+                }
+            } else {
+                discountContainer.classList.add('hidden');
+            }
+        }
         
         const totalContainer = getEl('modal-total-container');
         if (totalContainer) {
@@ -1064,7 +1088,7 @@ export async function printRemission(orderId) {
                     <div class="store-info">
                         <h1>MI SMARTECH</h1>
                         <p>Lo mejor en tecnología</p>
-                        <p>Bogotá, Colombia</p>
+                        <p>Medellin, Colombia</p>
                     </div>
                     <div class="remission-info">
                         <h2>REMISIÓN</h2>
@@ -1092,7 +1116,7 @@ export async function printRemission(orderId) {
                         <tr><td>TOTAL</td><td>$${total.toLocaleString('es-CO')}</td></tr>
                     </table>
                 </div>
-                <div class="footer">Este documento es una remisión de entrega y soporte de garantía.<br><strong>Para solicitud de factura con código CUFE contáctanos al 3009046450</strong></div>
+                <div class="footer">Este documento es una remisión de entrega y soporte de garantía.<br><strong>Para solicitud de factura con código CUFE contáctanos al 3196276426</strong></div>
                 <script>setTimeout(() => { window.print(); window.close(); }, 800);</script>
             </body>
             </html>
@@ -1434,14 +1458,14 @@ export function generateLabels(ordersArray) {
                 <div class="company-info">
                     <div>
                         MI SMARTECH SAS<br>
-                        NIT: 901.561.037-7<br>
-                        CL. 31 #13A-51 OFICINA 223<br>
+                        NIT: 902.033.894<br>
+                        Bolivar #51 #49-23, local 1046<br>
                         admin@mismartech.com
                     </div>
                     <div style="text-align: right;">
                         (MI SMARTECH)<br>
-                        TEL: 300 904 6450<br>
-                        BOGOTÁ
+                        TEL: 319 627 6426<br>
+                        MEDELLIN
                     </div>
                 </div>
                 

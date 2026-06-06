@@ -46,7 +46,14 @@ const els = {
         city: document.getElementById('bill-city'),
         email: document.getElementById('bill-email'),
         phone: document.getElementById('bill-phone')
-    }
+    },
+
+    // NUEVO: Cupones Promocionales
+    promoCodeInput: document.getElementById('promo-code-input'),
+    btnApplyPromo: document.getElementById('btn-apply-promo'),
+    appliedPromosContainer: document.getElementById('applied-promos-container'),
+    discountRow: document.getElementById('discount-row'),
+    discountAmount: document.getElementById('check-discount')
 };
 
 let currentUser = null;
@@ -61,11 +68,25 @@ let colombianHolidays = [];
 let unsubscribeShipping = null;
 let unsubscribeUser = null;
 
+// Helper de Alertas Visuales Premium (Toasts)
+function showAlert(message, type = 'error') {
+    if (window.showToast) {
+        window.showToast(message, type);
+    } else {
+        alert(message);
+    }
+}
+
+// NUEVO: Estado de Cupones
+let appliedPromoCodes = [];
+let appliedPromosDetails = [];
+let currentDiscountAmount = 0;
+
 // Escuchar actualizaciones del carrito
 window.addEventListener('cartUpdated', () => {
     cart = getCart().filter(item => item.maxStock === undefined || item.maxStock > 0);
     if (cart.length === 0 && currentUser) {
-        alert("Tu carrito no tiene productos disponibles para comprar.");
+        showAlert("Tu carrito no tiene productos disponibles para comprar.");
         window.location.href = '/shop/cart.html';
         return;
     }
@@ -77,7 +98,7 @@ window.addEventListener('cartUpdated', () => {
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         if (cart.length === 0) {
-            alert("Tu carrito no tiene productos disponibles para comprar.");
+            showAlert("Tu carrito no tiene productos disponibles para comprar.");
             window.location.href = '/shop/cart.html';
             return;
         }
@@ -107,6 +128,7 @@ function setupPaymentListeners() {
         r.addEventListener('change', (e) => {
             selectedPaymentMethod = e.target.value;
             updateSubmitButtonText();
+            validateAndRenderPromos();
         });
     });
 }
@@ -139,6 +161,7 @@ function validatePaymentMethods() {
             if (manualRadio) manualRadio.checked = true;
             selectedPaymentMethod = 'MANUAL';
             updateSubmitButtonText();
+            validateAndRenderPromos();
         }
     }
 }
@@ -440,8 +463,15 @@ function calculateShipping() {
 
 function updateTotalDisplay() {
     const cartTotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+    
+    if (appliedPromoCodes.length > 0) {
+        validateAndRenderPromos();
+        return;
+    }
+    
     const t = cartTotal + currentShippingCost;
     els.subtotal.textContent = `$${cartTotal.toLocaleString('es-CO')}`;
+    els.discountRow.classList.add('hidden');
     els.total.textContent = `$${t.toLocaleString('es-CO')}`;
 }
 
@@ -502,10 +532,13 @@ async function validateCartBeforePayment() {
                 realStock = 0;
             } 
             else if (p.combinations && p.combinations.length > 0) {
-                const combo = p.combinations.find(c => 
-                    (c.color === item.color || (!c.color && !item.color)) &&
-                    (c.capacity === item.capacity || (!c.capacity && !item.capacity))
-                );
+                const combo = p.combinations.find(c => {
+                    const cColor = (c.color || "").trim().toLowerCase();
+                    const itemColor = (item.color || "").trim().toLowerCase();
+                    const cCapacity = (c.capacity || "").trim().toLowerCase();
+                    const itemCapacity = (item.capacity || "").trim().toLowerCase();
+                    return cColor === itemColor && cCapacity === itemCapacity;
+                });
                 if (combo) {
                     realPrice = combo.price;
                     realOriginalPrice = combo.originalPrice || 0;
@@ -515,7 +548,11 @@ async function validateCartBeforePayment() {
                 }
             } 
             else if (item.capacity && p.capacities) {
-                const cap = p.capacities.find(c => c.label === item.capacity);
+                const cap = p.capacities.find(c => {
+                    const cLabel = (c.label || "").trim().toLowerCase();
+                    const itemCapacity = (item.capacity || "").trim().toLowerCase();
+                    return cLabel === itemCapacity;
+                });
                 if (cap) {
                     realPrice = cap.price;
                     realOriginalPrice = cap.originalPrice || 0;
@@ -573,7 +610,7 @@ async function validateCartBeforePayment() {
 els.btnSubmit.addEventListener('click', async (e) => {
     e.preventDefault();
     if (!els.name.value || !els.phone.value || !els.idNumber.value || !els.citySelect.value || !els.address.value) {
-        alert("⚠️ Completa todos los campos obligatorios."); 
+        showAlert("⚠️ Completa todos los campos obligatorios."); 
         return;
     }
 
@@ -586,18 +623,18 @@ els.btnSubmit.addEventListener('click', async (e) => {
         if (!validation.success) {
             let alertMsg = "";
             if (validation.oosItems.length > 0) {
-                alertMsg += `⚠️ STOCK ACTUALIZADO:\n\n${validation.oosItems.join("\n")}\n\nAlgunos artículos de tu pedido ya no están disponibles en el inventario.\n\n`;
+                alertMsg += `⚠️ STOCK ACTUALIZADO: ${validation.oosItems.join(", ")}. Algunos artículos de tu pedido ya no están disponibles en el inventario. `;
             }
             if (validation.priceChanges.length > 0) {
-                alertMsg += `⚠️ PRECIOS ACTUALIZADOS:\n\n${validation.priceChanges.join("\n")}\n\nLa promoción de algunos productos ha finalizado o sus precios se han actualizado. Hemos ajustado tu resumen con los valores actuales. Por favor, revisa el nuevo total antes de volver a confirmar la compra.`;
+                alertMsg += `⚠️ PRECIOS ACTUALIZADOS: ${validation.priceChanges.join(", ")}. La promoción de algunos productos ha finalizado o sus precios se han actualizado. Por favor, revisa el nuevo total.`;
             }
-            alert(alertMsg);
+            showAlert(alertMsg);
             
             toggleSubmitBtn(true);
             return;
         }
     } catch (err) {
-        alert("⚠️ Error de Validación: " + err.message);
+        showAlert("⚠️ Error de Validación: " + err.message);
         toggleSubmitBtn(true);
         return;
     }
@@ -608,7 +645,7 @@ els.btnSubmit.addEventListener('click', async (e) => {
     let billData = null;
     if(els.checkInvoice.checked) {
         if(!els.billInputs.name.value || !els.billInputs.taxId.value || !els.billInputs.address.value || !els.billInputs.city.value || !els.billInputs.email.value) {
-            alert("⚠️ Faltan datos obligatorios para la expedición de tu Factura Electrónica.");
+            showAlert("⚠️ Faltan datos obligatorios para la expedición de tu Factura Electrónica.");
             return;
         }
         billData = {
@@ -657,6 +694,7 @@ els.btnSubmit.addEventListener('click', async (e) => {
             const payloadCompleto = {
                 userToken: String(token),
                 shippingCost: Number(currentShippingCost),
+                promoCodes: appliedPromoCodes,
                 items: cart.map(i => ({ id: i.id, quantity: i.quantity, color: i.color || "", capacity: i.capacity || "" })),
                 extraData: {
                     userName: els.name.value,
@@ -684,15 +722,21 @@ els.btnSubmit.addEventListener('click', async (e) => {
 
         } catch (error) {
             console.error("❌ Error preferencial:", error);
-            alert("Error: " + (error.message || "Desconocido"));
+            showAlert("Error: " + (error.message || "Desconocido"));
             els.btnSubmit.disabled = false;
             els.btnSubmit.innerHTML = btnHtml;
         }
     }
     else if (selectedPaymentMethod === 'ADDI') {
         if (!auth.currentUser) return window.location.href = '/auth/login.html';
-        if (!els.idNumber.value || els.idNumber.value.length < 5) return alert("⚠️ Se requiere Documento válido.");
-        if (!els.phone.value || els.phone.value.length < 10) return alert("⚠️ Se requiere Celular válido.");
+        if (!els.idNumber.value || els.idNumber.value.length < 5) {
+            showAlert("⚠️ Se requiere Documento válido.");
+            return;
+        }
+        if (!els.phone.value || els.phone.value.length < 10) {
+            showAlert("⚠️ Se requiere Celular válido.");
+            return;
+        }
 
         const btnHtml = els.btnSubmit.innerHTML;
         els.btnSubmit.disabled = true;
@@ -718,6 +762,7 @@ els.btnSubmit.addEventListener('click', async (e) => {
                 userToken: String(token),
                 shippingCost: Number(currentShippingCost),
                 paymentMethod: selectedPaymentMethod, 
+                promoCodes: appliedPromoCodes,
                 items: cart.map(i => ({ id: i.id, quantity: i.quantity, color: i.color || "", capacity: i.capacity || "" })),
                 extraData: {
                     userName: els.name.value,
@@ -745,15 +790,21 @@ els.btnSubmit.addEventListener('click', async (e) => {
 
         } catch (error) {
             console.error("❌ Error de pasarela:", error);
-            alert("Error: " + (error.message || "Desconocido"));
+            showAlert("Error: " + (error.message || "Desconocido"));
             els.btnSubmit.disabled = false;
             els.btnSubmit.innerHTML = btnHtml;
         }
     }
     else if (selectedPaymentMethod === 'SISTECREDITO') {
         if (!auth.currentUser) return window.location.href = '/auth/login.html';
-        if (!els.idNumber.value || els.idNumber.value.length < 5) return alert("⚠️ Se requiere Documento válido para Sistecrédito.");
-        if (!els.phone.value || els.phone.value.length < 10) return alert("⚠️ Se requiere Celular válido para Sistecrédito.");
+        if (!els.idNumber.value || els.idNumber.value.length < 5) {
+            showAlert("⚠️ Se requiere Documento válido para Sistecrédito.");
+            return;
+        }
+        if (!els.phone.value || els.phone.value.length < 10) {
+            showAlert("⚠️ Se requiere Celular válido para Sistecrédito.");
+            return;
+        }
 
         const btnHtml = els.btnSubmit.innerHTML;
         els.btnSubmit.disabled = true;
@@ -778,6 +829,7 @@ els.btnSubmit.addEventListener('click', async (e) => {
             const payloadCompleto = {
                 userToken: String(token),
                 shippingCost: Number(currentShippingCost),
+                promoCodes: appliedPromoCodes,
                 items: cart.map(i => ({ id: i.id, quantity: i.quantity, color: i.color || "", capacity: i.capacity || "" })),
                 extraData: {
                     userName: els.name.value,
@@ -809,7 +861,7 @@ els.btnSubmit.addEventListener('click', async (e) => {
 
         } catch (error) {
             console.error("❌ Error Sistecrédito:", error);
-            alert("Error conectando con Sistecrédito: " + (error.message || "Intenta nuevamente."));
+            showAlert("Error conectando con Sistecrédito: " + (error.message || "Intenta nuevamente."));
             els.btnSubmit.disabled = false;
             els.btnSubmit.innerHTML = btnHtml;
         }
@@ -840,6 +892,7 @@ async function processCODOrder(billData, shouldSaveAddress, isFirstAddress) {
             items: cart.map(i => ({ id: i.id, quantity: i.quantity, color: i.color || "", capacity: i.capacity || "" })),
             shippingCost: currentShippingCost,
             paymentMethod: selectedPaymentMethod, 
+            promoCodes: appliedPromoCodes, 
             extraData: {
                 userName: els.name.value,
                 clientDoc: els.idNumber.value,
@@ -863,7 +916,7 @@ async function processCODOrder(billData, shouldSaveAddress, isFirstAddress) {
 
     } catch (error) {
         console.error("❌ Error de registro transaccional:", error);
-        alert("Error: " + (error.message || error));
+        showAlert("Error: " + (error.message || error));
         els.btnSubmit.disabled = false;
         els.btnSubmit.innerHTML = btnHtml;
     }
@@ -954,4 +1007,119 @@ function renderOrderSummary() {
     }).join('');
     
     updateTotalDisplay();
+}
+
+// ==========================================================================
+// 🎟️ NUEVO: CONTROL DE CUPONES EN EL CLIENTE
+// ==========================================================================
+async function validateAndRenderPromos() {
+    if (cart.length === 0) return;
+    
+    const validatePromoCodesFn = httpsCallable(functions, 'validatePromoCodes');
+    
+    els.appliedPromosContainer.innerHTML = '<span class="text-[10px] text-gray-400 font-bold uppercase"><i class="fa-solid fa-circle-notch fa-spin"></i> Validando...</span>';
+    
+    try {
+        const userToken = auth.currentUser ? await auth.currentUser.getIdToken(true) : null;
+        const response = await validatePromoCodesFn({
+            items: cart.map(i => ({ id: i.id, quantity: i.quantity, color: i.color || "", capacity: i.capacity || "" })),
+            promoCodes: appliedPromoCodes,
+            shippingCost: currentShippingCost,
+            userToken: userToken,
+            paymentMethod: selectedPaymentMethod
+        });
+        
+        const result = response.data;
+        
+        if (!result.success) {
+            showAlert(`❌ Error al aplicar cupones: ${result.error}`);
+            appliedPromoCodes.pop();
+            await validateAndRenderPromos();
+            return;
+        }
+        
+        appliedPromosDetails = result.appliedPromos || [];
+        currentDiscountAmount = result.totalDiscounts || 0;
+        
+        renderPromoChips();
+        
+        const cartTotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+        els.subtotal.textContent = `$${cartTotal.toLocaleString('es-CO')}`;
+        
+        const finalShipping = result.finalShippingCost;
+        els.shippingCost.textContent = finalShipping === 0 ? "GRATIS" : `$${finalShipping.toLocaleString('es-CO')}`;
+        
+        if (finalShipping === 0 && currentShippingCost > 0) {
+            els.freeShippingMsg.classList.remove('hidden');
+        } else if (finalShipping > 0) {
+            els.freeShippingMsg.classList.add('hidden');
+        }
+        
+        if (currentDiscountAmount > 0) {
+            els.discountRow.classList.remove('hidden');
+            els.discountAmount.textContent = `- $${currentDiscountAmount.toLocaleString('es-CO')}`;
+        } else {
+            els.discountRow.classList.add('hidden');
+        }
+        
+        els.total.textContent = `$${result.totalAmount.toLocaleString('es-CO')}`;
+        
+    } catch (err) {
+        console.error("Error validando cupones:", err);
+        showAlert("No se pudieron validar los cupones. Por favor intenta de nuevo.");
+        appliedPromoCodes.pop();
+        renderPromoChips();
+    }
+}
+
+function renderPromoChips() {
+    els.appliedPromosContainer.innerHTML = '';
+    if (appliedPromoCodes.length === 0) {
+        els.appliedPromosContainer.innerHTML = '<span class="text-[9px] text-gray-500 italic">No hay cupones aplicados</span>';
+        return;
+    }
+    
+    appliedPromoCodes.forEach((code, idx) => {
+        const detail = appliedPromosDetails.find(p => p.code === code) || { value: 0, type: 'percentage' };
+        let badgeText = code;
+        if (detail.value > 0) {
+            badgeText += ` (${detail.type === 'percentage' ? `${detail.value}%` : `$${detail.value.toLocaleString('es-CO')}`})`;
+        }
+        
+        const chip = document.createElement('div');
+        chip.className = 'bg-brand-orange/15 border border-brand-orange/30 text-brand-orange text-[10px] font-black uppercase px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 shadow-sm';
+        chip.innerHTML = `
+            <span>${badgeText}</span>
+            <button type="button" class="text-white hover:text-brand-red transition focus:outline-none" onclick="removePromoCode(${idx})"><i class="fa-solid fa-xmark text-[10px]"></i></button>
+        `;
+        els.appliedPromosContainer.appendChild(chip);
+    });
+}
+
+window.removePromoCode = async (idx) => {
+    appliedPromoCodes.splice(idx, 1);
+    if (appliedPromoCodes.length === 0) {
+        appliedPromosDetails = [];
+        currentDiscountAmount = 0;
+        calculateShipping();
+        renderPromoChips();
+    } else {
+        await validateAndRenderPromos();
+    }
+};
+
+if (els.btnApplyPromo) {
+    els.btnApplyPromo.addEventListener('click', async () => {
+        const code = els.promoCodeInput.value.trim().toUpperCase();
+        if (!code) return;
+        
+        if (appliedPromoCodes.includes(code)) {
+            showAlert("Este cupón ya ha sido aplicado.");
+            return;
+        }
+        
+        appliedPromoCodes.push(code);
+        els.promoCodeInput.value = "";
+        await validateAndRenderPromos();
+    });
 }

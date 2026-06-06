@@ -176,6 +176,14 @@
     loadGlobalHeader();
     loadGlobalFooter();
 
+    function showAlert(message, type = 'error') {
+        if (window.showToast) {
+            window.showToast(message, type);
+        } else {
+            alert(message);
+        }
+    }
+
     const container = document.getElementById('cart-items-list');
     const mainContainer = document.getElementById('cart-container');
     const emptyMsg = document.getElementById('empty-cart-msg');
@@ -605,13 +613,13 @@
                 
                 let alertMsg = "";
                 if (oosItems.length > 0) {
-                    alertMsg += `⚠️ STOCK ACTUALIZADO:\n\n${oosItems.join("\n")}\n\nAlgunos artículos de tu carrito ya no están disponibles en el inventario o superan la cantidad permitida.\n\n`;
+                    alertMsg += `⚠️ STOCK ACTUALIZADO: ${oosItems.join(", ")}. Algunos artículos de tu carrito ya no están disponibles en el inventario o superan la cantidad permitida. `;
                 }
                 if (priceChanges.length > 0) {
-                    alertMsg += `⚠️ PRECIOS ACTUALIZADOS:\n\n${priceChanges.join("\n")}\n\nLa promoción de algunos productos ha finalizado o sus precios se han actualizado. Hemos ajustado tu carrito con los valores actuales. Por favor, revisa el nuevo total antes de continuar.`;
+                    alertMsg += `⚠️ PRECIOS ACTUALIZADOS: ${priceChanges.join(", ")}. La promoción de algunos productos ha finalizado o sus precios se han actualizado. Por favor, revisa el nuevo total.`;
                 }
                 
-                alert(alertMsg);
+                showAlert(alertMsg);
                 checkoutBtn.disabled = false;
                 checkoutBtn.innerHTML = originalText;
                 return; 
@@ -619,7 +627,7 @@
 
             const validItemsForCheckout = newCart.filter(i => i.maxStock > 0);
             if (validItemsForCheckout.length === 0) {
-                alert("No hay productos disponibles para pagar.");
+                showAlert("No hay productos disponibles para pagar.");
                 checkoutBtn.disabled = false;
                 checkoutBtn.innerHTML = originalText;
                 return;
@@ -638,7 +646,7 @@
             console.error("Error checkout:", e);
             checkoutBtn.disabled = false;
             checkoutBtn.innerHTML = originalText;
-            alert("Error al validar productos. Intenta de nuevo.");
+            showAlert("Error al validar productos. Intenta de nuevo.");
         }
     };
 

@@ -84,38 +84,20 @@ exports.createAddiCheckout = async (data, context) => {
     const extraData = data.extraData || (data.data && data.data.extraData) || {};
     const buyerInfo = data.buyerInfo || (data.data && data.data.buyerInfo) || {};
     const paymentMethod = data.paymentMethod || (data.data && data.data.paymentMethod) || 'ADDI';
+    const promoCodes = data.promoCodes || (data.data && data.data.promoCodes) || [];
 
     if (!rawItems || !rawItems.length) throw new functions.https.HttpsError('invalid-argument', 'Cart empty');
 
-    // Construir Items y Totales
-    let dbItems = [];
-    let subtotal = 0;
-
     const removeAccents = (str) => str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
 
-    for (const item of rawItems) {
-        const pDoc = await db.collection('products').doc(item.id).get();
-        if (!pDoc.exists) continue;
-        const pData = pDoc.data();
-        const price = Number(pData.price) || 0;
-        const qty = parseInt(item.quantity) || 1;
-        subtotal += price * qty;
+    const newOrderRef = db.collection('orders').doc();
+    const firebaseOrderId = newOrderRef.id;
 
-        dbItems.push({
-            id: item.id,
-            name: pData.name,
-            price: price,
-            quantity: qty,
-            color: item.color || "",
-            capacity: item.capacity || "",
-            mainImage: pData.mainImage || pData.image || "https://mismartech.com/img/logo.webp"
-        });
-    }
-
-    const totalAmount = subtotal + shippingCost;
+    const promoValidator = require('./promo-validator');
+    // Validar precios reales y cupones en DB para seguridad
+    const result = await promoValidator.validateAndApplyDiscounts(rawItems, promoCodes, shippingCost, uid);
 
     // --- CORRECCIÓN DE DATOS PARA FIREBASE ---
-    // Asegurar que shippingData esté completo (igual que en MP)
     const shippingData = extraData.shippingData || { 
         address: buyerInfo.address, 
         city: buyerInfo.city,
@@ -127,14 +109,11 @@ exports.createAddiCheckout = async (data, context) => {
     const clientPhone = extraData.phone || buyerInfo.phone || "";
     const clientDoc = extraData.clientDoc || buyerInfo.document || "";
 
-// 3. Guardar Orden en Firebase (Estructura idéntica a MP)
-    const newOrderRef = db.collection('orders').doc();
-    const firebaseOrderId = newOrderRef.id;
-
+    // 3. Guardar Orden en Firebase
     await newOrderRef.set({
         source: 'TIENDA_WEB', 
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(), // 🔥 NUEVO: Para el Delta Sync
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         userId: uid, 
         userEmail: email,
         
@@ -146,10 +125,13 @@ exports.createAddiCheckout = async (data, context) => {
         billingData: extraData.billingData || null,
         requiresInvoice: extraData.needsInvoice || false,
 
-        items: dbItems, 
-        subtotal: subtotal,
-        shippingCost: shippingCost, 
-        total: totalAmount, 
+        items: result.dbItems, 
+        subtotal: result.subtotal,
+        shippingCost: result.finalShippingCost, 
+        discountAmount: result.totalDiscounts,
+        appliedPromos: result.appliedPromos,
+        appliedPromoCodes: promoCodes.map(c => c.trim().toUpperCase()),
+        total: result.totalAmount, 
         
         status: 'PENDIENTE_PAGO',
         paymentMethod: paymentMethod, 
@@ -182,20 +164,20 @@ exports.createAddiCheckout = async (data, context) => {
 
     const addiPayload = {
         orderId: firebaseOrderId,
-        totalAmount: totalAmount.toFixed(1),
-        shippingAmount: shippingCost.toFixed(1),
+        totalAmount: result.totalAmount.toFixed(1),
+        shippingAmount: result.finalShippingCost.toFixed(1),
         totalTaxesAmount: "0.0",
         currency: "COP",
-        items: dbItems.map(i => ({
-            sku: i.id.substring(0, 50),
-            name: removeAccents(i.name).substring(0, 50),
-            quantity: String(i.quantity),
-            unitPrice: Math.round(i.price),
+        items: [{
+            sku: firebaseOrderId.substring(0, 50),
+            name: `Pedido en Mi Smartech (Ref: ${firebaseOrderId.slice(0, 8)})`,
+            quantity: "1",
+            unitPrice: Math.round(result.totalAmount - result.finalShippingCost),
             tax: 0,
-            pictureUrl: i.mainImage || i.image,
-            category: "technology", // Categoría genérica segura
+            pictureUrl: "https://mismartech.com/img/logo.webp",
+            category: "technology",
             brand: "MiSmartech"
-        })),
+        }],
         client: {
             idType: "CC",
             idNumber: cleanDoc || "11111111", // Fallback solo para API
@@ -298,10 +280,13 @@ exports.webhook = async (req, res) => {
                                 let newC = pData.combinations || [];
                                 if (i.color || i.capacity) {
                                     if (newC.length > 0) {
-                                        const idx = newC.findIndex(c =>
-                                            (c.color === i.color || (!c.color && !i.color)) &&
-                                            (c.capacity === i.capacity || (!c.capacity && !i.capacity))
-                                        );
+                                        const idx = newC.findIndex(c => {
+                                            const cColor = (c.color || "").trim().toLowerCase();
+                                            const iColor = (i.color || "").trim().toLowerCase();
+                                            const cCapacity = (c.capacity || "").trim().toLowerCase();
+                                            const iCapacity = (i.capacity || "").trim().toLowerCase();
+                                            return cColor === iColor && cCapacity === iCapacity;
+                                        });
                                         if (idx >= 0) newC[idx].stock = Math.max(0, newC[idx].stock - i.quantity);
                                     }
                                 }
@@ -367,6 +352,11 @@ exports.webhook = async (req, res) => {
                             createdAt: admin.firestore.FieldValue.serverTimestamp(),
                             updatedAt: admin.firestore.FieldValue.serverTimestamp() // 🔥 NUEVO
                         });
+                    }
+
+                    if (oData.appliedPromos && oData.appliedPromos.length > 0) {
+                        const promoValidator = require('./promo-validator');
+                        await promoValidator.registerPromoUsagesInTransaction(t, oData.appliedPromos, oData.userId, orderId, oData.userName);
                     }
 
                     // D. Actualizar Orden a PAGADO (El updatedAt ya lo tenías, ¡súper bien!)
