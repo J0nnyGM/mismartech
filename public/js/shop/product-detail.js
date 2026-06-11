@@ -646,7 +646,7 @@ function updatePriceDisplay() {
         }
 
         if (els.boxStatusText) {
-            els.boxStatusText.textContent = "Oferta Imperdible";
+            els.boxStatusText.textContent = "Oferta";
             els.boxStatusText.className = "text-[9px] font-black uppercase tracking-[0.2em] text-brand-red";
         }
         if (els.boxStatusDot) {

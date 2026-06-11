@@ -222,10 +222,11 @@ exports.generateProductFeed = onRequest({ timeoutSeconds: 60, cors: true }, asyn
                     const allImages = p.images || [];
                     if (p.mainImage && !allImages.includes(p.mainImage)) allImages.unshift(p.mainImage); 
                     const optimizedTitle = `${p.brand ? p.brand + ' ' : ''}${p.name}`.trim().substring(0, 150);
-                    productXmlBlock += generateItemXml(baseId, optimizedTitle, p.price, p.originalPrice, p.stock, null, null, allImages, false, p.sku);
+                    const productId = (p.sku && p.sku.trim() !== '') ? p.sku.trim() : baseId;
+                    productXmlBlock += generateItemXml(productId, optimizedTitle, p.price, p.originalPrice, p.stock, null, null, allImages, false, p.sku);
                 } else {
                     p.combinations.forEach(combo => {
-                        const variantId = combo.sku || `${baseId}_${combo.color || 'x'}_${combo.capacity || 'y'}`.replace(/\s+/g, '');
+                        const variantId = (combo.sku && combo.sku.trim() !== '') ? combo.sku.trim() : `${baseId}_${combo.color || 'x'}_${combo.capacity || 'y'}`.replace(/\s+/g, '');
                         let variantTitle = `${p.brand ? p.brand + ' ' : ''}${p.name}`;
                         if (combo.capacity) variantTitle += ` ${combo.capacity}`; 
                         if (combo.color) variantTitle += ` - ${combo.color}`; 

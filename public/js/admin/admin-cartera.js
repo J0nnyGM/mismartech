@@ -53,8 +53,8 @@ AdminStore.subscribeToAccounts((accs) => {
     const activeBranchId = sessionStorage.getItem('activeBranchId') || 'sede_principal';
     accountSelect.innerHTML = '<option value="">Seleccione...</option>';
     accounts.forEach(acc => {
-        const accBranchId = acc.branchId || 'sede_principal';
-        if (accBranchId === activeBranchId) {
+        const accBranchId = acc.branchId || 'ALL';
+        if (accBranchId === 'ALL' || accBranchId === activeBranchId) {
             accountSelect.innerHTML += `<option value="${acc.id}">${acc.name}</option>`;
         }
     });

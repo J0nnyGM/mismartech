@@ -335,33 +335,69 @@ async function cancelManualOrder(order) {
 
             if (oData.status === 'CANCELADO') throw new Error("La orden ya estaba cancelada.");
 
-            let accSnap = null;
-            let accRef = null;
-            if (oData.amountPaid > 0 && oData.paymentAccountId) {
-                accRef = doc(db, "accounts", oData.paymentAccountId);
-                accSnap = await t.get(accRef);
-            }
-
             const remRef = doc(db, "remissions", order.id);
             const remSnap = await t.get(remRef);
 
-            if (accSnap && accSnap.exists()) {
-                const newBalance = (accSnap.data().balance || 0) - oData.amountPaid;
-                t.update(accRef, { balance: newBalance });
+            // Reverso de cuentas bancarias (pagos divididos o pago único)
+            if (oData.amountPaid > 0) {
+                if (oData.paymentSplits && oData.paymentSplits.length > 0) {
+                    // Cargar todas las cuentas del split primero
+                    const accountsToUpdate = [];
+                    for (const split of oData.paymentSplits) {
+                        const accRef = doc(db, "accounts", split.accountId);
+                        const accSnap = await t.get(accRef);
+                        if (!accSnap.exists()) {
+                            throw new Error(`La cuenta ${split.accountName || split.accountId} no existe.`);
+                        }
+                        accountsToUpdate.push({
+                            ref: accRef,
+                            snap: accSnap,
+                            amount: split.amount
+                        });
+                    }
 
-                const expenseRef = doc(collection(db, "expenses"));
-                t.set(expenseRef, {
-                    amount: oData.amountPaid,
-                    category: "Anulación de Venta",
-                    description: `Reverso por anulación de Orden Manual #${order.id.slice(0,8)}`,
-                    paymentMethod: accSnap.data().name,
-                    supplierName: oData.userName || "Cliente",
-                    date: serverTimestamp(),
-                    createdAt: serverTimestamp(),
-                    type: 'EXPENSE',
-                    orderId: order.id,
-                    isRefund: true
-                });
+                    // Actualizar balances y registrar egresos de reverso
+                    for (const accUpdate of accountsToUpdate) {
+                        const currentBalance = accUpdate.snap.data().balance || 0;
+                        t.update(accUpdate.ref, { balance: currentBalance - accUpdate.amount });
+
+                        const expenseRef = doc(collection(db, "expenses"));
+                        t.set(expenseRef, {
+                            amount: accUpdate.amount,
+                            category: "Anulación de Venta",
+                            description: `Reverso por anulación de Orden Manual #${order.id.slice(0,8)}`,
+                            paymentMethod: accUpdate.snap.data().name,
+                            supplierName: oData.userName || "Cliente",
+                            date: serverTimestamp(),
+                            createdAt: serverTimestamp(),
+                            type: 'EXPENSE',
+                            orderId: order.id,
+                            isRefund: true
+                        });
+                    }
+                } else if (oData.paymentAccountId) {
+                    // Pago único (legado)
+                    const accRef = doc(db, "accounts", oData.paymentAccountId);
+                    const accSnap = await t.get(accRef);
+                    if (accSnap.exists()) {
+                        const newBalance = (accSnap.data().balance || 0) - oData.amountPaid;
+                        t.update(accRef, { balance: newBalance });
+
+                        const expenseRef = doc(collection(db, "expenses"));
+                        t.set(expenseRef, {
+                            amount: oData.amountPaid,
+                            category: "Anulación de Venta",
+                            description: `Reverso por anulación de Orden Manual #${order.id.slice(0,8)}`,
+                            paymentMethod: accSnap.data().name,
+                            supplierName: oData.userName || "Cliente",
+                            date: serverTimestamp(),
+                            createdAt: serverTimestamp(),
+                            type: 'EXPENSE',
+                            orderId: order.id,
+                            isRefund: true
+                        });
+                    }
+                }
             }
 
             t.update(oRef, {
@@ -1143,34 +1179,122 @@ window.saveAlistamiento = saveAlistamiento;
 window.openDispatchModal = openDispatchModal;
 window.confirmDispatch = confirmDispatch;
 
+// --- FUNCIONES PARA PAGOS DIVIDIDOS (MULTICUENTAS) ---
+function recalculateTotalSplits() {
+    let total = 0;
+    const rows = document.querySelectorAll('.pay-split-row');
+    rows.forEach(row => {
+        const valStr = row.querySelector('.pay-split-amount').value.replace(/\D/g, "");
+        total += parseInt(valStr, 10) || 0;
+    });
+    const totalSelectedEl = getEl('pay-total-selected');
+    if (totalSelectedEl) {
+        totalSelectedEl.textContent = `$${total.toLocaleString('es-CO')}`;
+    }
+}
+
+function getRemainingBalance() {
+    const maxAmount = parseInt(getEl('pay-amount').dataset.max || 0, 10);
+    let total = 0;
+    document.querySelectorAll('.pay-split-row').forEach(row => {
+        const valStr = row.querySelector('.pay-split-amount').value.replace(/\D/g, "");
+        total += parseInt(valStr, 10) || 0;
+    });
+    return Math.max(0, maxAmount - total);
+}
+
+function addPaySplitRow(defaultAmount = 0, accountsList = []) {
+    const container = getEl('pay-splits-container');
+    if (!container) return;
+
+    const row = document.createElement('div');
+    row.className = "pay-split-row flex gap-2 items-center animate-in fade-in slide-in-from-top-1 duration-200";
+
+    let optionsHtml = '<option value="">Seleccione Cuenta...</option>';
+    accountsList.forEach(acc => {
+        optionsHtml += `<option value="${acc.id}">${acc.name} (${acc.type})</option>`;
+    });
+
+    row.innerHTML = `
+        <select class="pay-split-account w-7/12 bg-slate-50 border border-gray-200 rounded-xl p-3 text-xs font-bold outline-none focus:border-brand-orange">
+            ${optionsHtml}
+        </select>
+        <input type="text" class="pay-split-amount w-4/12 bg-slate-50 border border-gray-200 rounded-xl p-3 text-xs font-bold text-right outline-none focus:border-brand-orange" placeholder="$0" value="${defaultAmount > 0 ? '$' + defaultAmount.toLocaleString('es-CO') : ''}">
+        <button type="button" class="btn-remove-pay-split w-10 h-10 rounded-xl bg-red-50 hover:bg-red-100 text-red-500 transition flex items-center justify-center border border-red-100 shrink-0">
+            <i class="fa-solid fa-trash-can"></i>
+        </button>
+    `;
+
+    container.appendChild(row);
+
+    // Formatear al escribir y actualizar
+    const amountInput = row.querySelector('.pay-split-amount');
+    amountInput.addEventListener('input', (e) => {
+        let val = e.target.value.replace(/\D/g, "");
+        e.target.value = val ? "$" + parseInt(val, 10).toLocaleString('es-CO') : "";
+        recalculateTotalSplits();
+    });
+
+    // Botón eliminar fila
+    const removeBtn = row.querySelector('.btn-remove-pay-split');
+    removeBtn.addEventListener('click', () => {
+        if (document.querySelectorAll('.pay-split-row').length > 1) {
+            row.remove();
+            recalculateTotalSplits();
+        } else {
+            alert("Debe haber al menos una cuenta de pago.");
+        }
+    });
+
+    recalculateTotalSplits();
+}
+
 // --- 6. REGISTRAR PAGO MANUAL ---
 export async function openPaymentModal(orderId, amountDue) {
     const modal = getEl('payment-modal');
     getEl('pay-modal-order-id').textContent = `Orden #${orderId.slice(0,8).toUpperCase()}`;
     getEl('pay-target-id').value = orderId;
-    getEl('pay-amount').value = `$${Number(amountDue).toLocaleString('es-CO')}`;
-    getEl('pay-amount').dataset.max = amountDue;
     
+    // Configurar campos base
+    const payAmountInput = getEl('pay-amount');
+    payAmountInput.value = amountDue;
+    payAmountInput.dataset.max = amountDue;
+    
+    const pendingDisplay = getEl('pay-pending-display');
+    if (pendingDisplay) {
+        pendingDisplay.textContent = `$${Number(amountDue).toLocaleString('es-CO')}`;
+    }
+
+    // Limpiar contenedor de splits
+    const container = getEl('pay-splits-container');
+    if (container) container.innerHTML = '';
+
+    // Cargar cuentas
+    let filteredAccounts = [];
     try {
-        const selectAcc = getEl('pay-account-select');
         const activeBranchId = sessionStorage.getItem('activeBranchId') || 'sede_principal';
-        selectAcc.innerHTML = '<option value="">Cargando...</option>';
         const accounts = await loadAccountsCached();
-        let ops = '<option value="">Seleccione Cuenta...</option>';
-        accounts.forEach(acc => {
-            const accBranchId = acc.branchId || 'sede_principal';
-            if (accBranchId === activeBranchId) {
-                ops += `<option value="${acc.id}">${acc.name} (${acc.type})</option>`;
-            }
+        filteredAccounts = accounts.filter(acc => {
+            const accBranchId = acc.branchId || 'ALL';
+            return accBranchId === 'ALL' || accBranchId === activeBranchId;
         });
-        selectAcc.innerHTML = ops;
-    } catch (e) {}
+    } catch (e) {
+        console.error("Error al cargar cuentas:", e);
+    }
+
+    // Fila inicial con el saldo completo
+    addPaySplitRow(amountDue, filteredAccounts);
+
+    // Configurar botón para agregar fila
+    const addBtn = getEl('btn-add-pay-split');
+    if (addBtn) {
+        addBtn.onclick = () => {
+            const remaining = getRemainingBalance();
+            addPaySplitRow(remaining, filteredAccounts);
+        };
+    }
 
     modal.classList.remove('hidden');
-    getEl('pay-amount').oninput = (e) => {
-        let val = e.target.value.replace(/\D/g, "");
-        e.target.value = val ? "$" + parseInt(val, 10).toLocaleString('es-CO') : "";
-    };
 }
 
 // =============================================================================
@@ -1384,12 +1508,54 @@ if (payForm) {
         btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Procesando...';
 
         const orderId = document.getElementById('pay-target-id').value;
-        const accId = document.getElementById('pay-account-select').value;
-        const amount = parseInt(document.getElementById('pay-amount').value.replace(/\D/g, ""), 10);
-        const maxAmount = parseInt(document.getElementById('pay-amount').dataset.max || 0);
+        const maxAmount = parseInt(document.getElementById('pay-amount').dataset.max || 0, 10);
 
-        if (!accId || amount <= 0) { alert("Verifica la cuenta y el monto."); btn.disabled = false; btn.innerHTML = originalText; return; }
-        if (amount > maxAmount) { alert(`El monto excede el saldo pendiente ($${maxAmount.toLocaleString()}).`); btn.disabled = false; btn.innerHTML = originalText; return; }
+        // Recolectar divisiones de pago
+        const splits = [];
+        let totalAmount = 0;
+        const rows = document.querySelectorAll('.pay-split-row');
+        for (const row of rows) {
+            const accId = row.querySelector('.pay-split-account').value;
+            const amountValStr = row.querySelector('.pay-split-amount').value.replace(/\D/g, "");
+            const amountVal = parseInt(amountValStr, 10) || 0;
+
+            if (!accId) {
+                alert("Por favor selecciona una cuenta para cada fila de pago.");
+                btn.disabled = false; btn.innerHTML = originalText;
+                return;
+            }
+            if (amountVal <= 0) {
+                alert("El monto de cada cuenta debe ser mayor a cero.");
+                btn.disabled = false; btn.innerHTML = originalText;
+                return;
+            }
+
+            splits.push({ accountId: accId, amount: amountVal });
+            totalAmount += amountVal;
+        }
+
+        if (splits.length === 0) {
+            alert("Debes agregar al menos una cuenta de pago.");
+            btn.disabled = false; btn.innerHTML = originalText;
+            return;
+        }
+
+        // Validar cuentas duplicadas
+        const seenAccounts = new Set();
+        for (const split of splits) {
+            if (seenAccounts.has(split.accountId)) {
+                alert("No puedes seleccionar la misma cuenta de destino más de una vez.");
+                btn.disabled = false; btn.innerHTML = originalText;
+                return;
+            }
+            seenAccounts.add(split.accountId);
+        }
+
+        if (totalAmount > maxAmount) {
+            alert(`El total a registrar ($${totalAmount.toLocaleString()}) excede el saldo pendiente ($${maxAmount.toLocaleString()}).`);
+            btn.disabled = false; btn.innerHTML = originalText;
+            return;
+        }
 
         try {
             await runTransaction(db, async (t) => {
@@ -1399,31 +1565,86 @@ if (payForm) {
                 const oData = orderDoc.data();
 
                 const currentPending = (oData.total || 0) - (oData.amountPaid || 0) - (oData.refundedAmount || 0);
-                if (amount > currentPending) throw `El monto excede el saldo real pendiente ($${currentPending.toLocaleString()}).`;
+                if (totalAmount > currentPending) {
+                    throw `El total excede el saldo real pendiente ($${currentPending.toLocaleString()}).`;
+                }
 
-                const accRef = doc(db, "accounts", accId);
-                const accDoc = await t.get(accRef);
-                if (!accDoc.exists()) throw "La cuenta no existe.";
+                // Cargar todas las cuentas involucradas y bloquearlas
+                const accountsData = [];
+                for (const split of splits) {
+                    const accRef = doc(db, "accounts", split.accountId);
+                    const accDoc = await t.get(accRef);
+                    if (!accDoc.exists()) throw `La cuenta con ID ${split.accountId} no existe.`;
+                    accountsData.push({
+                        ref: accRef,
+                        doc: accDoc,
+                        split: split
+                    });
+                }
 
-                t.update(accRef, { balance: (accDoc.data().balance || 0) + amount });
+                // Actualizar saldos y crear ingresos
+                for (const ad of accountsData) {
+                    const accRef = ad.ref;
+                    const accDoc = ad.doc;
+                    const split = ad.split;
 
-                const expenseRef = doc(collection(db, "expenses"));
-                t.set(expenseRef, { amount: amount, category: "Ingreso Ventas Manual", description: `Cobro Orden #${orderId.slice(0,8)}`, paymentMethod: accDoc.data().name, supplierName: oData.userName || "Cliente", date: serverTimestamp(), createdAt: serverTimestamp(), type: 'INCOME', orderId: orderId });
+                    t.update(accRef, { balance: (accDoc.data().balance || 0) + split.amount });
 
-                const newAmountPaid = (oData.amountPaid || 0) + amount;
+                    const expenseRef = doc(collection(db, "expenses"));
+                    t.set(expenseRef, {
+                        amount: split.amount,
+                        category: "Ingreso Ventas Manual",
+                        description: `Cobro Orden #${orderId.slice(0,8)}`,
+                        paymentMethod: accDoc.data().name,
+                        supplierName: oData.userName || "Cliente",
+                        date: serverTimestamp(),
+                        createdAt: serverTimestamp(),
+                        type: 'INCOME',
+                        orderId: orderId
+                    });
+                }
+
+                const newAmountPaid = (oData.amountPaid || 0) + totalAmount;
                 const isFullyPaid = newAmountPaid >= ((oData.total || 0) - (oData.refundedAmount || 0));
-                
-                let nextStatus = oData.status; 
-                if (isFullyPaid && ['PENDIENTE', 'PENDIENTE_PAGO', 'CANCELADO'].includes(oData.status)) nextStatus = 'PAGADO';
 
-                t.update(orderRef, { status: nextStatus, paymentStatus: isFullyPaid ? 'PAID' : 'PARTIAL', amountPaid: newAmountPaid, paymentMethod: oData.paymentMethod || 'MANUAL', paymentAccountId: accId, paymentDate: serverTimestamp(), updatedAt: serverTimestamp() });
+                let nextStatus = oData.status;
+                if (isFullyPaid && ['PENDIENTE', 'PENDIENTE_PAGO', 'CANCELADO'].includes(oData.status)) {
+                    nextStatus = 'PAGADO';
+                }
+
+                const firstAccName = accountsData[0].doc.data().name;
+                const paymentMethodSummary = splits.length > 1 ? "Múltiples Cuentas" : firstAccName;
+                const paymentSplitsField = accountsData.map(ad => ({
+                    accountId: ad.split.accountId,
+                    accountName: ad.doc.data().name,
+                    amount: ad.split.amount
+                }));
+
+                const existingSplits = oData.paymentSplits || [];
+                const updatedSplits = [...existingSplits, ...paymentSplitsField];
+
+                t.update(orderRef, {
+                    status: nextStatus,
+                    paymentStatus: isFullyPaid ? 'PAID' : 'PARTIAL',
+                    amountPaid: newAmountPaid,
+                    paymentMethod: paymentMethodSummary,
+                    paymentAccountId: splits[0].accountId,
+                    paymentSplits: updatedSplits,
+                    paymentDate: serverTimestamp(),
+                    updatedAt: serverTimestamp()
+                });
             });
 
             alert("✅ Pago registrado exitosamente.");
             document.getElementById('payment-modal').classList.add('hidden');
             currentOrderData = null;
 
-        } catch (error) { alert("Error: " + (error.message || error)); } finally { btn.disabled = false; btn.innerHTML = originalText; }
+        } catch (error) {
+            alert("Error: " + (error.message || error));
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
     };
 }
 
@@ -1751,8 +1972,8 @@ export async function openBulkPaymentModal() {
     const accounts = await loadAccountsCached();
     let ops = '<option value="">Seleccione Cuenta...</option>';
     accounts.forEach(acc => {
-        const accBranchId = acc.branchId || 'sede_principal';
-        if (accBranchId === activeBranchId) {
+        const accBranchId = acc.branchId || 'ALL';
+        if (accBranchId === 'ALL' || accBranchId === activeBranchId) {
             ops += `<option value="${acc.id}">${acc.name} (${acc.type})</option>`;
         }
     });

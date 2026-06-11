@@ -531,16 +531,16 @@ function loadMainBanner() {
             let priceHTML = '';
             if (hasDiscount) {
                 priceHTML = `
-                    <div class="flex items-center gap-2 md:gap-3 mb-3 md:mb-6 flex-wrap justify-start shrink-0">
-                        <span class="text-sm md:text-3xl font-black text-brand-orange tracking-tight">$${p.price.toLocaleString('es-CO')}</span>
-                        <span class="line-through text-gray-500 text-[10px] md:text-base font-semibold">$${p.originalPrice.toLocaleString('es-CO')}</span>
-                        <span class="bg-brand-red text-white text-[7px] md:text-[10px] font-black px-1.5 py-0.5 md:py-1 rounded-md tracking-wider uppercase shadow-sm">-${discPercent}% DTO</span>
+                    <div class="flex items-center gap-2 md:gap-3 mb-3 md:mb-6 flex-wrap justify-center md:justify-start shrink-0">
+                        <span class="text-lg md:text-3xl font-black text-brand-orange tracking-tight">$${p.price.toLocaleString('es-CO')}</span>
+                        <span class="line-through text-gray-500 text-xs md:text-base font-semibold">$${p.originalPrice.toLocaleString('es-CO')}</span>
+                        <span class="bg-brand-red text-white text-[9px] md:text-[10px] font-black px-1.5 py-0.5 md:py-1 rounded-md tracking-wider uppercase shadow-sm">-${discPercent}% DTO</span>
                     </div>
                 `;
             } else {
                 priceHTML = `
-                    <div class="mb-3 md:mb-6 shrink-0">
-                        <span class="text-sm md:text-3xl font-black text-white tracking-tight">$${p.price.toLocaleString('es-CO')}</span>
+                    <div class="mb-3 md:mb-6 shrink-0 text-center md:text-left">
+                        <span class="text-lg md:text-3xl font-black text-white tracking-tight">$${p.price.toLocaleString('es-CO')}</span>
                     </div>
                 `;
             }
@@ -552,30 +552,30 @@ function loadMainBanner() {
                     <div class="absolute inset-0 z-0 opacity-[0.07] pointer-events-none" style="background-image: radial-gradient(circle, #ffffff 1px, transparent 1px); background-size: 28px 28px;"></div>
                     <div class="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent z-0 pointer-events-none"></div>
 
-                    <div class="flex flex-row w-full h-full relative z-10 p-4 md:p-14 items-center justify-between gap-4">
+                    <div class="flex flex-col md:flex-row w-full h-full relative z-10 p-6 md:p-14 items-center justify-center md:justify-between gap-6 md:gap-4">
                         
-                        <div class="w-[60%] md:w-[60%] flex flex-col justify-center text-left order-1 min-w-0">
-                            <span class="text-brand-orange text-[8px] md:text-xs font-black uppercase tracking-[0.2em] mb-1 md:mb-3 flex items-center justify-start gap-1 md:gap-2 shrink-0">
+                        <div class="w-full md:w-[60%] flex flex-col justify-center text-center md:text-left order-2 md:order-1 min-w-0">
+                            <span class="text-brand-orange text-[10px] md:text-xs font-black uppercase tracking-[0.2em] mb-1 md:mb-3 flex items-center justify-center md:justify-start gap-1 md:gap-2 shrink-0">
                                 <span class="w-3 h-0.5 bg-brand-orange hidden md:inline-block"></span> LO NUEVO DE ${p.brand || 'SMARTECH'}
                             </span>
                             
-                            <h2 class="text-xs md:text-4xl lg:text-5xl font-black text-white leading-tight uppercase tracking-tight mb-1 md:mb-3 group-hover:text-brand-orange transition-colors duration-500 drop-shadow-xl line-clamp-2">
+                            <h2 class="text-lg md:text-4xl lg:text-5xl font-black text-white leading-tight uppercase tracking-tight mb-1 md:mb-3 group-hover:text-brand-orange transition-colors duration-500 drop-shadow-xl line-clamp-2">
                                 ${p.name}
                             </h2>
                             
-                            <p class="text-gray-400 text-[8px] md:text-xs font-black uppercase tracking-widest mb-2 md:mb-4 shrink-0 truncate">
+                            <p class="text-gray-400 text-[10px] md:text-xs font-black uppercase tracking-widest mb-2 md:mb-4 shrink-0 truncate">
                                 Categoría: <span class="text-white font-bold">${p.category || 'Tecnología'}</span>
                             </p>
                             
                             ${priceHTML}
                             
-                            <button class="bg-brand-orange text-white font-black uppercase tracking-widest text-[8px] md:text-[9px] px-4 py-2 md:px-8 md:py-3.5 rounded-full w-max hover:bg-white hover:text-brand-orange transition-all flex items-center justify-center gap-1.5 md:gap-3 group/btn shadow-[0_10px_20px_rgba(240,90,40,0.15)] hover:shadow-xl active:scale-95 duration-300 shrink-0">
+                            <button class="bg-brand-orange text-white font-black uppercase tracking-widest text-[10px] md:text-[9px] px-6 py-2.5 md:px-8 md:py-3.5 rounded-full w-max hover:bg-white hover:text-brand-orange transition-all flex items-center justify-center gap-1.5 md:gap-3 group/btn shadow-[0_10px_20px_rgba(240,90,40,0.15)] hover:shadow-xl active:scale-95 duration-300 shrink-0 mx-auto md:mx-0">
                                 <span>Ver Producto</span> 
                                 <i class="fa-solid fa-chevron-right text-[6px] md:text-[8px] group-hover/btn:translate-x-1 transition-transform"></i>
                             </button>
                         </div>
                         
-                        <div class="w-[40%] md:w-[35%] h-[80%] md:h-[95%] flex items-center justify-center relative order-2 shrink-0 overflow-visible">
+                        <div class="w-[65%] md:w-[35%] h-[45%] md:h-[95%] flex items-center justify-center relative order-1 md:order-2 shrink-0 overflow-visible">
                             <div class="absolute w-24 h-24 md:w-64 md:h-64 bg-brand-orange/25 rounded-full blur-2xl group-hover:bg-brand-orange/35 transition duration-700 pointer-events-none"></div>
                             
                             <img src="${p.mainImage || p.image}" class="max-h-full md:max-h-[95%] object-contain drop-shadow-[0_0_15px_rgba(240,90,40,0.6)] md:drop-shadow-[0_10px_35px_rgba(240,90,40,0.45)] transform group-hover:scale-105 group-hover:-translate-y-0.5 transition-all duration-700 relative z-10 filter brightness-105">

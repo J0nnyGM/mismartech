@@ -28,7 +28,7 @@ const compressImage = async (file) => {
             img.src = e.target.result;
             img.onload = () => {
                 const maxWidth = 1920; // Full HD para banners
-                const quality = 0.85;
+                const quality = 0.95; // Reducida la compresión (mayor calidad) para evitar que las letras se pixelen
                 let width = img.width;
                 let height = img.height;
                 if (width > maxWidth) {
@@ -154,12 +154,12 @@ function renderProducts(products, emptyMsg) {
                 </div>
             </td>
             <td class="p-6 text-center">
-                <button onclick="updateFlag('${p.id}', 'isHeroPromo', ${!isHeroPromo})" class="w-10 h-10 rounded-full transition flex items-center justify-center mx-auto ${isHeroPromo ? 'bg-brand-red text-white shadow-lg' : 'bg-gray-100 text-gray-300 hover:text-gray-500'}">
+                <button onclick="openConfigModal('${p.id}', 'isHeroPromo')" class="w-10 h-10 rounded-full transition flex items-center justify-center mx-auto ${isHeroPromo ? 'bg-brand-red text-white shadow-lg' : 'bg-gray-100 text-gray-300 hover:text-gray-500'}">
                     <i class="fa-solid fa-fire text-sm"></i> ${customIconHero}
                 </button>
             </td>
             <td class="p-6 text-center">
-                <button onclick="updateFlag('${p.id}', 'isNewLaunch', ${!isNewLaunch})" class="w-10 h-10 rounded-full transition flex items-center justify-center mx-auto ${isNewLaunch ? 'bg-brand-orange text-brand-black shadow-lg' : 'bg-gray-100 text-gray-300 hover:text-gray-500'}">
+                <button onclick="openConfigModal('${p.id}', 'isNewLaunch')" class="w-10 h-10 rounded-full transition flex items-center justify-center mx-auto ${isNewLaunch ? 'bg-brand-orange text-brand-black shadow-lg' : 'bg-gray-100 text-gray-300 hover:text-gray-500'}">
                     <i class="fa-solid fa-star text-sm"></i> ${customIconLaunch}
                 </button>
             </td>`;
@@ -167,42 +167,56 @@ function renderProducts(products, emptyMsg) {
     });
 }
 
-// --- 5. LÓGICA DE ACTUALIZACIÓN ---
-window.updateFlag = async (id, field, value) => {
-    if (value === true) {
-        // Abrir modal para configurar (Auto o Custom)
-        openConfigModal(id, field);
-    } else {
-        // Desactivar promo directamente
-        try {
-            const productRef = doc(db, "products", id);
-            const urlField = field === 'isHeroPromo' ? 'promoBannerUrl' : 'launchBannerUrl';
-            
-            // 1. Actualizar Firebase
-            await updateDoc(productRef, { [field]: false, [urlField]: null });
-            
-            // 2. Actualizar Memoria Local (Instantáneo)
-            const pIndex = allProducts.findIndex(x => x.id === id);
-            if (pIndex !== -1) {
-                allProducts[pIndex][field] = false;
-                allProducts[pIndex][urlField] = null;
-            }
-            
-            // 3. Refrescar Vista
-            if (searchInput.value.trim() === "") renderActivePromos();
-            else searchInput.dispatchEvent(new Event('input'));
-            
-        } catch (e) { alert("Error: " + e.message); }
-    }
-};
-
 function openConfigModal(id, field) {
     currentConfig = { id, field };
     form.reset();
-    fileContainer.classList.add('hidden');
+
+    const product = allProducts.find(x => x.id === id);
+    const isActive = product ? !!product[field] : false;
+    const hasCustomBanner = product ? (field === 'isHeroPromo' ? !!product.promoBannerUrl : !!product.launchBannerUrl) : false;
+
+    const deactivateBtn = document.getElementById('btn-deactivate-promo');
+    const submitBtn = document.getElementById('btn-submit-promo');
+
+    // Controlar la visibilidad de los botones en el modal
+    if (isActive) {
+        if (deactivateBtn) deactivateBtn.classList.remove('hidden');
+        if (submitBtn) {
+            submitBtn.className = "w-1/2 bg-brand-black text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-brand-orange hover:text-brand-black transition shadow-lg";
+            submitBtn.textContent = 'Guardar';
+        }
+    } else {
+        if (deactivateBtn) deactivateBtn.classList.add('hidden');
+        if (submitBtn) {
+            submitBtn.className = "w-full bg-brand-black text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-brand-orange hover:text-brand-black transition shadow-lg";
+            submitBtn.textContent = 'Guardar y Activar';
+        }
+    }
+
+    // Pre-seleccionar tipo de banner
+    if (hasCustomBanner) {
+        document.querySelector('input[name="bannerType"][value="custom"]').checked = true;
+        fileContainer.classList.remove('hidden');
+        
+        let infoMsg = document.getElementById('current-banners-info');
+        if (!infoMsg) {
+            infoMsg = document.createElement('p');
+            infoMsg.id = 'current-banners-info';
+            infoMsg.className = 'text-[9px] text-green-600 font-bold mt-1 mb-2';
+            fileContainer.prepend(infoMsg);
+        }
+        infoMsg.textContent = "✓ Ya tienes imágenes subidas. Sube nuevos archivos solo si deseas reemplazarlas.";
+    } else {
+        document.querySelector('input[name="bannerType"][value="default"]').checked = true;
+        fileContainer.classList.add('hidden');
+        const infoMsg = document.getElementById('current-banners-info');
+        if (infoMsg) infoMsg.remove();
+    }
+
     modal.classList.remove('hidden');
     modal.classList.add('flex');
 }
+window.openConfigModal = openConfigModal;
 
 window.closeConfigModal = () => {
     modal.classList.add('hidden');
@@ -217,18 +231,47 @@ radioButtons.forEach(radio => {
     });
 });
 
+// Configurar botón Desactivar
+const deactivateBtn = document.getElementById('btn-deactivate-promo');
+if (deactivateBtn) {
+    deactivateBtn.onclick = async () => {
+        if (!confirm("¿Desactivar esta promoción?")) return;
+        deactivateBtn.disabled = true;
+        deactivateBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Desactivando...';
+        try {
+            const id = currentConfig.id;
+            const field = currentConfig.field;
+            const productRef = doc(db, "products", id);
+            
+            // ACTUALIZACIÓN CLAVE: NO ELIMINAR las URLs de imágenes al desactivar
+            await updateDoc(productRef, { [field]: false });
+            
+            const pIndex = allProducts.findIndex(x => x.id === id);
+            if (pIndex !== -1) {
+                allProducts[pIndex][field] = false;
+            }
+            
+            closeConfigModal();
+            searchInput.value === "" ? renderActivePromos() : searchInput.dispatchEvent(new Event('input'));
+        } catch (e) {
+            alert("Error: " + e.message);
+        } finally {
+            deactivateBtn.disabled = false;
+            deactivateBtn.textContent = "Desactivar";
+        }
+    };
+}
+
 // Guardar configuración desde el modal
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const btn = form.querySelector('button');
+    const btn = form.querySelector('button[type="submit"]');
     const originalText = btn.textContent;
     btn.disabled = true; 
     btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Procesando...';
 
     try {
         const bannerType = document.querySelector('input[name="bannerType"]:checked').value;
-        
-        // Definir los campos de base de datos según el tipo de promo
         const fieldWeb = currentConfig.field === 'isHeroPromo' ? 'promoBannerUrl' : 'launchBannerUrl';
         const fieldMobile = currentConfig.field === 'isHeroPromo' ? 'promoBannerMobileUrl' : 'launchBannerMobileUrl';
         
@@ -238,27 +281,41 @@ form.addEventListener('submit', async (e) => {
             const fileWeb = document.getElementById('banner-file-web').files[0];
             const fileMobile = document.getElementById('banner-file-mobile').files[0];
 
-            if (!fileWeb || !fileMobile) {
-                alert("⚠️ Debes subir ambas versiones: Escritorio y Móvil para un diseño óptimo.");
-                btn.disabled = false; btn.textContent = originalText;
-                return;
-            }
+            const product = allProducts.find(x => x.id === currentConfig.id);
+            const existingWebUrl = product ? product[fieldWeb] : null;
+            const existingMobileUrl = product ? product[fieldMobile] : null;
 
             const metadata = { cacheControl: 'public,max-age=31536000' };
 
             // Procesar Imagen Web
-            btn.innerHTML = 'Optimizando Web...';
-            const compWeb = await compressImage(fileWeb);
-            const refWeb = ref(storage, `banners/${currentConfig.field}/${currentConfig.id}_web_${Date.now()}`);
-            await uploadBytes(refWeb, compWeb, metadata);
-            urls.web = await getDownloadURL(refWeb);
+            if (!fileWeb && existingWebUrl) {
+                urls.web = existingWebUrl;
+            } else if (fileWeb) {
+                btn.innerHTML = 'Optimizando Web...';
+                const compWeb = await compressImage(fileWeb);
+                const refWeb = ref(storage, `banners/${currentConfig.field}/${currentConfig.id}_web_${Date.now()}`);
+                await uploadBytes(refWeb, compWeb, metadata);
+                urls.web = await getDownloadURL(refWeb);
+            } else {
+                alert("⚠️ Debes subir la versión de Escritorio.");
+                btn.disabled = false; btn.textContent = originalText;
+                return;
+            }
 
             // Procesar Imagen Móvil
-            btn.innerHTML = 'Optimizando Móvil...';
-            const compMobile = await compressImage(fileMobile);
-            const refMobile = ref(storage, `banners/${currentConfig.field}/${currentConfig.id}_mobile_${Date.now()}`);
-            await uploadBytes(refMobile, compMobile, metadata);
-            urls.mobile = await getDownloadURL(refMobile);
+            if (!fileMobile && existingMobileUrl) {
+                urls.mobile = existingMobileUrl;
+            } else if (fileMobile) {
+                btn.innerHTML = 'Optimizando Móvil...';
+                const compMobile = await compressImage(fileMobile);
+                const refMobile = ref(storage, `banners/${currentConfig.field}/${currentConfig.id}_mobile_${Date.now()}`);
+                await uploadBytes(refMobile, compMobile, metadata);
+                urls.mobile = await getDownloadURL(refMobile);
+            } else {
+                alert("⚠️ Debes subir la versión Móvil.");
+                btn.disabled = false; btn.textContent = originalText;
+                return;
+            }
         }
 
         // Actualizar Firebase

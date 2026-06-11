@@ -85,8 +85,8 @@ async function loadAccounts() {
         AdminStore.subscribeToAccounts((accs) => {
             els.payAccount.innerHTML = '<option value="">Seleccione Cuenta Destino...</option>';
             accs.forEach(acc => {
-                const accBranchId = acc.branchId || 'sede_principal';
-                if (accBranchId === activeBranchId) {
+                const accBranchId = acc.branchId || 'ALL';
+                if (accBranchId === 'ALL' || accBranchId === activeBranchId) {
                     els.payAccount.innerHTML += `<option value="${acc.id}">${acc.name}</option>`;
                 }
             });

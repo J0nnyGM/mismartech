@@ -330,25 +330,27 @@
                 <div class="bg-green-50 p-6 rounded-2xl text-center border border-green-100">
                     <p class="text-[9px] font-black text-green-600 uppercase tracking-widest mb-1">Monto a Recibir
                         (Saldo Pendiente)</p>
-                    <input type="text" id="pay-amount"
-                        class="w-full bg-transparent text-4xl font-black text-green-700 text-center outline-none placeholder-green-300"
-                        placeholder="$0">
+                    <p id="pay-pending-display" class="w-full text-4xl font-black text-green-700 text-center outline-none">$0</p>
+                    <input type="hidden" id="pay-amount" data-max="0">
                 </div>
-                <div>
-                    <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Cuenta
-                        de Destino (Tesorería)</label>
-                    <div class="relative">
-                        <i
-                            class="fa-solid fa-building-columns absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                        <select id="pay-account-select" required
-                            class="w-full bg-slate-50 border border-gray-200 pl-10 pr-4 py-4 rounded-xl font-bold text-xs outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange/20 appearance-none text-brand-black cursor-pointer shadow-sm transition-all">
-                            <option value="">Cargando cuentas...</option>
-                        </select>
-                        <i
-                            class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none"></i>
+                
+                <div class="space-y-4">
+                    <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Cuentas de Destino y Montos</label>
+                    <div id="pay-splits-container" class="space-y-3 max-h-[250px] overflow-y-auto custom-scroll pr-1">
+                        <!-- Se insertan dinámicamente -->
                     </div>
+                    
+                    <button type="button" id="btn-add-pay-split" class="w-full py-3 border-2 border-dashed border-gray-200 rounded-xl font-black text-[9px] uppercase tracking-widest text-gray-400 hover:border-brand-orange hover:text-brand-orange hover:bg-orange-50/20 transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-circle-plus"></i> Agregar Cuenta (Dividir Pago)
+                    </button>
                 </div>
-                <button type="submit"
+
+                <div class="flex justify-between items-center px-4 py-4 bg-slate-50 rounded-xl border border-gray-100 text-[10px] font-bold text-gray-500 uppercase">
+                    <span>Total a registrar:</span>
+                    <span id="pay-total-selected" class="font-black text-brand-black text-sm">$0</span>
+                </div>
+
+                <button type="submit" id="btn-confirm-payment"
                     class="w-full bg-brand-black text-white py-5 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-green-500 hover:text-white transition-all shadow-xl hover:shadow-green-500/30 flex items-center justify-center gap-3 group">
                     Confirmar Pago <div
                         class="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-green-500 transition">
@@ -569,8 +571,8 @@
                     AdminStore.subscribeToAccounts((accs) => {
                         let ops = '<option value="">Seleccione Cuenta...</option>';
                         accs.forEach(acc => {
-                            const accBranchId = acc.branchId || 'sede_principal';
-                            if (accBranchId === activeBranchId) {
+                            const accBranchId = acc.branchId || 'ALL';
+                            if (accBranchId === 'ALL' || accBranchId === activeBranchId) {
                                 const label = acc.accountNumber ? `${acc.name} - ${acc.accountNumber}` : acc.name;
                                 ops += `<option value="${acc.id}">${label}</option>`;
                             }
