@@ -605,6 +605,8 @@ function loadTripleBanners() {
 
     const allProductsCache = SmartCache.getAllProducts();
     const allWithStock = allProductsCache.filter(p => p.stock > 0);
+    if (allWithStock.length === 0) return;
+
     const allPromos = allWithStock.filter(p => p.isNewLaunch || p.isHeroPromo || (p.originalPrice && p.originalPrice > p.price));
 
     let launchPool = [];

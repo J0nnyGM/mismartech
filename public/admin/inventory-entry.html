@@ -211,8 +211,8 @@
         async function loadBranchesForEntry() {
             const branchSelect = document.getElementById('entry-branch-id');
             const role = sessionStorage.getItem('adminUserRole') || 'customer';
-            const assignedBranchId = sessionStorage.getItem('adminUserBranchId') || 'sede_principal';
-            const activeBranchId = sessionStorage.getItem('activeBranchId') || 'sede_principal';
+            const assignedBranchId = sessionStorage.getItem('adminUserBranchId') || 'bodega';
+            const activeBranchId = sessionStorage.getItem('activeBranchId') || 'bodega';
 
             try {
                 const snap = await getDocs(collection(db, "branches"));
@@ -240,7 +240,7 @@
                 }
             } catch (err) {
                 console.error("Error loading branches for entry:", err);
-                branchSelect.innerHTML = `<option value="sede_principal">Sede Principal</option>`;
+                branchSelect.innerHTML = `<option value="bodega">BODEGA</option>`;
             }
         }
         loadBranchesForEntry();

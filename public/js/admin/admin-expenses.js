@@ -47,13 +47,13 @@ AdminStore.subscribeToAccounts((accs) => {
     accountsList = accs;
     
     const role = sessionStorage.getItem('adminUserRole');
-    const activeBranchId = sessionStorage.getItem('activeBranchId') || 'sede_principal';
+    const activeBranchId = sessionStorage.getItem('activeBranchId') || 'bodega';
     
     let filteredAccs = accountsList;
     if (role !== 'admin') {
         filteredAccs = accountsList.filter(a => {
-            const accBranchId = a.branchId || 'sede_principal';
-            return accBranchId === activeBranchId || a.branchId === 'ALL';
+            const accBranchId = a.branchId || 'ALL';
+            return accBranchId === activeBranchId || accBranchId === 'ALL';
         });
     }
 
@@ -433,7 +433,7 @@ form.addEventListener('submit', async (e) => {
 
             t.update(accRef, { balance: accData.balance - totalDeduction });
 
-            const expenseBranchId = accData.branchId || 'sede_principal';
+            const expenseBranchId = accData.branchId || 'ALL';
 
             if (tax > 0) {
                 t.set(doc(collection(db, "expenses")), {

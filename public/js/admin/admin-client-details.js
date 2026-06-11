@@ -81,7 +81,7 @@ async function init() {
 // --- 2. CARGAR METADATA ---
 async function loadAccounts() {
     try {
-        const activeBranchId = sessionStorage.getItem('activeBranchId') || 'sede_principal';
+        const activeBranchId = sessionStorage.getItem('activeBranchId') || 'bodega';
         AdminStore.subscribeToAccounts((accs) => {
             els.payAccount.innerHTML = '<option value="">Seleccione Cuenta Destino...</option>';
             accs.forEach(acc => {

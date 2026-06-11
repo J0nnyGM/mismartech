@@ -757,7 +757,7 @@ export async function saveAlistamiento(onSuccess) {
 
         // 🔥 VERIFICAR STOCK ANTES DE HACER ALISTAMIENTO PARA EVITAR SOBREVENTAS O ERRORES
         if (orderData.source !== 'MANUAL') {
-            const activeBranchId = sessionStorage.getItem('activeBranchId') || 'sede_principal';
+            const activeBranchId = sessionStorage.getItem('activeBranchId') || 'bodega';
             const activeBranchName = sessionStorage.getItem('activeBranchName') || 'Sede Principal';
             const deficits = [];
 
@@ -1272,7 +1272,7 @@ export async function openPaymentModal(orderId, amountDue) {
     // Cargar cuentas
     let filteredAccounts = [];
     try {
-        const activeBranchId = sessionStorage.getItem('activeBranchId') || 'sede_principal';
+        const activeBranchId = sessionStorage.getItem('activeBranchId') || 'bodega';
         const accounts = await loadAccountsCached();
         filteredAccounts = accounts.filter(acc => {
             const accBranchId = acc.branchId || 'ALL';
@@ -1968,7 +1968,7 @@ export async function openBulkPaymentModal() {
     getEl('bulk-pay-total').textContent = `$${totalToCollect.toLocaleString('es-CO')}`;
     
     const selectAcc = getEl('bulk-pay-account-select');
-    const activeBranchId = sessionStorage.getItem('activeBranchId') || 'sede_principal';
+    const activeBranchId = sessionStorage.getItem('activeBranchId') || 'bodega';
     const accounts = await loadAccountsCached();
     let ops = '<option value="">Seleccione Cuenta...</option>';
     accounts.forEach(acc => {

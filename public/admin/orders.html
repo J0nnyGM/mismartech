@@ -567,7 +567,7 @@
 
                 const accSelect = document.getElementById('pay-account-select');
                 if (accSelect) {
-                    const activeBranchId = sessionStorage.getItem('activeBranchId') || 'sede_principal';
+                    const activeBranchId = sessionStorage.getItem('activeBranchId') || 'bodega';
                     AdminStore.subscribeToAccounts((accs) => {
                         let ops = '<option value="">Seleccione Cuenta...</option>';
                         accs.forEach(acc => {

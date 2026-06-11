@@ -254,8 +254,8 @@ async function setupBranchSelectorInSidebar() {
     if (!container) return;
 
     const role = sessionStorage.getItem('adminUserRole') || 'customer';
-    const assignedBranchId = sessionStorage.getItem('adminUserBranchId') || 'sede_principal';
-    const activeBranchId = sessionStorage.getItem('activeBranchId') || 'sede_principal';
+    const assignedBranchId = sessionStorage.getItem('adminUserBranchId') || 'bodega';
+    const activeBranchId = sessionStorage.getItem('activeBranchId') || 'bodega';
 
     // Para Super Admin (o rol admin)
     if (role === 'admin' || assignedBranchId === 'ALL') {

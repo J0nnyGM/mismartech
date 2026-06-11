@@ -436,7 +436,7 @@ function setupProductSearch(row) {
             return searchStr.includes(term);
         });
 
-        const activeBranchId = sessionStorage.getItem('activeBranchId') || 'sede_principal';
+        const activeBranchId = sessionStorage.getItem('activeBranchId') || 'bodega';
 
         if (filtered.length === 0) {
             resultsDiv.innerHTML = `<div class="p-3 text-[10px] text-gray-400 text-center uppercase font-bold">No encontrado</div>`;
@@ -472,7 +472,7 @@ function setupProductSearch(row) {
 }
 
 function updateRowStock(row, product) {
-    const activeBranchId = sessionStorage.getItem('activeBranchId') || 'sede_principal';
+    const activeBranchId = sessionStorage.getItem('activeBranchId') || 'bodega';
     const activeBranchName = sessionStorage.getItem('activeBranchName') || 'Sede Principal';
 
     const colorSel = row.querySelector('.p-color');
@@ -811,7 +811,7 @@ async function setupCustomerSearch() {
 function loadPaymentAccounts() {
     const sel = document.getElementById('m-payment-account');
     if (!sel) return;
-    const activeBranchId = sessionStorage.getItem('activeBranchId') || 'sede_principal';
+    const activeBranchId = sessionStorage.getItem('activeBranchId') || 'bodega';
     
     if (window._manualAccountsSubscribed) return;
     window._manualAccountsSubscribed = true;
@@ -923,7 +923,7 @@ async function saveOrder() {
     btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Procesando Venta...';
 
     try {
-        const activeBranchId = sessionStorage.getItem('activeBranchId') || 'sede_principal';
+        const activeBranchId = sessionStorage.getItem('activeBranchId') || 'bodega';
         const activeBranchName = sessionStorage.getItem('activeBranchName') || 'Sede Principal';
 
         let finalUserId = selectedUserId;

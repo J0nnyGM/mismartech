@@ -63,7 +63,7 @@ function renderStaffTable(staffList) {
         const isSuperAdmin = u.role === 'admin';
         
         // Sede asignada por defecto
-        const defaultBranch = isSuperAdmin ? 'ALL' : 'sede_principal';
+        const defaultBranch = isSuperAdmin ? 'ALL' : 'bodega';
         const currentBranch = u.assignedBranchId || defaultBranch;
 
         const hasAllOption = u.role === 'admin';

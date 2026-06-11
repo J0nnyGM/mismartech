@@ -467,7 +467,7 @@
         // --- 4. CUENTAS (Caché interactivo en tiempo real) ---
         async function loadAccounts() {
             try {
-                const activeBranchId = sessionStorage.getItem('activeBranchId') || 'sede_principal';
+                const activeBranchId = sessionStorage.getItem('activeBranchId') || 'bodega';
                 AdminStore.subscribeToAccounts((accs) => {
                     accountsList = accs;
                     const select = document.getElementById('pay-account');

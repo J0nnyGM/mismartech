@@ -36,15 +36,18 @@ onAuthStateChanged(auth, async (user) => {
             }
 
             // Guardar datos de sede y rol en sessionStorage
-            const assignedBranchId = userData.assignedBranchId || (role === 'admin' ? 'ALL' : 'sede_principal');
+            const assignedBranchId = userData.assignedBranchId || (role === 'admin' ? 'ALL' : 'bodega');
             sessionStorage.setItem('adminUserRole', role);
             sessionStorage.setItem('adminUserBranchId', assignedBranchId);
             
             // Si activeBranchId no está inicializado, o es inválido para el usuario, lo definimos
-            let activeBranch = sessionStorage.getItem('activeBranchId');
-            if (!activeBranch) {
-                activeBranch = assignedBranchId === 'ALL' ? 'sede_principal' : assignedBranchId;
-                sessionStorage.setItem('activeBranchId', activeBranch);
+            if (role !== 'admin' && assignedBranchId !== 'ALL') {
+                sessionStorage.setItem('activeBranchId', assignedBranchId);
+            } else {
+                let activeBranch = sessionStorage.getItem('activeBranchId');
+                if (!activeBranch || activeBranch === 'sede_principal') {
+                    sessionStorage.setItem('activeBranchId', 'bodega');
+                }
             }
 
             // 2. Definir permisos de rutas por rol

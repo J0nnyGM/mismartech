@@ -50,7 +50,7 @@ document.querySelectorAll('.currency-input').forEach(input => {
 
 AdminStore.subscribeToAccounts((accs) => {
     accounts = accs;
-    const activeBranchId = sessionStorage.getItem('activeBranchId') || 'sede_principal';
+    const activeBranchId = sessionStorage.getItem('activeBranchId') || 'bodega';
     accountSelect.innerHTML = '<option value="">Seleccione...</option>';
     accounts.forEach(acc => {
         const accBranchId = acc.branchId || 'ALL';

@@ -7,9 +7,9 @@ import { db, doc, runTransaction } from "../firebase-init.js";
  * @param {number} quantityChange - Cantidad a sumar (positivo) o restar (negativo)
  * @param {string|null} variantColor - (Opcional) Color específico
  * @param {string|null} variantCapacity - (Opcional) Capacidad específica
- * @param {string} branchId - (Opcional) ID de la sede a la cual se le ajusta el stock (por defecto 'sede_principal')
+ * @param {string} branchId - (Opcional) ID de la sede a la cual se le ajusta el stock (por defecto 'bodega')
  */
-export async function adjustStock(productId, quantityChange, variantColor = null, variantCapacity = null, branchId = 'sede_principal') {
+export async function adjustStock(productId, quantityChange, variantColor = null, variantCapacity = null, branchId = 'bodega') {
     const productRef = doc(db, "products", productId);
 
     try {
@@ -37,7 +37,7 @@ export async function adjustStock(productId, quantityChange, variantColor = null
                     const hasComboBranchStock = Object.keys(combo.branchStock).length > 0;
                     const currentBranchStock = hasComboBranchStock
                         ? (combo.branchStock[branchId] || 0)
-                        : (branchId === 'sede_principal' ? (parseInt(combo.stock) || 0) : 0);
+                        : (branchId === 'bodega' ? (parseInt(combo.stock) || 0) : 0);
                     const updatedBranchStock = currentBranchStock + quantityChange;
 
                     if (updatedBranchStock < 0) {
@@ -75,7 +75,7 @@ export async function adjustStock(productId, quantityChange, variantColor = null
                 const hasBranchStock = Object.keys(newBranchStock).length > 0;
                 const currentBranchStock = hasBranchStock
                     ? (newBranchStock[branchId] || 0)
-                    : (branchId === 'sede_principal' ? (parseInt(pData.stock) || 0) : 0);
+                    : (branchId === 'bodega' ? (parseInt(pData.stock) || 0) : 0);
                 const updatedBranchStock = currentBranchStock + quantityChange;
 
                 if (updatedBranchStock < 0) {

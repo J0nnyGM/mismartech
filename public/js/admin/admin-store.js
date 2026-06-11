@@ -199,7 +199,7 @@ const modules = {
         collection: 'users',
         dateField: 'createdAt',
         searchFields: ['name', 'userName', 'phone', 'document', 'email'],
-        lightweight: (c) => ({ id: c.id, name: c.name, userName: c.userName || '', phone: c.phone || '', email: c.email || '', document: c.document || '', source: c.source || 'WEB', role: c.role || 'client', adminNotes: c.adminNotes || '', address: c.address || '', dept: c.dept || '', city: c.city || '', addresses: c.addresses || [], searchStr: c.searchStr, createdAt: c.createdAt, updatedAt: c.updatedAt })
+        lightweight: (c) => ({ id: c.id, name: c.name, userName: c.userName || '', phone: c.phone || '', email: c.email || '', document: c.document || '', source: c.source || 'WEB', role: c.role || 'client', assignedBranchId: c.assignedBranchId || '', adminNotes: c.adminNotes || '', address: c.address || '', dept: c.dept || '', city: c.city || '', addresses: c.addresses || [], searchStr: c.searchStr, createdAt: c.createdAt, updatedAt: c.updatedAt })
     }),
 
     receivables: new StoreModule({
@@ -270,7 +270,7 @@ const modules = {
         name: 'accounts',
         collection: 'accounts',
         dateField: 'createdAt', 
-        lightweight: (a) => ({ id: a.id, name: a.name, type: a.type, balance: a.balance, isExempt: a.isExempt, branchId: a.branchId || 'sede_principal', updatedAt: a.updatedAt })
+        lightweight: (a) => ({ id: a.id, name: a.name, type: a.type, balance: a.balance, isExempt: a.isExempt, branchId: a.branchId || 'ALL', updatedAt: a.updatedAt })
     }),
 
     suppliers: new StoreModule({

@@ -311,8 +311,8 @@ document.getElementById('btn-new-cierre').onclick = async () => {
 
             // Filtrar cuentas: asociadas a la sede seleccionada o globales
             const filteredAccounts = accountsList.filter(acc => {
-                const accBranchId = acc.branchId || 'sede_principal';
-                return accBranchId === selectedBranchId || acc.branchId === 'ALL' || !acc.branchId;
+                const accBranchId = acc.branchId || 'ALL';
+                return accBranchId === selectedBranchId || accBranchId === 'ALL';
             });
 
             if (filteredAccounts.length === 0) {
@@ -966,7 +966,7 @@ async function loadInventoryTab() {
 }
 
 function renderInventoryRows() {
-    const activeBranchId = sessionStorage.getItem('activeBranchId') || 'sede_principal';
+    const activeBranchId = sessionStorage.getItem('activeBranchId') || 'bodega';
     const term = document.getElementById('inventory-search').value.toLowerCase().trim();
     const tbody = document.getElementById('inventory-table-body');
     tbody.innerHTML = '';
