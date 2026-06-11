@@ -58,6 +58,18 @@
             -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
             mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
         }
+
+        @media (max-width: 767px) {
+            #main-hero-banner {
+                height: 380px; /* Fallback height for mobile browsers that do not support aspect-ratio */
+            }
+            @supports (aspect-ratio: 4/5) {
+                #main-hero-banner {
+                    aspect-ratio: 4/5;
+                    height: auto;
+                }
+            }
+        }
     </style>
 
     <link rel="modulepreload" href="js/shop/app.js">
@@ -78,7 +90,7 @@
     <main class="flex-grow w-full flex flex-col pb-0 pt-2 md:pt-4">
 
         <section class="container mx-auto px-4 mb-4 relative">
-            <div id="main-hero-banner" class="w-full aspect-[4/5] md:aspect-auto md:h-[400px] rounded-[2rem] overflow-hidden relative bg-brand-black shadow-[0_10px_30px_rgba(0,0,0,0.1)]">
+            <div id="main-hero-banner" class="w-full md:aspect-auto md:h-[400px] rounded-[2rem] overflow-hidden relative bg-brand-black shadow-[0_10px_30px_rgba(0,0,0,0.1)]">
                 <div class="absolute inset-0 flex items-center justify-center"><i class="fa-solid fa-circle-notch fa-spin text-brand-orange text-3xl"></i></div>
             </div>
         </section>
