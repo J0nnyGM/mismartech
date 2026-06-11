@@ -22,7 +22,7 @@ const parseCurrency = (str) => Number(String(str).replace(/[^0-9-]/g, '')) || 0;
 const normalizeText = (str) => str ? str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
 
 async function loadAccountsCached() {
-    return accountsCache;
+    return accountsCache || [];
 }
 
 // ==========================================================================
@@ -1158,7 +1158,8 @@ export async function openPaymentModal(orderId, amountDue) {
         const accounts = await loadAccountsCached();
         let ops = '<option value="">Seleccione Cuenta...</option>';
         accounts.forEach(acc => {
-            if (acc.branchId === activeBranchId) {
+            const accBranchId = acc.branchId || 'sede_principal';
+            if (accBranchId === activeBranchId) {
                 ops += `<option value="${acc.id}">${acc.name} (${acc.type})</option>`;
             }
         });
@@ -1367,7 +1368,7 @@ if (refundForm) {
             }
 
             alert("✅ Devolución procesada correctamente.");
-            currentOrderData = null; accountsCache = null;
+            currentOrderData = null;
             getEl('refund-modal').classList.add('hidden'); getEl('order-modal').classList.add('hidden');
 
         } catch (e) { alert("Error: " + (e.message || e)); } finally { btn.disabled = false; btn.innerHTML = originalText; }
@@ -1420,7 +1421,7 @@ if (payForm) {
 
             alert("✅ Pago registrado exitosamente.");
             document.getElementById('payment-modal').classList.add('hidden');
-            currentOrderData = null; accountsCache = null;
+            currentOrderData = null;
 
         } catch (error) { alert("Error: " + (error.message || error)); } finally { btn.disabled = false; btn.innerHTML = originalText; }
     };
@@ -1750,7 +1751,8 @@ export async function openBulkPaymentModal() {
     const accounts = await loadAccountsCached();
     let ops = '<option value="">Seleccione Cuenta...</option>';
     accounts.forEach(acc => {
-        if (acc.branchId === activeBranchId) {
+        const accBranchId = acc.branchId || 'sede_principal';
+        if (accBranchId === activeBranchId) {
             ops += `<option value="${acc.id}">${acc.name} (${acc.type})</option>`;
         }
     });

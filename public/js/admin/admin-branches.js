@@ -310,7 +310,10 @@ document.getElementById('btn-new-cierre').onclick = async () => {
             accountSelect.innerHTML = '';
 
             // Filtrar cuentas: asociadas a la sede seleccionada o globales
-            const filteredAccounts = accountsList.filter(acc => acc.branchId === selectedBranchId);
+            const filteredAccounts = accountsList.filter(acc => {
+                const accBranchId = acc.branchId || 'sede_principal';
+                return accBranchId === selectedBranchId || acc.branchId === 'ALL' || !acc.branchId;
+            });
 
             if (filteredAccounts.length === 0) {
                 accountSelect.innerHTML = '<option value="">-- Sin Cuentas Disponibles --</option>';

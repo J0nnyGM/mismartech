@@ -38,7 +38,15 @@ const formatCurrency = (val) => (val === "" || val == null) ? "" : "$ " + Number
 const parseCurrency = (val) => Number(val.toString().replace(/[^0-9]/g, '')) || 0;
 const formatDateForInput = (timestamp) => {
     if (!timestamp) return "";
-    const d = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    let d;
+    if (typeof timestamp.toDate === 'function') {
+        d = timestamp.toDate();
+    } else if (timestamp && typeof timestamp.seconds === 'number') {
+        d = new Date(timestamp.seconds * 1000);
+    } else {
+        d = new Date(timestamp);
+    }
+    if (isNaN(d.getTime())) return "";
     const tzOffset = d.getTimezoneOffset() * 60000; 
     return (new Date(d - tzOffset)).toISOString().slice(0, 16);
 };
