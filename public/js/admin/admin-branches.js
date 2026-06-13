@@ -982,6 +982,54 @@ function initInventorySubscriptions() {
     });
 }
 
+function adjustInventoryLayoutForRole() {
+    const role = sessionStorage.getItem('adminUserRole');
+    const isAdmin = (role === 'admin');
+
+    const valCard = document.getElementById('inventory-value-card');
+    const grid = document.getElementById('inventory-metrics-grid');
+    const valWrapper = document.getElementById('valuation-mode-wrapper');
+    const thead = document.getElementById('inventory-thead');
+
+    if (isAdmin) {
+        if (valCard) valCard.classList.remove('hidden');
+        if (grid) {
+            grid.classList.remove('md:grid-cols-1', 'max-w-md');
+            grid.classList.add('md:grid-cols-2');
+        }
+        if (valWrapper) valWrapper.classList.remove('hidden');
+        if (thead) {
+            thead.innerHTML = `
+                <tr>
+                    <th class="px-6 py-4 w-[35%]">Producto / Variante</th>
+                    <th class="px-6 py-4 w-[15%]">SKU</th>
+                    <th class="px-6 py-4 w-[12%] text-center">Stock Sede</th>
+                    <th id="th-val-unit" class="px-6 py-4 w-[13%] text-right">Valor Unitario (Venta)</th>
+                    <th id="th-val-total" class="px-6 py-4 w-[13%] text-right">Valor Total Sede (Venta)</th>
+                    <th class="px-6 py-4 w-[12%] text-center">Stock Bodega (Otras Sedes)</th>
+                </tr>
+            `;
+        }
+    } else {
+        if (valCard) valCard.classList.add('hidden');
+        if (grid) {
+            grid.classList.remove('md:grid-cols-2');
+            grid.classList.add('md:grid-cols-1', 'max-w-md');
+        }
+        if (valWrapper) valWrapper.classList.add('hidden');
+        if (thead) {
+            thead.innerHTML = `
+                <tr>
+                    <th class="px-6 py-4 w-[40%]">Producto / Variante</th>
+                    <th class="px-6 py-4 w-[20%]">SKU</th>
+                    <th class="px-6 py-4 w-[20%] text-center">Stock Sede</th>
+                    <th class="px-6 py-4 w-[20%] text-center">Stock Bodega (Otras Sedes)</th>
+                </tr>
+            `;
+        }
+    }
+}
+
 async function loadInventoryTab() {
     const activeBranchId = sessionStorage.getItem('activeBranchId');
     if (!activeBranchId) {
@@ -994,43 +1042,52 @@ async function loadInventoryTab() {
     const branchName = activeBranch ? activeBranch.name : activeBranchId;
     document.getElementById('inventory-branch-title').innerText = branchName;
 
+    // Ajustar encabezados y controles superiores de acuerdo al rol del usuario
+    adjustInventoryLayoutForRole();
+
     const tbody = document.getElementById('inventory-table-body');
 
     // Inicializar suscripciones de forma reactiva (0 lecturas duplicadas)
     initInventorySubscriptions();
 
+    const role = sessionStorage.getItem('adminUserRole');
+    const isAdmin = (role === 'admin');
+    const colSpanCount = isAdmin ? 6 : 4;
+
     // Renderizar de inmediato si hay datos, o mostrar spinner
     if (cachedProducts.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center"><i class="fa-solid fa-circle-notch fa-spin text-brand-orange text-2xl"></i> Sincronizando inventario en tiempo real...</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="${colSpanCount}" class="p-10 text-center"><i class="fa-solid fa-circle-notch fa-spin text-brand-orange text-2xl"></i> Sincronizando inventario en tiempo real...</td></tr>`;
     } else {
         renderInventoryRows();
     }
 
-    // Configurar botones de valuación
-    const btnSale = document.getElementById('btn-val-sale');
-    const btnCost = document.getElementById('btn-val-cost');
-    
-    currentValuationMode = 'sale'; // Forzar modo Venta siempre
+    // Configurar botones de valuación (solo si el usuario es administrador)
+    if (isAdmin) {
+        const btnSale = document.getElementById('btn-val-sale');
+        const btnCost = document.getElementById('btn-val-cost');
+        
+        currentValuationMode = 'sale'; // Forzar modo Venta siempre
 
-    if (btnSale) {
-        btnSale.onclick = () => {
-            if (currentValuationMode !== 'sale') {
-                currentValuationMode = 'sale';
-                updateValuationButtonsUI();
-                updateValuationLabels();
-                renderInventoryRows();
-            }
-        };
-    }
-    if (btnCost) {
-        btnCost.onclick = () => {
-            showToast("La valuación a precio de costo está deshabilitada temporalmente.");
-        };
-    }
+        if (btnSale) {
+            btnSale.onclick = () => {
+                if (currentValuationMode !== 'sale') {
+                    currentValuationMode = 'sale';
+                    updateValuationButtonsUI();
+                    updateValuationLabels();
+                    renderInventoryRows();
+                }
+            };
+        }
+        if (btnCost) {
+            btnCost.onclick = () => {
+                showToast("La valuación a precio de costo está deshabilitada temporalmente.");
+            };
+        }
 
-    // Asegurar que la UI refleje el modo actual antes de renderizar
-    updateValuationButtonsUI();
-    updateValuationLabels();
+        // Asegurar que la UI refleje el modo actual antes de renderizar
+        updateValuationButtonsUI();
+        updateValuationLabels();
+    }
 
     // Configurar buscador
     const searchInput = document.getElementById('inventory-search');
@@ -1223,13 +1280,17 @@ function renderInventoryRows() {
         grandTotalValue += item.totalValue;
     });
 
+    const role = sessionStorage.getItem('adminUserRole');
+    const isAdmin = (role === 'admin');
+    const colSpanCount = isAdmin ? 6 : 4;
+
     const totalQtyEl = document.getElementById('inventory-total-qty');
     const totalValEl = document.getElementById('inventory-total-value');
     if (totalQtyEl) totalQtyEl.textContent = `${grandTotalUnits.toLocaleString('es-CO')} unds`;
     if (totalValEl) totalValEl.textContent = `$ ${grandTotalValue.toLocaleString('es-CO')}`;
 
     if (itemsToRender.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-gray-400 uppercase font-bold text-xs">No se encontraron productos en el inventario.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="${colSpanCount}" class="p-10 text-center text-gray-400 uppercase font-bold text-xs">No se encontraron productos en el inventario.</td></tr>`;
         return;
     }
 
@@ -1269,20 +1330,36 @@ function renderInventoryRows() {
         // Fila de Encabezado de Categoría
         const catTr = document.createElement('tr');
         catTr.className = "bg-slate-100/60 font-black text-[10px] text-brand-black border-y border-gray-200/80 cursor-pointer select-none hover:bg-slate-200/50 transition-colors";
-        catTr.innerHTML = `
-            <td class="px-6 py-3 uppercase tracking-wider font-black text-brand-black">
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-chevron-right text-brand-orange text-[9px] transition-transform duration-200 mr-1 cat-arrow"></i>
-                    <i class="fa-solid fa-folder text-brand-orange text-xs"></i>
-                    <span>Categoría: ${cat}</span>
-                </div>
-            </td>
-            <td class="px-6 py-3"></td>
-            <td class="px-6 py-3 text-center text-brand-orange font-black">${catUnits} unds</td>
-            <td class="px-6 py-3"></td>
-            <td class="px-6 py-3 text-right text-emerald-700 font-black">$ ${catValue.toLocaleString('es-CO')}</td>
-            <td class="px-6 py-3"></td>
-        `;
+        
+        if (isAdmin) {
+            catTr.innerHTML = `
+                <td class="px-6 py-3 uppercase tracking-wider font-black text-brand-black">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-chevron-right text-brand-orange text-[9px] transition-transform duration-200 mr-1 cat-arrow"></i>
+                        <i class="fa-solid fa-folder text-brand-orange text-xs"></i>
+                        <span>Categoría: ${cat}</span>
+                    </div>
+                </td>
+                <td class="px-6 py-3"></td>
+                <td class="px-6 py-3 text-center text-brand-orange font-black">${catUnits} unds</td>
+                <td class="px-6 py-3"></td>
+                <td class="px-6 py-3 text-right text-emerald-700 font-black">$ ${catValue.toLocaleString('es-CO')}</td>
+                <td class="px-6 py-3"></td>
+            `;
+        } else {
+            catTr.innerHTML = `
+                <td class="px-6 py-3 uppercase tracking-wider font-black text-brand-black">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-chevron-right text-brand-orange text-[9px] transition-transform duration-200 mr-1 cat-arrow"></i>
+                        <i class="fa-solid fa-folder text-brand-orange text-xs"></i>
+                        <span>Categoría: ${cat}</span>
+                    </div>
+                </td>
+                <td class="px-6 py-3"></td>
+                <td class="px-6 py-3 text-center text-brand-orange font-black">${catUnits} unds</td>
+                <td class="px-6 py-3"></td>
+            `;
+        }
         tbody.appendChild(catTr);
 
         // Click handler para expandir/colapsar
@@ -1318,27 +1395,49 @@ function renderInventoryRows() {
                 ? `<span class="text-[9px] bg-brand-orange/15 text-brand-orange border border-brand-orange/20 px-2 py-0.5 rounded font-black tracking-wider uppercase">${item.variant}</span>` 
                 : '';
 
-            tr.innerHTML = `
-                <td class="px-6 py-4 pl-10">
-                    <div class="flex flex-col gap-1">
-                        <span class="font-black text-xs text-brand-black uppercase">${item.name}</span>
-                        <div class="flex items-center gap-2">${variantBadge}</div>
-                    </div>
-                </td>
-                <td class="px-6 py-4 font-mono font-bold text-xs text-gray-400 uppercase">${item.sku}</td>
-                <td class="px-6 py-4 text-center">
-                    <span class="px-3 py-1.5 rounded-xl border text-xs font-black min-w-[3rem] inline-block ${activeStockClass}">
-                        ${item.activeStock}
-                    </span>
-                </td>
-                <td class="px-6 py-4 text-right font-bold text-xs text-gray-600">$ ${item.price.toLocaleString('es-CO')}</td>
-                <td class="px-6 py-4 text-right font-black text-xs text-emerald-600">$ ${item.totalValue.toLocaleString('es-CO')}</td>
-                <td class="px-6 py-4 text-center">
-                    <span class="px-3 py-1.5 rounded-xl border text-xs font-black min-w-[3rem] inline-block ${bodegaStockClass}">
-                        ${item.bodegaStock}
-                    </span>
-                </td>
-            `;
+            if (isAdmin) {
+                tr.innerHTML = `
+                    <td class="px-6 py-4 pl-10">
+                        <div class="flex flex-col gap-1">
+                            <span class="font-black text-xs text-brand-black uppercase">${item.name}</span>
+                            <div class="flex items-center gap-2">${variantBadge}</div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 font-mono font-bold text-xs text-gray-400 uppercase">${item.sku}</td>
+                    <td class="px-6 py-4 text-center">
+                        <span class="px-3 py-1.5 rounded-xl border text-xs font-black min-w-[3rem] inline-block ${activeStockClass}">
+                            ${item.activeStock}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-right font-bold text-xs text-gray-600">$ ${item.price.toLocaleString('es-CO')}</td>
+                    <td class="px-6 py-4 text-right font-black text-xs text-emerald-600">$ ${item.totalValue.toLocaleString('es-CO')}</td>
+                    <td class="px-6 py-4 text-center">
+                        <span class="px-3 py-1.5 rounded-xl border text-xs font-black min-w-[3rem] inline-block ${bodegaStockClass}">
+                            ${item.bodegaStock}
+                        </span>
+                    </td>
+                `;
+            } else {
+                tr.innerHTML = `
+                    <td class="px-6 py-4 pl-10">
+                        <div class="flex flex-col gap-1">
+                            <span class="font-black text-xs text-brand-black uppercase">${item.name}</span>
+                            <div class="flex items-center gap-2">${variantBadge}</div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 font-mono font-bold text-xs text-gray-400 uppercase">${item.sku}</td>
+                    <td class="px-6 py-4 text-center">
+                        <span class="px-3 py-1.5 rounded-xl border text-xs font-black min-w-[3rem] inline-block ${activeStockClass}">
+                            ${item.activeStock}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        <span class="px-3 py-1.5 rounded-xl border text-xs font-black min-w-[3rem] inline-block ${bodegaStockClass}">
+                            ${item.bodegaStock}
+                        </span>
+                    </td>
+                `;
+            }
             tbody.appendChild(tr);
         });
     });

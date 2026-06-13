@@ -143,7 +143,7 @@
             <section id="sec-inventory" class="tab-content hidden space-y-6">
                 <div class="bg-white rounded-3xl p-6 shadow-xl border border-gray-100 space-y-6 animate-in fade-in duration-300">
                     <!-- Tarjetas de Resumen de Inventario -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div id="inventory-metrics-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="bg-slate-50 border border-gray-100 p-5 rounded-2xl flex items-center justify-between shadow-sm">
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-full bg-orange-50 text-brand-orange flex items-center justify-center text-sm border border-brand-orange/10">
@@ -155,7 +155,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="bg-slate-50 border border-gray-100 p-5 rounded-2xl flex items-center justify-between shadow-sm">
+                        <div id="inventory-value-card" class="bg-slate-50 border border-gray-100 p-5 rounded-2xl flex items-center justify-between shadow-sm">
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm border border-emerald-100">
                                     <i class="fa-solid fa-dollar-sign"></i>
@@ -176,7 +176,7 @@
                             </div>
                             
                             <!-- Botón de Modo de Valuación (Venta / Costo) -->
-                            <div class="flex bg-slate-100 p-1 rounded-xl border border-gray-200 shrink-0">
+                            <div id="valuation-mode-wrapper" class="flex bg-slate-100 p-1 rounded-xl border border-gray-200 shrink-0">
                                 <button type="button" id="btn-val-sale" class="px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition bg-white text-brand-black shadow-sm">
                                     💰 Venta
                                 </button>
@@ -193,7 +193,7 @@
                     
                     <div class="overflow-x-auto border border-gray-50 rounded-2xl">
                         <table class="w-full text-left table-fixed min-w-[800px]">
-                            <thead class="bg-gray-50 text-[9px] font-black uppercase text-gray-400 tracking-widest border-b border-gray-100">
+                            <thead id="inventory-thead" class="bg-gray-50 text-[9px] font-black uppercase text-gray-400 tracking-widest border-b border-gray-100">
                                 <tr>
                                     <th class="px-6 py-4 w-[35%]">Producto / Variante</th>
                                     <th class="px-6 py-4 w-[15%]">SKU</th>
