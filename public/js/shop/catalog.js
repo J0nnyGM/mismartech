@@ -51,6 +51,12 @@ function getColorHex(name) {
     return colorMap[name.toLowerCase()] || name; 
 }
 
+function getResizedImageUrl(url) {
+    if (!url || !url.includes('firebasestorage')) return url;
+    return url.replace(/(\.jpg|\.jpeg|\.png|\.webp)(\?alt=media)/i, '_200x200$1$2');
+}
+
+
 // --- 1. INICIALIZACIÓN ---
 document.addEventListener('DOMContentLoaded', async () => {
     // Inicializar SmartCache de Categorías/Marcas antes de pintar
@@ -417,7 +423,7 @@ function createProductCard(p, style = "normal", prefix = "grid") {
                 
                 <!-- Contenedor de la Imagen con fondo suave y zoom al hover -->
                 <div class="relative w-full h-48 md:h-56 mb-4 bg-slate-50/80 rounded-2xl flex items-center justify-center p-4 overflow-hidden group-hover:bg-brand-orange/5 transition-colors duration-500">
-                    <img src="${p.mainImage || p.image || 'https://placehold.co/200'}" class="max-h-full max-w-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-700" loading="lazy">
+                    <img src="${getResizedImageUrl(p.mainImage || p.image || 'https://placehold.co/200')}" class="max-h-full max-w-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-700" loading="lazy">
                 </div>
 
                 <!-- Detalles Centrados del Producto -->
@@ -453,7 +459,7 @@ function createProductCard(p, style = "normal", prefix = "grid") {
                 ${overlayHTML}
                 <div>
                     <div class="relative w-full h-32 mb-4 flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform duration-500">
-                        <img src="${p.mainImage || p.image || 'https://placehold.co/200'}" class="max-h-full max-w-full object-contain mix-blend-multiply" loading="lazy">
+                        <img src="${getResizedImageUrl(p.mainImage || p.image || 'https://placehold.co/200')}" class="max-h-full max-w-full object-contain mix-blend-multiply" loading="lazy">
                     </div>
                     <h3 class="text-sm font-bold text-gray-700 leading-snug mb-2 line-clamp-2 h-11 group-hover:text-brand-orange transition-colors" title="${p.name}">${p.name}</h3>
                 </div>
@@ -477,7 +483,7 @@ function createProductCard(p, style = "normal", prefix = "grid") {
             ${badge}
             ${overlayHTML}
             <div class="w-1/3 h-24 shrink-0 bg-gray-50 rounded-xl p-2 flex items-center justify-center group-hover:bg-brand-orange/5 transition-colors border border-gray-50 overflow-hidden">
-                <img src="${p.mainImage || p.image}" class="max-h-full max-w-full object-contain group-hover:scale-110 transition duration-500 mix-blend-multiply" loading="lazy">
+                <img src="${getResizedImageUrl(p.mainImage || p.image)}" class="max-h-full max-w-full object-contain group-hover:scale-110 transition duration-500 mix-blend-multiply" loading="lazy">
             </div>
             <div class="w-2/3 flex flex-col justify-center py-1 pr-1">
                 <p class="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-0.5">${p.category || 'Tienda'}</p>

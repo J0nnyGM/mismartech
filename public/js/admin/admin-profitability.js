@@ -149,6 +149,10 @@ function calculateGlobalFIFO() {
         const profit = totalRevenue - totalCOGS;
         const margin = totalRevenue > 0 ? (profit / totalRevenue) * 100 : 0;
 
+        const remainingStock = inventoryQueue.reduce((sum, item) => sum + item.qty, 0);
+        const nextBatchCost = inventoryQueue.length > 0 ? inventoryQueue[0].cost : lastKnownCost;
+        const nextBatchQty = inventoryQueue.length > 0 ? inventoryQueue[0].qty : 0;
+
         globalMetrics.push({
             product,
             totalQtySold,
@@ -156,7 +160,10 @@ function calculateGlobalFIFO() {
             totalCOGS,
             profit,
             margin,
-            timeline
+            timeline,
+            remainingStock,
+            nextBatchCost,
+            nextBatchQty
         });
     });
 
@@ -264,6 +271,26 @@ window.showSpecificProduct = (productId) => {
     document.getElementById('dash-cogs').textContent = `-${formatMoney(data.totalCOGS)}`;
     document.getElementById('dash-profit').textContent = formatMoney(data.profit);
     document.getElementById('dash-margin').textContent = `Margen: ${data.margin.toFixed(1)}%`;
+
+    // Nuevas métricas de Inventario FIFO
+    document.getElementById('dash-stock-qty').textContent = data.remainingStock;
+    const nextCost = data.nextBatchCost;
+    document.getElementById('dash-next-cost').textContent = data.remainingStock > 0 ? formatMoney(nextCost) : "Sin stock";
+    document.getElementById('dash-next-qty').textContent = data.remainingStock > 0 ? data.nextBatchQty : 0;
+
+    // Precio Web y Utilidad Esperada (Margen de la siguiente venta)
+    const webPrice = data.product.price || 0;
+    document.getElementById('dash-web-price').textContent = formatMoney(webPrice);
+    
+    if (data.remainingStock > 0) {
+        const expectedProfit = webPrice - nextCost;
+        const expectedMargin = webPrice > 0 ? (expectedProfit / webPrice) * 100 : 0;
+        document.getElementById('dash-expected-profit').textContent = formatMoney(expectedProfit);
+        document.getElementById('dash-expected-margin').textContent = `Margen: ${expectedMargin.toFixed(1)}%`;
+    } else {
+        document.getElementById('dash-expected-profit').textContent = "---";
+        document.getElementById('dash-expected-margin').textContent = "Sin stock";
+    }
 
     timelineBody.innerHTML = "";
     if (data.timeline.length === 0) {

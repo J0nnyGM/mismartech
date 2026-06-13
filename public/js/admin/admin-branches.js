@@ -452,8 +452,19 @@ document.getElementById('cierre-form').onsubmit = async (e) => {
             if (!accSnap.exists()) throw `La cuenta ${accountId} no existe`;
 
             const currentBalance = accSnap.data().balance || 0;
+
+            // 2. Obtener la cuenta destino si aplica (READ)
+            let destAccRef = null;
+            let destAccSnap = null;
+            let destCurrentBalance = 0;
+            if (transferDestId && surplus > 0) {
+                destAccRef = doc(db, "accounts", transferDestId);
+                destAccSnap = await t.get(destAccRef);
+                if (!destAccSnap.exists()) throw `La cuenta de destino no existe`;
+                destCurrentBalance = destAccSnap.data().balance || 0;
+            }
             
-            // 2. Guardar el Cierre
+            // 3. Guardar el Cierre (WRITE)
             const closingRef = doc(collection(db, "cash_closings"));
             t.set(closingRef, {
                 branchId,
@@ -473,7 +484,7 @@ document.getElementById('cierre-form').onsubmit = async (e) => {
                 notes
             });
 
-            // 3. Si hay diferencia, crear ajuste de caja
+            // 4. Si hay diferencia, crear ajuste de caja (WRITE)
             let balanceAfterAdjustment = currentBalance;
             if (diff !== 0) {
                 const isFaltante = diff < 0;
@@ -495,15 +506,9 @@ document.getElementById('cierre-form').onsubmit = async (e) => {
                 balanceAfterAdjustment = isFaltante ? (currentBalance - adjustmentAmount) : (currentBalance + adjustmentAmount);
             }
 
-            // 4. Si se seleccionó destino y excedente > 0, transferir excedente
+            // 5. Si se seleccionó destino y excedente > 0, transferir excedente (WRITE)
             let finalSourceBalance = balanceAfterAdjustment;
             if (transferDestId && surplus > 0) {
-                const destAccRef = doc(db, "accounts", transferDestId);
-                const destAccSnap = await t.get(destAccRef);
-                if (!destAccSnap.exists()) throw `La cuenta de destino no existe`;
-
-                const destCurrentBalance = destAccSnap.data().balance || 0;
-
                 // Restar excedente de la cuenta origen
                 finalSourceBalance = balanceAfterAdjustment - surplus;
                 
@@ -541,7 +546,7 @@ document.getElementById('cierre-form').onsubmit = async (e) => {
                 });
             }
 
-            // Actualizar la cuenta origen con su saldo final
+            // Actualizar la cuenta origen con su saldo final (WRITE)
             t.update(accRef, { balance: finalSourceBalance });
         });
 
