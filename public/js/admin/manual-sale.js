@@ -116,28 +116,45 @@ const MODAL_HTML = `
                 <div id="manual-items-container" class="space-y-3"></div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-                <div>
-                    <label class="text-[9px] font-black uppercase text-gray-400 tracking-widest mb-2 block ml-1">Método de Pago</label>
-                    <div class="relative">
-                        <select id="m-payment-account" class="w-full bg-slate-50 border border-gray-200 p-4 rounded-2xl text-sm font-bold outline-none focus:border-green-500 transition-all appearance-none cursor-pointer text-brand-black shadow-sm">
-                            <option value="credit">⏳ Cartera (Pendiente por Cobrar)</option>
-                        </select>
-                        <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-6 pt-6 border-t border-gray-100 items-start">
+                <!-- Métodos de Pago y Montos (4/5) -->
+                <div class="md:col-span-4 space-y-4">
+                    <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Métodos de Pago y Montos</label>
+                    <div id="m-pay-splits-container" class="space-y-3">
+                        <!-- Se insertan dinámicamente -->
                     </div>
+                    
+                    <!-- Resumen de Pagos Divididos -->
+                    <div id="m-pay-splits-summary" class="hidden p-4 rounded-2xl border flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 transition-all duration-300">
+                        <div class="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-brand-black">
+                            <i class="fa-solid fa-calculator text-brand-orange"></i>
+                            <span>Resumen de Pagos:</span>
+                        </div>
+                        <div class="flex flex-wrap gap-4 text-[10px] font-bold uppercase tracking-wider">
+                            <div>Suma: <span id="m-pay-split-sum" class="font-black text-brand-black"></span></div>
+                            <div>Restante: <span id="m-pay-split-remaining" class="font-black text-brand-orange"></span></div>
+                        </div>
+                    </div>
+
+                    <button type="button" id="btn-m-add-pay-split" class="w-full py-3.5 border-2 border-dashed border-gray-200 rounded-2xl font-black text-[10px] uppercase tracking-widest text-gray-400 hover:border-brand-orange hover:text-brand-orange hover:bg-orange-50/20 transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-circle-plus"></i> Agregar Método de Pago (Dividir Pago)
+                    </button>
                 </div>
-                
-                <div class="bg-brand-orange/5 border border-brand-orange/20 p-4 rounded-2xl flex items-center justify-between shadow-sm mt-[22px]">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-white text-brand-orange flex items-center justify-center text-sm shadow-sm border border-brand-orange/20">
+
+                <!-- Facturación Electrónica (1/5) -->
+                <div class="md:col-span-1 bg-brand-orange/5 border border-brand-orange/20 p-5 rounded-[2rem] flex flex-col justify-between shadow-sm min-h-[150px]">
+                    <div class="flex flex-col gap-2">
+                        <div class="w-9 h-9 rounded-full bg-white text-brand-orange flex items-center justify-center text-sm shadow-sm border border-brand-orange/15">
                             <i class="fa-solid fa-file-invoice"></i>
                         </div>
-                        <p class="text-[10px] font-black uppercase tracking-widest text-brand-black">¿Factura Electrónica?</p>
+                        <p class="text-[10px] font-black uppercase tracking-widest text-brand-black leading-tight mt-1">¿Factura Electrónica?</p>
                     </div>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" id="m-requires-invoice" class="sr-only peer">
-                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-orange"></div>
-                    </label>
+                    <div class="flex justify-end mt-4">
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="m-requires-invoice" class="sr-only peer">
+                            <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-orange"></div>
+                        </label>
+                    </div>
                 </div>
             </div>
         </div>
@@ -318,6 +335,7 @@ export async function openManualSaleModal() {
     document.getElementById('m-city-manual').value = "";
     document.getElementById('m-address-manual').value = "";
     container.innerHTML = "";
+    resetPaymentSplits();
 
     await Promise.all([
         loadPaymentAccounts(), 
@@ -337,6 +355,10 @@ function setupEventListeners() {
     document.getElementById('btn-add-item-row').onclick = addManualItemRow;
     document.getElementById('btn-save-manual').onclick = saveOrder;
     document.getElementById('m-apply-4x1000').addEventListener('change', calculateManualTotal); // Evento 4x1000
+    document.getElementById('btn-m-add-pay-split').onclick = () => {
+        const remaining = getManualRemainingBalance();
+        addManualPaySplitRow(remaining);
+    };
 
     setupCustomerSearch();
 
@@ -709,6 +731,16 @@ function calculateManualTotal() {
     } else {
         display.textContent = formatCurrency(total);
     }
+
+    // Auto-update amount of the single payment split row to match total if there is only 1 row
+    const splitRows = document.querySelectorAll('.m-pay-split-row');
+    if (splitRows.length === 1) {
+        const input = splitRows[0].querySelector('.m-pay-split-amount');
+        if (input) {
+            input.value = formatCurrency(total);
+        }
+    }
+    recalculateManualPaySplits();
 }
 
 async function setupCustomerSearch() {
@@ -808,23 +840,177 @@ async function setupCustomerSearch() {
     });
 }
 
+let manualAccountsList = [];
 function loadPaymentAccounts() {
-    const sel = document.getElementById('m-payment-account');
-    if (!sel) return;
-    const activeBranchId = sessionStorage.getItem('activeBranchId') || 'bodega';
-    
     if (window._manualAccountsSubscribed) return;
     window._manualAccountsSubscribed = true;
 
     AdminStore.subscribeToAccounts((accs) => {
-        sel.innerHTML = `<option value="credit">⏳ Cartera (Pendiente de Cobro)</option>`;
-        accs.forEach(acc => {
-            const accBranchId = acc.branchId || 'ALL';
-            if (accBranchId === 'ALL' || accBranchId === activeBranchId) {
-                sel.innerHTML += `<option value="${acc.id}">🏦 ${acc.name}</option>`;
-            }
-        });
+        manualAccountsList = accs;
+        
+        // Repintar el primer split row para que tenga las cuentas cargadas
+        const splitsContainer = document.getElementById('m-pay-splits-container');
+        if (splitsContainer && splitsContainer.children.length === 0) {
+            resetPaymentSplits();
+        } else if (splitsContainer) {
+            // Si ya hay filas, actualizar los selectores de cuentas existentes
+            document.querySelectorAll('.m-pay-split-row').forEach(row => {
+                const select = row.querySelector('.m-pay-split-account');
+                if (select) {
+                    const currentVal = select.value;
+                    const activeBranchId = sessionStorage.getItem('activeBranchId') || 'bodega';
+                    let optionsHtml = '<option value="credit">⏳ Cartera (Pendiente de Cobro)</option>';
+                    manualAccountsList.forEach(acc => {
+                        const accBranchId = acc.branchId || 'ALL';
+                        if (accBranchId === 'ALL' || accBranchId === activeBranchId) {
+                            optionsHtml += `<option value="${acc.id}">🏦 ${acc.name}</option>`;
+                        }
+                    });
+                    select.innerHTML = optionsHtml;
+                    select.value = currentVal || 'credit';
+                }
+            });
+        }
     });
+}
+
+function resetPaymentSplits() {
+    const container = document.getElementById('m-pay-splits-container');
+    if (container) container.innerHTML = '';
+    addManualPaySplitRow(0);
+}
+
+function getManualSaleTotal() {
+    let subtotal = 0;
+    document.querySelectorAll('.item-row-container').forEach(row => {
+        const price = parseCurrency(row.querySelector('.p-price-display').value);
+        const qty = parseInt(row.querySelector('.p-qty').value) || 0;
+        subtotal += price * qty;
+    });
+    
+    const shipping = parseCurrency(document.getElementById('m-shipping-cost').value);
+    let baseTotal = subtotal + shipping;
+    
+    let tax4x1000 = 0;
+    const apply4x1000 = document.getElementById('m-apply-4x1000').checked;
+    if (apply4x1000) {
+        tax4x1000 = Math.round(baseTotal * 0.004);
+    }
+    
+    return baseTotal + tax4x1000;
+}
+
+function getManualRemainingBalance() {
+    const total = getManualSaleTotal();
+    let splitTotal = 0;
+    document.querySelectorAll('.m-pay-split-row').forEach(row => {
+        const val = parseCurrency(row.querySelector('.m-pay-split-amount').value);
+        splitTotal += val;
+    });
+    return Math.max(0, total - splitTotal);
+}
+
+function addManualPaySplitRow(defaultAmount = 0) {
+    const container = document.getElementById('m-pay-splits-container');
+    if (!container) return;
+
+    const row = document.createElement('div');
+    row.className = "m-pay-split-row flex gap-3 items-center w-full animate-in fade-in slide-in-from-top-1 duration-200";
+
+    const activeBranchId = sessionStorage.getItem('activeBranchId') || 'bodega';
+    
+    let optionsHtml = '<option value="credit">⏳ Cartera (Pendiente de Cobro)</option>';
+    manualAccountsList.forEach(acc => {
+        const accBranchId = acc.branchId || 'ALL';
+        if (accBranchId === 'ALL' || accBranchId === activeBranchId) {
+            optionsHtml += `<option value="${acc.id}">🏦 ${acc.name}</option>`;
+        }
+    });
+
+    row.innerHTML = `
+        <div class="relative flex-1">
+            <select class="m-pay-split-account w-full h-11 bg-slate-50 border border-gray-100 px-4 rounded-xl text-xs font-bold outline-none focus:border-brand-orange appearance-none cursor-pointer text-brand-black shadow-sm">
+                ${optionsHtml}
+            </select>
+            <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+        </div>
+        <div class="relative w-48 sm:w-56 shrink-0">
+            <input type="text" class="m-pay-split-amount w-full h-11 bg-slate-50 border border-gray-100 px-4 rounded-xl text-xs font-black text-right outline-none focus:border-brand-orange text-brand-black shadow-sm" placeholder="$ 0" value="${defaultAmount > 0 ? '$ ' + defaultAmount.toLocaleString('es-CO') : ''}">
+        </div>
+        <button type="button" class="btn-m-remove-pay-split w-11 h-11 rounded-xl bg-red-50 hover:bg-red-100 text-red-500 transition flex items-center justify-center border border-red-100 shrink-0 shadow-sm">
+            <i class="fa-solid fa-trash-can"></i>
+        </button>
+    `;
+
+    container.appendChild(row);
+
+    const amountInput = row.querySelector('.m-pay-split-amount');
+    amountInput.addEventListener('input', (e) => {
+        let val = parseCurrency(e.target.value);
+        e.target.value = val ? "$ " + val.toLocaleString('es-CO') : "";
+        recalculateManualPaySplits();
+    });
+    amountInput.addEventListener('focus', (e) => e.target.select());
+
+    const removeBtn = row.querySelector('.btn-m-remove-pay-split');
+    removeBtn.addEventListener('click', () => {
+        if (document.querySelectorAll('.m-pay-split-row').length > 1) {
+            row.remove();
+            recalculateManualPaySplits();
+        } else {
+            alert("Debe haber al menos un método de pago.");
+        }
+    });
+
+    recalculateManualPaySplits();
+}
+
+function recalculateManualPaySplits() {
+    const total = getManualSaleTotal();
+    let splitTotal = 0;
+    
+    document.querySelectorAll('.m-pay-split-row').forEach(row => {
+        const val = parseCurrency(row.querySelector('.m-pay-split-amount').value);
+        splitTotal += val;
+    });
+
+    const summaryEl = document.getElementById('m-pay-splits-summary');
+    const sumEl = document.getElementById('m-pay-split-sum');
+    const remainingEl = document.getElementById('m-pay-split-remaining');
+    const splitRows = document.querySelectorAll('.m-pay-split-row');
+
+    if (!summaryEl || !sumEl || !remainingEl) return;
+
+    if (splitRows.length > 1) {
+        summaryEl.classList.remove('hidden');
+        sumEl.textContent = formatCurrency(splitTotal);
+
+        const diff = total - splitTotal;
+        
+        // Reset classes
+        summaryEl.className = "p-4 rounded-2xl border flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 transition-all duration-300";
+        sumEl.className = "font-black";
+        remainingEl.className = "font-black";
+
+        if (diff === 0) {
+            summaryEl.classList.add('bg-emerald-50/40', 'border-emerald-200/60', 'text-emerald-700');
+            sumEl.classList.add('text-emerald-800');
+            remainingEl.textContent = "✓ PAGO COMPLETO";
+            remainingEl.className = "font-black text-emerald-800";
+        } else if (diff > 0) {
+            summaryEl.classList.add('bg-amber-50/40', 'border-amber-200/60', 'text-amber-700');
+            sumEl.classList.add('text-amber-800');
+            remainingEl.textContent = `FALTAN ${formatCurrency(diff)}`;
+            remainingEl.className = "font-black text-brand-orange";
+        } else {
+            summaryEl.classList.add('bg-rose-50/40', 'border-rose-200/60', 'text-rose-700');
+            sumEl.classList.add('text-rose-800');
+            remainingEl.textContent = `SOBRAN ${formatCurrency(Math.abs(diff))}`;
+            remainingEl.className = "font-black text-rose-800";
+        }
+    } else {
+        summaryEl.classList.add('hidden');
+    }
 }
 
 async function loadManualDepartments() {
@@ -959,32 +1145,93 @@ async function saveOrder() {
         }
         
         const total = baseTotal + tax4x1000;
-        const accountId = document.getElementById('m-payment-account').value;
-
         if (total <= 0) throw new Error("El total de la venta no puede ser cero.");
+
+        // Validar splits de pago
+        const splits = [];
+        let splitTotal = 0;
+        let totalPaid = 0;
+        let hasCredit = false;
+
+        document.querySelectorAll('.m-pay-split-row').forEach(row => {
+            const accId = row.querySelector('.m-pay-split-account').value;
+            const amount = parseCurrency(row.querySelector('.m-pay-split-amount').value);
+            if (amount > 0) {
+                splits.push({ accountId: accId, amount });
+                splitTotal += amount;
+                if (accId === 'credit') {
+                    hasCredit = true;
+                } else {
+                    totalPaid += amount;
+                }
+            }
+        });
+
+        if (splitTotal !== total) {
+            throw new Error(`🚨 La suma de los métodos de pago (${formatCurrency(splitTotal)}) no coincide con el total de la venta (${formatCurrency(total)}).`);
+        }
 
         let paymentStatus = 'PENDING';
         let paymentMethodName = 'Crédito / Cartera';
         let amountPaid = 0;
 
-        if (accountId !== 'credit') {
-             await runTransaction(db, async (t) => {
-                 const ref = doc(db, "accounts", accountId);
-                 const d = await t.get(ref);
-                 if(!d.exists()) throw new Error("La cuenta seleccionada ya no existe.");
-                 t.update(ref, { balance: (d.data().balance || 0) + total });
-                 paymentMethodName = d.data().name;
-             });
-             await addDoc(collection(db, "expenses"), { amount: total, category: "Ingreso Ventas Manual", description: `Cobro Inmediato - Venta a ${custName || 'Cliente'}`, paymentMethod: paymentMethodName, supplierName: custName || "Cliente Directo", date: new Date(), createdAt: new Date(), type: 'INCOME' });
-             paymentStatus = 'PAID'; amountPaid = total;
-         }
+        const nonCreditSplits = splits.filter(s => s.accountId !== 'credit');
+        const paymentSplitsField = splits.map(s => {
+            const accName = s.accountId === 'credit' ? 'Cartera (Pendiente de Cobro)' : (manualAccountsList.find(a => a.id === s.accountId)?.name || 'Desconocido');
+            return {
+                accountId: s.accountId === 'credit' ? null : s.accountId,
+                accountName: accName,
+                amount: s.amount
+            };
+        });
+
+        if (nonCreditSplits.length > 0) {
+            await runTransaction(db, async (t) => {
+                const accountData = [];
+                for (const split of nonCreditSplits) {
+                    const ref = doc(db, "accounts", split.accountId);
+                    const snap = await t.get(ref);
+                    if (!snap.exists()) throw new Error(`La cuenta seleccionada ya no existe.`);
+                    accountData.push({ ref, snap, split });
+                }
+
+                for (const ad of accountData) {
+                    const currentBalance = ad.snap.data().balance || 0;
+                    t.update(ad.ref, { balance: currentBalance + ad.split.amount });
+                }
+            });
+
+            for (const split of nonCreditSplits) {
+                const accName = manualAccountsList.find(a => a.id === split.accountId)?.name || 'Cuenta Desconocida';
+                await addDoc(collection(db, "expenses"), {
+                    amount: split.amount,
+                    category: "Ingreso Ventas Manual",
+                    description: `Cobro Inmediato (Dividido) - Venta a ${custName || 'Cliente'}`,
+                    paymentMethod: accName,
+                    supplierName: custName || "Cliente Directo",
+                    date: new Date(),
+                    createdAt: new Date(),
+                    type: 'INCOME'
+                });
+            }
+
+            amountPaid = totalPaid;
+            if (hasCredit) {
+                paymentStatus = 'PARTIAL';
+                paymentMethodName = 'Múltiples Cuentas';
+            } else {
+                paymentStatus = 'PAID';
+                paymentMethodName = nonCreditSplits.length > 1 ? 'Múltiples Cuentas' : manualAccountsList.find(a => a.id === nonCreditSplits[0].accountId)?.name || 'Efectivo';
+            }
+        }
 
         const orderData = {
             userId: finalUserId, userName: custName, phone: custPhone, clientDoc: custDoc, 
             items, 
             subtotal, shippingCost, tax4x1000, total, // 🔥 SE GUARDA EL 4x1000
             status: 'PENDIENTE', source: 'MANUAL', requiresInvoice: document.getElementById('m-requires-invoice').checked,
-            paymentStatus, amountPaid, paymentAccountId: accountId === 'credit' ? null : accountId, paymentMethodName,
+            paymentStatus, amountPaid, paymentAccountId: nonCreditSplits.length > 0 ? nonCreditSplits[0].accountId : null, paymentMethodName,
+            paymentSplits: paymentSplitsField,
             createdAt: new Date(), updatedAt: new Date(), shippingData, buyerInfo: { name: custName, email: emailVal || "", phone: custPhone, document: custDoc },
             branchId: activeBranchId,
             branchName: activeBranchName

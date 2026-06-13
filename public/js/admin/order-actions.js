@@ -344,6 +344,7 @@ async function cancelManualOrder(order) {
                     // Cargar todas las cuentas del split primero
                     const accountsToUpdate = [];
                     for (const split of oData.paymentSplits) {
+                        if (!split.accountId) continue; // Ignorar Cartera / Crédito
                         const accRef = doc(db, "accounts", split.accountId);
                         const accSnap = await t.get(accRef);
                         if (!accSnap.exists()) {
