@@ -285,7 +285,9 @@ async function setupBranchSelectorInSidebar() {
             const selectEl = document.getElementById('sidebar-branch-select');
             if (selectEl) {
                 selectEl.onchange = (e) => {
+                    const selectedOptionText = selectEl.options[selectEl.selectedIndex].text;
                     sessionStorage.setItem('activeBranchId', e.target.value);
+                    sessionStorage.setItem('activeBranchName', selectedOptionText);
                     window.location.reload();
                 };
             }
@@ -307,15 +309,19 @@ async function setupBranchSelectorInSidebar() {
             const nameEl = document.getElementById('locked-branch-name');
             if (nameEl) {
                 if (docSnap.exists()) {
-                    nameEl.innerText = docSnap.data().name || assignedBranchId;
+                    const bName = docSnap.data().name || assignedBranchId;
+                    nameEl.innerText = bName;
+                    sessionStorage.setItem('activeBranchName', bName);
                 } else {
                     nameEl.innerText = assignedBranchId;
+                    sessionStorage.setItem('activeBranchName', assignedBranchId === 'bodega' ? 'Sede Principal' : assignedBranchId);
                 }
             }
         } catch (err) {
             console.error("Error fetching locked branch name:", err);
             const nameEl = document.getElementById('locked-branch-name');
             if (nameEl) nameEl.innerText = assignedBranchId;
+            sessionStorage.setItem('activeBranchName', assignedBranchId === 'bodega' ? 'Sede Principal' : assignedBranchId);
         }
     }
 }

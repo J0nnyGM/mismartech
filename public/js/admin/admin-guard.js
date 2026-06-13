@@ -50,6 +50,20 @@ onAuthStateChanged(auth, async (user) => {
                 }
             }
 
+            // Sincronizar activeBranchName en sessionStorage
+            const activeBranchId = sessionStorage.getItem('activeBranchId') || 'bodega';
+            try {
+                const brSnap = await getDoc(doc(db, "branches", activeBranchId));
+                if (brSnap.exists()) {
+                    sessionStorage.setItem('activeBranchName', brSnap.data().name);
+                } else {
+                    sessionStorage.setItem('activeBranchName', activeBranchId === 'bodega' ? 'Sede Principal' : activeBranchId);
+                }
+            } catch (err) {
+                console.error("Error syncing activeBranchName in guard:", err);
+                sessionStorage.setItem('activeBranchName', activeBranchId === 'bodega' ? 'Sede Principal' : activeBranchId);
+            }
+
             // 2. Definir permisos de rutas por rol
             const path = window.location.pathname.split('/').pop() || 'index.html';
             

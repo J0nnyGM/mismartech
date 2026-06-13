@@ -287,7 +287,7 @@
         <div class="relative bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl text-center">
             <h3 class="text-xl font-black text-brand-black uppercase mb-6">Confirmar Envío</h3>
             <div class="space-y-4 mb-8 text-left">
-                <select id="dispatch-carrier" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-3 text-sm font-bold outline-none text-brand-black"><option value="">Transportadora...</option><option value="Servientrega">Servientrega</option><option value="Interrapidisimo">Interrapidísimo</option><option value="Envía">Envía</option><option value="Coordinadora">Coordinadora</option><option value="DespachoBogota">Despacho</option></select>
+                <select id="dispatch-carrier" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-3 text-sm font-bold outline-none text-brand-black"><option value="">Transportadora...</option><option value="Servientrega">Servientrega</option><option value="Interrapidisimo">Interrapidísimo</option><option value="Envía">Envía</option><option value="Coordinadora">Coordinadora</option><option value="DESPACHO">DESPACHO</option></select>
                 <input type="text" id="dispatch-tracking" placeholder="Número de Guía" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-3 text-sm font-mono font-bold outline-none text-brand-black">
             </div>
             <button id="btn-confirm-dispatch" onclick="window.confirmDispatch(() => window.location.reload())" class="w-full bg-green-500 text-white font-black py-4 rounded-xl shadow-lg uppercase text-xs tracking-widest hover:bg-green-600 transition">Confirmar y Enviar</button>
@@ -358,6 +358,16 @@
 
         document.getElementById('btn-open-manual').onclick = openManualSaleModal;
         
+        // Cargar sedes para resolver nombres de venta manual
+        let branchesMap = {};
+        getDocs(collection(db, "branches")).then(branchesSnap => {
+            branchesSnap.forEach(d => {
+                branchesMap[d.id] = d.data().name;
+            });
+        }).catch(err => {
+            console.error("Error cargando sedes para canales:", err);
+        });
+
         // Listeners Globales
         let unsubscribeOrdersTable = null;
         let unsubscribeChats = null;
@@ -543,6 +553,15 @@
         function renderRow(o) {
             const tableBody = document.getElementById('orders-table-body');
             const isTienda = o.source === 'TIENDA' || o.source === 'TIENDA_WEB';
+            let channelText = 'MANUAL';
+            if (isTienda) {
+                channelText = 'WEB';
+            } else if (o.branchId && branchesMap[o.branchId]) {
+                channelText = branchesMap[o.branchId];
+            } else if (o.branchName) {
+                channelText = o.branchName;
+            }
+            channelText = channelText.toUpperCase();
             let sClass = 'bg-gray-100 text-gray-500 border-gray-200', sText = o.status;
             
             if (o.status === 'PENDIENTE') { sClass = 'bg-yellow-100 text-yellow-700 border-yellow-200'; sText = 'Por Atender'; }
@@ -589,7 +608,7 @@
                         <div class="text-[9px] text-gray-500 font-bold">${o.buyerInfo?.phone || o.phone || ''}</div>
                     </td>
                     <td class="px-8 py-6 text-center">
-                        <span class="text-[8px] font-black px-2 py-0.5 rounded shadow-sm ${isTienda ? 'bg-brand-orange text-brand-black' : 'bg-brand-black text-white'}">${isTienda ? 'WEB' : 'MANUAL'}</span>
+                        <span class="text-[8px] font-black px-2 py-0.5 rounded shadow-sm ${isTienda ? 'bg-brand-orange text-brand-black' : 'bg-brand-black text-white'}">${channelText}</span>
                     </td>
                     <td class="px-8 py-6 text-center">${pBadge}</td>
                     <td class="px-8 py-6 text-center">
