@@ -2,12 +2,16 @@
 import { db, collection, addDoc, doc, getDocs, getDoc, updateDoc, setDoc, query, orderBy, where, runTransaction, auth } from '../firebase-init.js';
 import { loadAdminSidebar } from './admin-ui.js';
 import { adjustStock } from './inventory-core.js';
+import { AdminStore } from './admin-store.js'; // 🔥 IMPORTAMOS EL CEREBRO CENTRAL
 
 // --- ESTADO LOCAL ---
 let branchesList = [];
 let accountsList = [];
 let cachedProducts = [];
+let cachedPurchases = [];
+let cachedOrders = [];
 let currentTab = 'branches';
+let currentValuationMode = 'sale'; // 'sale' o 'cost'
 
 const tabs = {
     branches: { btn: document.getElementById('tab-branches'), sec: document.getElementById('sec-branches'), act: document.getElementById('btn-new-branch') },
@@ -934,6 +938,50 @@ window.resolveTransfer = async (transferId, status) => {
 // ==========================================================================
 // 4. INVENTARIO DE SEDE
 // ==========================================================================
+function updateValuationButtonsUI() {
+    const btnSale = document.getElementById('btn-val-sale');
+    const btnCost = document.getElementById('btn-val-cost');
+    if (!btnSale || !btnCost) return;
+
+    // La opción de costos está deshabilitada temporalmente, por lo que Venta se muestra activo
+    btnSale.className = "px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition bg-white text-brand-black shadow-sm";
+    btnCost.className = "px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition text-gray-300 opacity-40 cursor-not-allowed";
+}
+
+function updateValuationLabels() {
+    const lblCard = document.getElementById('lbl-val-card-title');
+    const thUnit = document.getElementById('th-val-unit');
+    const thTotal = document.getElementById('th-val-total');
+
+    const suffix = currentValuationMode === 'sale' ? '(Venta)' : '(Costo)';
+    
+    if (lblCard) lblCard.textContent = `Valor Total Inventario Sede ${suffix}`;
+    if (thUnit) thUnit.textContent = `Valor Unitario ${suffix}`;
+    if (thTotal) thTotal.textContent = `Valor Total Sede ${suffix}`;
+}
+
+let isInventoryInitialized = false;
+
+function initInventorySubscriptions() {
+    if (isInventoryInitialized) return;
+    isInventoryInitialized = true;
+
+    AdminStore.subscribeToProducts((products) => {
+        cachedProducts = products;
+        if (currentTab === 'inventory') renderInventoryRows();
+    });
+
+    AdminStore.subscribeToPurchases((purchases) => {
+        cachedPurchases = purchases;
+        if (currentTab === 'inventory') renderInventoryRows();
+    });
+
+    AdminStore.subscribeToOrders((orders) => {
+        cachedOrders = orders;
+        if (currentTab === 'inventory') renderInventoryRows();
+    });
+}
+
 async function loadInventoryTab() {
     const activeBranchId = sessionStorage.getItem('activeBranchId');
     if (!activeBranchId) {
@@ -947,27 +995,142 @@ async function loadInventoryTab() {
     document.getElementById('inventory-branch-title').innerText = branchName;
 
     const tbody = document.getElementById('inventory-table-body');
-    tbody.innerHTML = `<tr><td colspan="4" class="p-10 text-center"><i class="fa-solid fa-circle-notch fa-spin text-brand-orange text-2xl"></i> Cargando inventario de la sede...</td></tr>`;
 
-    try {
-        // Cargar productos de Firestore de forma fresca
-        const snap = await getDocs(collection(db, "products"));
-        cachedProducts = [];
-        snap.forEach(d => {
-            cachedProducts.push({ id: d.id, ...d.data() });
-        });
+    // Inicializar suscripciones de forma reactiva (0 lecturas duplicadas)
+    initInventorySubscriptions();
 
+    // Renderizar de inmediato si hay datos, o mostrar spinner
+    if (cachedProducts.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center"><i class="fa-solid fa-circle-notch fa-spin text-brand-orange text-2xl"></i> Sincronizando inventario en tiempo real...</td></tr>`;
+    } else {
         renderInventoryRows();
-
-        // Configurar buscador
-        const searchInput = document.getElementById('inventory-search');
-        searchInput.oninput = () => {
-            renderInventoryRows();
-        };
-    } catch (e) {
-        console.error("Error loading inventory tab:", e);
-        tbody.innerHTML = `<tr><td colspan="4" class="p-10 text-center text-red-500 font-bold">Error al cargar inventario: ${e.message}</td></tr>`;
     }
+
+    // Configurar botones de valuación
+    const btnSale = document.getElementById('btn-val-sale');
+    const btnCost = document.getElementById('btn-val-cost');
+    
+    currentValuationMode = 'sale'; // Forzar modo Venta siempre
+
+    if (btnSale) {
+        btnSale.onclick = () => {
+            if (currentValuationMode !== 'sale') {
+                currentValuationMode = 'sale';
+                updateValuationButtonsUI();
+                updateValuationLabels();
+                renderInventoryRows();
+            }
+        };
+    }
+    if (btnCost) {
+        btnCost.onclick = () => {
+            showToast("La valuación a precio de costo está deshabilitada temporalmente.");
+        };
+    }
+
+    // Asegurar que la UI refleje el modo actual antes de renderizar
+    updateValuationButtonsUI();
+    updateValuationLabels();
+
+    // Configurar buscador
+    const searchInput = document.getElementById('inventory-search');
+    searchInput.oninput = () => {
+        renderInventoryRows();
+    };
+}
+
+function getFIFOQueue(productId, color = null, capacity = null) {
+    let timeline = [];
+
+    cachedPurchases.forEach(p => {
+        if (p.items) {
+            p.items.forEach(item => {
+                const matchId = item.id === productId;
+                const matchColor = color ? (item.color === color) : (!item.color);
+                const matchCapacity = capacity ? (item.capacity === capacity) : (!item.capacity);
+                
+                if (matchId && matchColor && matchCapacity) {
+                    timeline.push({
+                        type: 'IN',
+                        date: p.createdAt?.toDate ? p.createdAt.toDate() : new Date(p.createdAt),
+                        qty: parseInt(item.quantity) || 0,
+                        unitCost: parseFloat(item.unitCostBase) || 0
+                    });
+                }
+            });
+        }
+    });
+
+    cachedOrders.forEach(o => {
+        if (['CANCELADO', 'RECHAZADO', 'DEVUELTO'].includes(o.status)) return;
+        if (o.items) {
+            o.items.forEach(item => {
+                const matchId = item.id === productId;
+                const matchColor = color ? (item.color === color) : (!item.color);
+                const matchCapacity = capacity ? (item.capacity === capacity) : (!item.capacity);
+                
+                if (matchId && matchColor && matchCapacity) {
+                    timeline.push({
+                        type: 'OUT',
+                        date: o.createdAt?.toDate ? o.createdAt.toDate() : new Date(o.createdAt),
+                        qty: parseInt(item.quantity) || 0
+                    });
+                }
+            });
+        }
+    });
+
+    // Ordenar cronológicamente
+    timeline.sort((a, b) => a.date - b.date);
+
+    let queue = [];
+    let lastKnownCost = 0;
+
+    timeline.forEach(event => {
+        if (event.type === 'IN') {
+            queue.push({ qty: event.qty, cost: event.unitCost });
+            if (event.unitCost > 0) lastKnownCost = event.unitCost;
+        } else if (event.type === 'OUT') {
+            let qtyToFulfill = event.qty;
+            while (qtyToFulfill > 0 && queue.length > 0) {
+                let batch = queue[0];
+                if (batch.qty <= qtyToFulfill) {
+                    qtyToFulfill -= batch.qty;
+                    queue.shift();
+                } else {
+                    batch.qty -= qtyToFulfill;
+                    qtyToFulfill = 0;
+                }
+            }
+        }
+    });
+
+    return { queue, lastKnownCost };
+}
+
+function calculateValuationFromQueue(queue, quantity, fallbackCost) {
+    let remaining = quantity;
+    let totalValue = 0;
+    
+    // Copiar la cola para evitar mutar el estado
+    let tempQueue = queue.map(b => ({ ...b }));
+
+    for (let i = 0; i < tempQueue.length && remaining > 0; i++) {
+        let batch = tempQueue[i];
+        if (batch.qty <= remaining) {
+            totalValue += batch.qty * batch.cost;
+            remaining -= batch.qty;
+        } else {
+            totalValue += remaining * batch.cost;
+            remaining = 0;
+        }
+    }
+
+    if (remaining > 0) {
+        totalValue += remaining * fallbackCost;
+    }
+
+    return totalValue;
 }
 
 function renderInventoryRows() {
@@ -992,12 +1155,27 @@ function renderInventoryRows() {
                     const totalStock = parseInt(combo.stock) || 0;
                     const bodegaStock = Math.max(0, totalStock - activeStock);
 
+                    let price = 0;
+                    let totalValue = 0;
+                    if (currentValuationMode === 'sale') {
+                        price = parseFloat(combo.price || p.price || 0) || 0;
+                        totalValue = activeStock * price;
+                    } else {
+                        const { queue, lastKnownCost } = getFIFOQueue(p.id, combo.color, combo.capacity);
+                        const fallbackCost = lastKnownCost || parseFloat(p.lastPurchaseCost || 0) || 0;
+                        totalValue = calculateValuationFromQueue(queue, activeStock, fallbackCost);
+                        price = activeStock > 0 ? (totalValue / activeStock) : fallbackCost;
+                    }
+
                     itemsToRender.push({
                         name: p.name,
                         variant: variantLabel,
                         sku: sku,
                         activeStock: activeStock,
-                        bodegaStock: bodegaStock
+                        bodegaStock: bodegaStock,
+                        category: p.category || 'Sin Categoría',
+                        price: price,
+                        totalValue: totalValue
                     });
                 }
             });
@@ -1010,53 +1188,159 @@ function renderInventoryRows() {
                 const totalStock = parseInt(p.stock) || 0;
                 const bodegaStock = Math.max(0, totalStock - activeStock);
 
+                let price = 0;
+                let totalValue = 0;
+                if (currentValuationMode === 'sale') {
+                    price = parseFloat(p.price || 0) || 0;
+                    totalValue = activeStock * price;
+                } else {
+                    const { queue, lastKnownCost } = getFIFOQueue(p.id, null, null);
+                    const fallbackCost = lastKnownCost || parseFloat(p.lastPurchaseCost || 0) || 0;
+                    totalValue = calculateValuationFromQueue(queue, activeStock, fallbackCost);
+                    price = activeStock > 0 ? (totalValue / activeStock) : fallbackCost;
+                }
+
                 itemsToRender.push({
                     name: p.name,
                     variant: null,
                     sku: sku,
                     activeStock: activeStock,
-                    bodegaStock: bodegaStock
+                    bodegaStock: bodegaStock,
+                    category: p.category || 'Sin Categoría',
+                    price: price,
+                    totalValue: totalValue
                 });
             }
         }
     });
 
+    // 1. Calcular Consolidados de la Sede
+    let grandTotalUnits = 0;
+    let grandTotalValue = 0;
+
+    itemsToRender.forEach(item => {
+        grandTotalUnits += item.activeStock;
+        grandTotalValue += item.totalValue;
+    });
+
+    const totalQtyEl = document.getElementById('inventory-total-qty');
+    const totalValEl = document.getElementById('inventory-total-value');
+    if (totalQtyEl) totalQtyEl.textContent = `${grandTotalUnits.toLocaleString('es-CO')} unds`;
+    if (totalValEl) totalValEl.textContent = `$ ${grandTotalValue.toLocaleString('es-CO')}`;
+
     if (itemsToRender.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" class="p-10 text-center text-gray-400 uppercase font-bold text-xs">No se encontraron productos en el inventario.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-gray-400 uppercase font-bold text-xs">No se encontraron productos en el inventario.</td></tr>`;
         return;
     }
 
+    // 2. Agrupar por Categoría
+    const groupedByCategory = {};
     itemsToRender.forEach(item => {
-        const tr = document.createElement('tr');
-        tr.className = "hover:bg-slate-50 transition border-b border-gray-50 last:border-0";
+        const cat = item.category;
+        if (!groupedByCategory[cat]) {
+            groupedByCategory[cat] = [];
+        }
+        groupedByCategory[cat].push(item);
+    });
+
+    // 3. Ordenar Categorías (Alfabético, "Sin Categoría" al final)
+    const sortedCategories = Object.keys(groupedByCategory).sort((a, b) => {
+        const aLower = a.toLowerCase();
+        const bLower = b.toLowerCase();
+        if (aLower === 'sin categoría' || aLower === 'sin categoria') return 1;
+        if (bLower === 'sin categoría' || bLower === 'sin categoria') return -1;
+        return a.localeCompare(b);
+    });
+
+    // 4. Renderizar Filas Agrupadas
+    sortedCategories.forEach(cat => {
+        const catItems = groupedByCategory[cat];
         
-        const activeStockClass = item.activeStock > 0 ? "text-green-600 bg-green-50 border-green-100" : "text-red-500 bg-red-50 border-red-100";
-        const bodegaStockClass = item.bodegaStock > 0 ? "text-blue-600 bg-blue-50 border-blue-100" : "text-gray-400 bg-gray-50 border-gray-100";
+        let catUnits = 0;
+        let catValue = 0;
+        catItems.forEach(item => {
+            catUnits += item.activeStock;
+            catValue += item.totalValue;
+        });
 
-        const variantBadge = item.variant 
-            ? `<span class="text-[9px] bg-brand-orange/15 text-brand-orange border border-brand-orange/20 px-2 py-0.5 rounded font-black tracking-wider uppercase">${item.variant}</span>` 
-            : '';
+        // Crear una clase segura para los productos de esta categoría
+        const safeCatClass = `cat-rows-${cat.replace(/[^a-z0-9]/gi, '_')}`;
 
-        tr.innerHTML = `
-            <td class="px-6 py-4">
-                <div class="flex flex-col gap-1">
-                    <span class="font-black text-xs text-brand-black uppercase">${item.name}</span>
-                    <div class="flex items-center gap-2">${variantBadge}</div>
+        // Fila de Encabezado de Categoría
+        const catTr = document.createElement('tr');
+        catTr.className = "bg-slate-100/60 font-black text-[10px] text-brand-black border-y border-gray-200/80 cursor-pointer select-none hover:bg-slate-200/50 transition-colors";
+        catTr.innerHTML = `
+            <td class="px-6 py-3 uppercase tracking-wider font-black text-brand-black">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-chevron-right text-brand-orange text-[9px] transition-transform duration-200 mr-1 cat-arrow"></i>
+                    <i class="fa-solid fa-folder text-brand-orange text-xs"></i>
+                    <span>Categoría: ${cat}</span>
                 </div>
             </td>
-            <td class="px-6 py-4 font-mono font-bold text-xs text-gray-400 uppercase">${item.sku}</td>
-            <td class="px-6 py-4 text-center">
-                <span class="px-3 py-1.5 rounded-xl border text-xs font-black min-w-[3rem] inline-block ${activeStockClass}">
-                    ${item.activeStock}
-                </span>
-            </td>
-            <td class="px-6 py-4 text-center">
-                <span class="px-3 py-1.5 rounded-xl border text-xs font-black min-w-[3rem] inline-block ${bodegaStockClass}">
-                    ${item.bodegaStock}
-                </span>
-            </td>
+            <td class="px-6 py-3"></td>
+            <td class="px-6 py-3 text-center text-brand-orange font-black">${catUnits} unds</td>
+            <td class="px-6 py-3"></td>
+            <td class="px-6 py-3 text-right text-emerald-700 font-black">$ ${catValue.toLocaleString('es-CO')}</td>
+            <td class="px-6 py-3"></td>
         `;
-        tbody.appendChild(tr);
+        tbody.appendChild(catTr);
+
+        // Click handler para expandir/colapsar
+        catTr.onclick = () => {
+            const rows = tbody.querySelectorAll(`.${safeCatClass}`);
+            const arrow = catTr.querySelector('.cat-arrow');
+            
+            rows.forEach(r => {
+                r.classList.toggle('hidden');
+            });
+            
+            if (arrow) {
+                if (arrow.classList.contains('fa-chevron-right')) {
+                    arrow.classList.remove('fa-chevron-right');
+                    arrow.classList.add('fa-chevron-down');
+                } else {
+                    arrow.classList.remove('fa-chevron-down');
+                    arrow.classList.add('fa-chevron-right');
+                }
+            }
+        };
+
+        // Filas de Productos de la Categoría
+        catItems.forEach(item => {
+            const tr = document.createElement('tr');
+            // Inicialmente ocultos (comprimidos)
+            tr.className = `hover:bg-slate-50 transition border-b border-gray-50 last:border-0 hidden ${safeCatClass}`;
+            
+            const activeStockClass = item.activeStock > 0 ? "text-green-600 bg-green-50 border-green-100" : "text-red-500 bg-red-50 border-red-100";
+            const bodegaStockClass = item.bodegaStock > 0 ? "text-blue-600 bg-blue-50 border-blue-100" : "text-gray-400 bg-gray-50 border-gray-100";
+
+            const variantBadge = item.variant 
+                ? `<span class="text-[9px] bg-brand-orange/15 text-brand-orange border border-brand-orange/20 px-2 py-0.5 rounded font-black tracking-wider uppercase">${item.variant}</span>` 
+                : '';
+
+            tr.innerHTML = `
+                <td class="px-6 py-4 pl-10">
+                    <div class="flex flex-col gap-1">
+                        <span class="font-black text-xs text-brand-black uppercase">${item.name}</span>
+                        <div class="flex items-center gap-2">${variantBadge}</div>
+                    </div>
+                </td>
+                <td class="px-6 py-4 font-mono font-bold text-xs text-gray-400 uppercase">${item.sku}</td>
+                <td class="px-6 py-4 text-center">
+                    <span class="px-3 py-1.5 rounded-xl border text-xs font-black min-w-[3rem] inline-block ${activeStockClass}">
+                        ${item.activeStock}
+                    </span>
+                </td>
+                <td class="px-6 py-4 text-right font-bold text-xs text-gray-600">$ ${item.price.toLocaleString('es-CO')}</td>
+                <td class="px-6 py-4 text-right font-black text-xs text-emerald-600">$ ${item.totalValue.toLocaleString('es-CO')}</td>
+                <td class="px-6 py-4 text-center">
+                    <span class="px-3 py-1.5 rounded-xl border text-xs font-black min-w-[3rem] inline-block ${bodegaStockClass}">
+                        ${item.bodegaStock}
+                    </span>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
     });
 }
 

@@ -236,6 +236,13 @@ const modules = {
         lightweight: (p) => ({ id: p.id, supplierName: p.supplierName, totalCost: p.totalCost, createdBy: p.createdBy, createdAt: p.createdAt, items: p.items, hasIVA: p.hasIVA, updatedAt: p.updatedAt })
     }),
 
+    orders: new StoreModule({
+        name: 'orders',
+        collection: 'orders',
+        dateField: 'createdAt',
+        lightweight: (o) => ({ id: o.id, status: o.status, internalOrderNumber: o.internalOrderNumber || '', items: o.items || [], createdAt: o.createdAt, updatedAt: o.updatedAt })
+    }),
+
     warranties: new StoreModule({
         name: 'warranties',
         collection: 'warranties',
@@ -293,6 +300,7 @@ export const AdminStore = {
     subscribeToPayables: (cb) => modules.payables.subscribe(cb),
     subscribeToExpenses: (cb) => modules.expenses.subscribe(cb),
     subscribeToPurchases: (cb) => modules.purchases.subscribe(cb),
+    subscribeToOrders: (cb) => modules.orders.subscribe(cb),
     subscribeToWarranties: (cb) => modules.warranties.subscribe(cb),
     subscribeToRma: (cb) => modules.rma.subscribe(cb),
     subscribeToInvoices: (cb) => modules.invoices.subscribe(cb),

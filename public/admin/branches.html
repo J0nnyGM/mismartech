@@ -142,10 +142,48 @@
             <!-- TAB 4: INVENTARIO DE LA SEDE -->
             <section id="sec-inventory" class="tab-content hidden space-y-6">
                 <div class="bg-white rounded-3xl p-6 shadow-xl border border-gray-100 space-y-6 animate-in fade-in duration-300">
-                    <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-                        <div class="relative w-full max-w-md">
-                            <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                            <input type="text" id="inventory-search" placeholder="Buscar por nombre, marca o SKU..." class="w-full bg-slate-50 border border-gray-200 py-3 pl-11 pr-4 rounded-xl text-xs font-bold outline-none focus:border-brand-orange transition">
+                    <!-- Tarjetas de Resumen de Inventario -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-slate-50 border border-gray-100 p-5 rounded-2xl flex items-center justify-between shadow-sm">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-orange-50 text-brand-orange flex items-center justify-center text-sm border border-brand-orange/10">
+                                    <i class="fa-solid fa-boxes-stacked"></i>
+                                </div>
+                                <div>
+                                    <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1.5">Total Unidades Sede</p>
+                                    <h4 id="inventory-total-qty" class="text-xl font-black text-brand-black leading-none">0 unds</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-slate-50 border border-gray-100 p-5 rounded-2xl flex items-center justify-between shadow-sm">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm border border-emerald-100">
+                                    <i class="fa-solid fa-dollar-sign"></i>
+                                </div>
+                                <div>
+                                    <p id="lbl-val-card-title" class="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1.5">Valor Total Inventario Sede (Venta)</p>
+                                    <h4 id="inventory-total-value" class="text-xl font-black text-brand-black leading-none">$ 0</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col md:flex-row justify-between items-center gap-4 pt-2">
+                        <div class="flex flex-col sm:flex-row items-center gap-3 w-full max-w-2xl">
+                            <div class="relative flex-grow max-w-md w-full">
+                                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                <input type="text" id="inventory-search" placeholder="Buscar por nombre, marca o SKU..." class="w-full bg-slate-50 border border-gray-200 py-3 pl-11 pr-4 rounded-xl text-xs font-bold outline-none focus:border-brand-orange transition">
+                            </div>
+                            
+                            <!-- Botón de Modo de Valuación (Venta / Costo) -->
+                            <div class="flex bg-slate-100 p-1 rounded-xl border border-gray-200 shrink-0">
+                                <button type="button" id="btn-val-sale" class="px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition bg-white text-brand-black shadow-sm">
+                                    💰 Venta
+                                </button>
+                                <button type="button" id="btn-val-cost" class="px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition text-gray-400 hover:text-brand-black">
+                                    🏷️ Costo
+                                </button>
+                            </div>
                         </div>
                         <div class="text-right shrink-0">
                             <span class="text-xs font-bold text-gray-400 uppercase">Sede Activa: </span>
@@ -154,17 +192,19 @@
                     </div>
                     
                     <div class="overflow-x-auto border border-gray-50 rounded-2xl">
-                        <table class="w-full text-left">
+                        <table class="w-full text-left table-fixed min-w-[800px]">
                             <thead class="bg-gray-50 text-[9px] font-black uppercase text-gray-400 tracking-widest border-b border-gray-100">
                                 <tr>
-                                    <th class="px-6 py-4">Producto / Variante</th>
-                                    <th class="px-6 py-4">SKU</th>
-                                    <th class="px-6 py-4 text-center">Stock Sede</th>
-                                    <th class="px-6 py-4 text-center">Stock Bodega (Otras Sedes)</th>
+                                    <th class="px-6 py-4 w-[35%]">Producto / Variante</th>
+                                    <th class="px-6 py-4 w-[15%]">SKU</th>
+                                    <th class="px-6 py-4 w-[12%] text-center">Stock Sede</th>
+                                    <th id="th-val-unit" class="px-6 py-4 w-[13%] text-right">Valor Unitario (Venta)</th>
+                                    <th id="th-val-total" class="px-6 py-4 w-[13%] text-right">Valor Total Sede (Venta)</th>
+                                    <th class="px-6 py-4 w-[12%] text-center">Stock Bodega (Otras Sedes)</th>
                                 </tr>
                             </thead>
                             <tbody id="inventory-table-body" class="divide-y divide-gray-50 text-sm">
-                                <tr><td colspan="4" class="p-10 text-center"><i class="fa-solid fa-circle-notch fa-spin text-brand-orange text-2xl"></i></td></tr>
+                                <tr><td colspan="6" class="p-10 text-center"><i class="fa-solid fa-circle-notch fa-spin text-brand-orange text-2xl"></i> Cargando inventario de la sede...</td></tr>
                             </tbody>
                         </table>
                     </div>
