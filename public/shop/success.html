@@ -2,6 +2,7 @@
 <html lang="es">
 
 <head>
+
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#F05A28">
     <link rel="apple-touch-icon" href="/img/icons/icon-192x192.webp">
@@ -134,7 +135,7 @@
     <div id="footer-placeholder"></div>
 
     <script type="module">
-        import { loadGlobalHeader, loadGlobalFooter } from '../js/global-components.js';        
+        import { loadGlobalHeader, loadGlobalFooter, trackEcommerceEvent } from '../js/global-components.js';        
         import { db, doc, onSnapshot, auth, onAuthStateChanged, getDoc } from '../js/firebase-init.js';
         import { updateCartCount } from '../js/shop/cart.js';   
 
@@ -262,6 +263,29 @@
                 title.innerHTML = `¡Pedido <span class="text-brand-orange">Confirmado</span>!`;
                 subtitle.textContent = "Gracias por confiar en MiSmartech";
                 infoCard.className = "bg-brand-black rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden";
+                
+                // Track purchase if not tracked yet in this session
+                const trackingKey = `tracked_order_${id}`;
+                if (!sessionStorage.getItem(trackingKey)) {
+                    sessionStorage.setItem(trackingKey, 'true');
+                    try {
+                        trackEcommerceEvent('purchase', {
+                            transaction_id: id,
+                            value: order.total || 0,
+                            currency: 'COP',
+                            shipping: order.shippingCost || 0,
+                            items: (order.items || []).map(item => ({
+                                item_id: item.id || item.item_id || '',
+                                item_name: item.title || item.name || '',
+                                price: item.unit_price || item.price || 0,
+                                quantity: item.quantity || 1,
+                                item_variant: ((item.color || '') + ' ' + (item.capacity || '')).trim()
+                            }))
+                        });
+                    } catch (err) {
+                        console.error("Error tracking purchase:", err);
+                    }
+                }
                 
                 if (order.paymentMethod === 'COD') {
                     bgIcon.className = "fa-solid fa-truck-ramp-box absolute -right-8 -bottom-8 text-[12rem] opacity-5 rotate-12 text-brand-orange";

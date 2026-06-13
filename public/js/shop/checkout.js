@@ -1,5 +1,6 @@
 import { auth, db, doc, updateDoc, onSnapshot, arrayUnion, functions, httpsCallable, onAuthStateChanged, collection, query, where, documentId, getDocs } from "../firebase-init.js";
 import { getCart, getCartTotal, updateCartCount } from "./cart.js";
+import { trackEcommerceEvent } from "../global-components.js";
 
 // --- CONFIGURACIÓN DE LLAVES DEL ENTORNO MAESTRO SMARTECH ---
 const CART_KEY = 'smartech_cart';
@@ -59,6 +60,7 @@ const els = {
 let currentUser = null;
 let userProfileData = null;
 let cart = getCart().filter(item => item.maxStock === undefined || item.maxStock > 0);
+let hasTrackedBeginCheckout = false;
 
 let shippingConfig = { freeThreshold: 0, defaultPrice: 0, groups: [] };
 let currentShippingCost = 0;
@@ -113,6 +115,26 @@ onAuthStateChanged(auth, async (user) => {
         renderOrderSummary();
         setupPaymentListeners(); 
         validatePaymentMethods(); 
+
+        // Track begin_checkout
+        if (!hasTrackedBeginCheckout && cart.length > 0) {
+            hasTrackedBeginCheckout = true;
+            try {
+                trackEcommerceEvent('begin_checkout', {
+                    value: getCartTotal(),
+                    currency: 'COP',
+                    items: cart.map(item => ({
+                        item_id: item.id,
+                        item_name: item.name,
+                        price: item.price,
+                        quantity: item.quantity,
+                        item_variant: ((item.color || '') + ' ' + (item.capacity || '')).trim()
+                    }))
+                });
+            } catch (err) {
+                console.error("Error tracking begin_checkout:", err);
+            }
+        }
     } else {
         if(unsubscribeShipping) unsubscribeShipping();
         if(unsubscribeUser) unsubscribeUser();

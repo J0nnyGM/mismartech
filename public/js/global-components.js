@@ -832,10 +832,83 @@ function renderMobileMenuHTML(container, categories) {
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/service-worker.js')
+        navigator.serviceWorker.register('/service-worker.js', { updateViaCache: 'none' })
             .then(reg => console.log('SW registrado: ', reg.scope))
             .catch(err => console.log('SW falló: ', err));
     });
+}
+
+// --- CONFIGURACIÓN DE ANALÍTICAS DINÁMICAS ---
+const GA_MEASUREMENT_ID = 'G-57WN1SP62T';
+const GTM_ID = 'GTM-KG53N3QN';
+
+function initAnalytics() {
+    if (window.gtmInitialized) return;
+    window.gtmInitialized = true;
+
+    // 1. Inyectar script de Google Tag Manager en <head>
+    try {
+        (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+        })(window,document,'script','dataLayer',GTM_ID);
+    } catch (e) {
+        console.error("Error inyectando GTM script:", e);
+    }
+
+    // 2. Inyectar GTM noscript iframe en <body>
+    try {
+        const noscript = document.createElement('noscript');
+        const iframe = document.createElement('iframe');
+        iframe.src = `https://www.googletagmanager.com/ns.html?id=${GTM_ID}`;
+        iframe.height = "0";
+        iframe.width = "0";
+        iframe.style.display = "none";
+        iframe.style.visibility = "hidden";
+        noscript.appendChild(iframe);
+        
+        if (document.body) {
+            document.body.insertBefore(noscript, document.body.firstChild);
+        } else {
+            document.addEventListener('DOMContentLoaded', () => {
+                document.body.insertBefore(noscript, document.body.firstChild);
+            });
+        }
+    } catch (e) {
+        console.error("Error inyectando GTM noscript:", e);
+    }
+
+    // 3. Configurar carga diferida de GA4 (Lazy loading)
+    const initGtag = () => {
+        if (window.gtagLoaded) return;
+        window.gtagLoaded = true;
+        
+        try {
+            const script = document.createElement('script');
+            script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
+            script.async = true;
+            document.head.appendChild(script);
+            
+            window.dataLayer = window.dataLayer || [];
+            function gtag() { dataLayer.push(arguments); }
+            window.gtag = gtag;
+            gtag('js', new Date());
+            gtag('config', GA_MEASUREMENT_ID, { 'page_path': window.location.pathname });
+        } catch (e) {
+            console.error("Error inicializando gtag:", e);
+        }
+    };
+
+    ['scroll', 'mousemove', 'touchstart'].forEach(e => window.addEventListener(e, initGtag, { once: true, passive: true }));
+    setTimeout(initGtag, 6000);
+}
+
+// Ejecutar inicialización de analíticas
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAnalytics);
+} else {
+    initAnalytics();
 }
 
 export function trackEcommerceEvent(eventName, params) {
@@ -844,6 +917,7 @@ export function trackEcommerceEvent(eventName, params) {
         switch (eventName) {
             case 'view_item': fbq('track', 'ViewContent', { content_name: params.items[0].item_name, content_ids: [params.items[0].item_id], content_type: 'product', value: params.value, currency: 'COP' }); break;
             case 'add_to_cart': fbq('track', 'AddToCart', { content_ids: [params.items[0].item_id], content_type: 'product', value: params.value, currency: 'COP' }); break;
+            case 'begin_checkout': fbq('track', 'InitiateCheckout', { value: params.value, currency: 'COP' }); break;
             case 'purchase': fbq('track', 'Purchase', { value: params.value, currency: 'COP' }); break;
         }
     }

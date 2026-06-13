@@ -212,7 +212,8 @@ export function loadAdminSidebar(userRole = 'customer') {
         });
         let refreshing;
         navigator.serviceWorker.addEventListener('controllerchange', () => {
-            if (refreshing) return; refreshing = true; window.location.reload();
+            if (refreshing) return; refreshing = true;
+            window.location.href = window.location.pathname + '?refresh=' + Date.now();
         });
     }
 
@@ -220,15 +221,20 @@ export function loadAdminSidebar(userRole = 'customer') {
         btnUpdate.addEventListener('click', async () => {
             btnUpdate.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Limpiando sistema...';
             try {
+                // Borrar todo el Cache Storage por completo
                 const cacheNames = await caches.keys();
                 for (const cacheName of cacheNames) {
-                    const cache = await caches.open(cacheName);
-                    const cachedRequests = await cache.keys();
-                    for (const request of cachedRequests) {
-                        const url = request.url.toLowerCase();
-                        if (url.endsWith('.js') || url.endsWith('.html') || url.includes('?')) await cache.delete(request);
+                    await caches.delete(cacheName);
+                }
+                
+                // Desregistrar Service Workers
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    for (const registration of registrations) {
+                        await registration.unregister();
                     }
                 }
+
                 // 🔥 LIMPIAR CACHÉ DE BASE DE DATOS LOCAL PARA FORZAR RE-SINCRONIZACIÓN COMPLETA DESDE FIRESTORE
                 Object.keys(localStorage).forEach(key => {
                     if (key.startsWith('mismartech_') || key.startsWith('smartech_') || key.startsWith('admin_')) {
@@ -240,9 +246,11 @@ export function loadAdminSidebar(userRole = 'customer') {
                         sessionStorage.removeItem(key);
                     }
                 });
-            } catch (error) {}
-            if (newWorker) newWorker.postMessage({ type: 'SKIP_WAITING' });
-            else window.location.href = window.location.pathname + '?refresh=' + new Date().getTime();
+            } catch (error) {
+                console.error("Error al actualizar:", error);
+            }
+            // Forzar recarga dura con parámetro timestamp para saltarse la caché del navegador
+            window.location.href = window.location.pathname + '?refresh=' + Date.now();
         });
     }
 

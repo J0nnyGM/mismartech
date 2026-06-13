@@ -12,14 +12,14 @@ const urlsToCache = [
 ];
 
 self.addEventListener('install', (event) => {
-  // ❌ AQUÍ ESTABA EL ERROR: Eliminamos self.skipWaiting()
   // Ahora el nuevo Service Worker se instalará, pero se quedará en estado "waiting"
   // hasta que el usuario presione el botón.
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
         console.log('Opened cache');
-        return cache.addAll(urlsToCache);
+        const requests = urlsToCache.map(url => new Request(url, { cache: 'reload' }));
+        return cache.addAll(requests);
       })
   );
 });

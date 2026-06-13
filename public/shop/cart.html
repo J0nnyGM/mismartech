@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Smartech">
@@ -171,7 +172,7 @@
 <script type="module">
     import { getCart, updateQuantity, removeFromCart, getCartTotal, updateCartCount } from '../js/shop/cart.js';
     import { auth, db, doc, getDoc, onAuthStateChanged, collection, query, where, documentId, getDocs } from '../js/firebase-init.js'; 
-    import { loadGlobalHeader, loadGlobalFooter } from '../js/global-components.js';
+    import { loadGlobalHeader, loadGlobalFooter, trackEcommerceEvent } from '../js/global-components.js';
 
     loadGlobalHeader();
     loadGlobalFooter();
@@ -419,6 +420,8 @@
         } catch (e) { console.error("Error estimando envío:", e); }
     }
 
+    let hasTrackedViewCart = false;
+
     function render() {
         const cart = getCart();
         updateCartCount();
@@ -427,6 +430,25 @@
             mainContainer.classList.add('hidden');
             emptyMsg.classList.remove('hidden');
             return;
+        }
+
+        if (!hasTrackedViewCart && cart.length > 0) {
+            hasTrackedViewCart = true;
+            try {
+                trackEcommerceEvent('view_cart', {
+                    value: getCartTotal(),
+                    currency: 'COP',
+                    items: cart.map(item => ({
+                        item_id: item.id,
+                        item_name: item.name,
+                        price: item.price,
+                        quantity: item.quantity,
+                        item_variant: ((item.color || '') + ' ' + (item.capacity || '')).trim()
+                    }))
+                });
+            } catch (err) {
+                console.error("Error tracking view_cart:", err);
+            }
         }
 
         mainContainer.classList.remove('hidden');
@@ -508,7 +530,24 @@
     };
 
     window.removeItem = (cartId) => {
-        if (confirm("¿Deseas eliminar este producto del carrito?")) {
+        const cart = getCart();
+        const item = cart.find(i => i.cartId === cartId);
+        if (item && confirm("¿Deseas eliminar este producto del carrito?")) {
+            try {
+                trackEcommerceEvent('remove_from_cart', {
+                    value: item.price * item.quantity,
+                    currency: 'COP',
+                    items: [{
+                        item_id: item.id,
+                        item_name: item.name,
+                        price: item.price,
+                        quantity: item.quantity,
+                        item_variant: ((item.color || '') + ' ' + (item.capacity || '')).trim()
+                    }]
+                });
+            } catch (err) {
+                console.error("Error tracking remove_from_cart:", err);
+            }
             removeFromCart(cartId);
             render();
             const user = auth.currentUser;
