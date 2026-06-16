@@ -10,8 +10,8 @@ export function loadAdminSidebar(userRole = 'customer') {
     // --- 1. PERMISOS DE MÓDULOS (Nombres exactos del menú) ---
     const rolePermissions = {
         'admin': ['all'],
-        'contabilidad': ['Dashboard', 'Facturación', 'Gestión de Cartera', 'Cuentas', 'Control de Gastos', 'Rentabilidad FIFO', 'Sedes y Cierres'],
-        'ventas': ['Dashboard', 'WhatsApp', 'Pedidos', 'Clientes', 'Garantías', 'Productos', 'Categorías', 'Banners y Promos', 'Sedes y Cierres'],
+        'contabilidad': ['Dashboard', 'Estadísticas', 'Facturación', 'Gestión de Cartera', 'Cuentas', 'Control de Gastos', 'Rentabilidad FIFO', 'Sedes y Cierres'],
+        'ventas': ['Dashboard', 'Estadísticas', 'WhatsApp', 'Pedidos', 'Clientes', 'Garantías', 'Productos', 'Categorías', 'Banners y Promos', 'Sedes y Cierres'],
         'logistica': ['Dashboard', 'Pedidos', 'Productos', 'Nueva Entrada', 'Inventario RMA', 'Logística', 'Sedes y Cierres']
     };
 
@@ -21,6 +21,7 @@ export function loadAdminSidebar(userRole = 'customer') {
             title: 'Principal',
             items: [
                 { name: 'Dashboard', icon: 'fa-chart-line', path: '/admin/index.html' },
+                { name: 'Estadísticas', icon: 'fa-chart-pie', path: '/admin/analytics.html' },
                 { name: 'WhatsApp', icon: 'fa-brands fa-whatsapp', path: '/admin/whatsapp.html' },
                 { name: 'Sedes y Cierres', icon: 'fa-house-flag', path: '/admin/branches.html' },
                 { name: 'Gestión Usuarios', icon: 'fa-user-shield', path: '/admin/users-admin.html' } // Módulo solo Admin

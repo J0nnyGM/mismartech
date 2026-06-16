@@ -943,9 +943,13 @@ function updateValuationButtonsUI() {
     const btnCost = document.getElementById('btn-val-cost');
     if (!btnSale || !btnCost) return;
 
-    // La opción de costos está deshabilitada temporalmente, por lo que Venta se muestra activo
-    btnSale.className = "px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition bg-white text-brand-black shadow-sm";
-    btnCost.className = "px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition text-gray-300 opacity-40 cursor-not-allowed";
+    if (currentValuationMode === 'sale') {
+        btnSale.className = "px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition bg-white text-brand-black shadow-sm";
+        btnCost.className = "px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition text-gray-400 hover:text-brand-black";
+    } else {
+        btnSale.className = "px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition text-gray-400 hover:text-brand-black";
+        btnCost.className = "px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition bg-white text-brand-black shadow-sm";
+    }
 }
 
 function updateValuationLabels() {
@@ -1065,8 +1069,6 @@ async function loadInventoryTab() {
     if (isAdmin) {
         const btnSale = document.getElementById('btn-val-sale');
         const btnCost = document.getElementById('btn-val-cost');
-        
-        currentValuationMode = 'sale'; // Forzar modo Venta siempre
 
         if (btnSale) {
             btnSale.onclick = () => {
@@ -1080,7 +1082,12 @@ async function loadInventoryTab() {
         }
         if (btnCost) {
             btnCost.onclick = () => {
-                showToast("La valuación a precio de costo está deshabilitada temporalmente.");
+                if (currentValuationMode !== 'cost') {
+                    currentValuationMode = 'cost';
+                    updateValuationButtonsUI();
+                    updateValuationLabels();
+                    renderInventoryRows();
+                }
             };
         }
 
