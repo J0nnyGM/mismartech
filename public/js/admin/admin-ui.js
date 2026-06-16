@@ -260,7 +260,7 @@ export function loadAdminSidebar(userRole = 'customer') {
 
     if (btnUpdate) {
         btnUpdate.addEventListener('click', async () => {
-            btnUpdate.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Limpiando sistema...';
+            btnUpdate.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Actualizando...';
             try {
                 // Borrar todo el Cache Storage por completo
                 const cacheNames = await caches.keys();
@@ -275,18 +275,6 @@ export function loadAdminSidebar(userRole = 'customer') {
                         await registration.unregister();
                     }
                 }
-
-                // 🔥 LIMPIAR CACHÉ DE BASE DE DATOS LOCAL PARA FORZAR RE-SINCRONIZACIÓN COMPLETA DESDE FIRESTORE
-                Object.keys(localStorage).forEach(key => {
-                    if (key.startsWith('mismartech_') || key.startsWith('smartech_') || key.startsWith('admin_')) {
-                        localStorage.removeItem(key);
-                    }
-                });
-                Object.keys(sessionStorage).forEach(key => {
-                    if (key.startsWith('mismartech_') || key.startsWith('smartech_') || key.startsWith('admin_')) {
-                        sessionStorage.removeItem(key);
-                    }
-                });
             } catch (error) {
                 console.error("Error al actualizar:", error);
             }
