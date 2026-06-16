@@ -10,8 +10,8 @@ export function loadAdminSidebar(userRole = 'customer') {
     // --- 1. PERMISOS DE MÓDULOS (Nombres exactos del menú) ---
     const rolePermissions = {
         'admin': ['all'],
-        'contabilidad': ['Dashboard', 'Estadísticas', 'Facturación', 'Gestión de Cartera', 'Cuentas', 'Control de Gastos', 'Rentabilidad FIFO', 'Sedes y Cierres'],
-        'ventas': ['Dashboard', 'Estadísticas', 'WhatsApp', 'Pedidos', 'Clientes', 'Garantías', 'Productos', 'Categorías', 'Banners y Promos', 'Sedes y Cierres'],
+        'contabilidad': ['Dashboard', 'Facturación', 'Gestión de Cartera', 'Cuentas', 'Control de Gastos', 'Rentabilidad FIFO', 'Sedes y Cierres'],
+        'ventas': ['Dashboard', 'WhatsApp', 'Pedidos', 'Clientes', 'Garantías', 'Productos', 'Categorías', 'Banners y Promos', 'Sedes y Cierres'],
         'logistica': ['Dashboard', 'Pedidos', 'Productos', 'Nueva Entrada', 'Inventario RMA', 'Logística', 'Sedes y Cierres']
     };
 
@@ -203,18 +203,58 @@ export function loadAdminSidebar(userRole = 'customer') {
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/service-worker.js', { updateViaCache: 'none' }).then(reg => {
             reg.update();
-            if (reg.waiting) showUpdateButton(reg.waiting);
-            if (reg.installing) reg.installing.addEventListener('statechange', (e) => { if (e.target.state === 'installed') showUpdateButton(e.target); });
-            reg.addEventListener('updatefound', () => {
-                const newWorkerInstalling = reg.installing;
-                if (!newWorkerInstalling) return; 
-                newWorkerInstalling.addEventListener('statechange', (e) => { if (e.target.state === 'installed') showUpdateButton(e.target); });
-            });
+            
+            const hasController = !!navigator.serviceWorker.controller;
+            
+            if (hasController) {
+                // Si ya hay un controlador activo, cualquier worker en espera o que se instale es una actualización
+                if (reg.waiting) showUpdateButton(reg.waiting);
+                if (reg.installing) {
+                    reg.installing.addEventListener('statechange', (e) => {
+                        if (e.target.state === 'installed') showUpdateButton(e.target);
+                    });
+                }
+                reg.addEventListener('updatefound', () => {
+                    const newWorkerInstalling = reg.installing;
+                    if (!newWorkerInstalling) return; 
+                    newWorkerInstalling.addEventListener('statechange', (e) => {
+                        if (e.target.state === 'installed') showUpdateButton(e.target);
+                    });
+                });
+            } else {
+                // Si no hay controlador (instalación limpia / hard refresh),
+                // forzamos al service worker a activarse de inmediato sin mostrar el botón de actualización.
+                if (reg.waiting) {
+                    reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+                }
+                if (reg.installing) {
+                    reg.installing.addEventListener('statechange', (e) => {
+                        if (e.target.state === 'installed') {
+                            e.target.postMessage({ type: 'SKIP_WAITING' });
+                        }
+                    });
+                }
+                reg.addEventListener('updatefound', () => {
+                    const newWorkerInstalling = reg.installing;
+                    if (!newWorkerInstalling) return;
+                    newWorkerInstalling.addEventListener('statechange', (e) => {
+                        if (e.target.state === 'installed') {
+                            e.target.postMessage({ type: 'SKIP_WAITING' });
+                        }
+                    });
+                });
+            }
         });
+
         let refreshing;
+        const hasControllerOnLoad = !!navigator.serviceWorker.controller;
         navigator.serviceWorker.addEventListener('controllerchange', () => {
-            if (refreshing) return; refreshing = true;
-            window.location.href = window.location.pathname + '?refresh=' + Date.now();
+            if (refreshing) return;
+            // Solo recargar si ya había un service worker controlando la página (es decir, es una actualización)
+            if (hasControllerOnLoad) {
+                refreshing = true;
+                window.location.href = window.location.pathname + '?refresh=' + Date.now();
+            }
         });
     }
 

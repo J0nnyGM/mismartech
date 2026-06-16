@@ -626,14 +626,23 @@
         }
 
         // Mostrar Versión de Caché PWA
-        if ('caches' in window) {
-            caches.keys().then(keys => {
-                const cacheName = keys.find(k => k.startsWith('mismartech-shell-v'));
-                if (cacheName) {
-                    const version = cacheName.replace('mismartech-shell-', '');
-                    const badge = document.getElementById('app-version-badge');
-                    if (badge) badge.textContent = version;
-                }
+        function updateAppVersionBadge() {
+            if ('caches' in window) {
+                caches.keys().then(keys => {
+                    const cacheName = keys.find(k => k.startsWith('mismartech-shell-v'));
+                    if (cacheName) {
+                        const version = cacheName.replace('mismartech-shell-', '');
+                        const badge = document.getElementById('app-version-badge');
+                        if (badge) badge.textContent = version;
+                    }
+                });
+            }
+        }
+
+        updateAppVersionBadge();
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.ready.then(() => {
+                setTimeout(updateAppVersionBadge, 500); // Pequeño delay para asegurar que el caché se creó en la activación
             });
         }
     </script>
