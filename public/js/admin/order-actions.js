@@ -417,7 +417,7 @@ async function cancelManualOrder(order) {
 
         if (order.items && order.items.length > 0) {
             for (const item of order.items) {
-                await safeAdjustStock(item.id, item.quantity, item.color, item.capacity);
+                await safeAdjustStock(item.id, item.quantity, item.color, item.capacity, order.branchId || 'bodega');
             }
         }
 
@@ -437,10 +437,10 @@ async function cancelManualOrder(order) {
 let editOrderOriginal = null;
 let editItems = [];
 
-async function safeAdjustStock(id, delta, color, capacity, retries = 3) {
+async function safeAdjustStock(id, delta, color, capacity, branchId = 'bodega', retries = 3) {
     for (let i = 0; i < retries; i++) {
         try {
-            await adjustStock(id, delta, color, capacity);
+            await adjustStock(id, delta, color, capacity, branchId);
             return; 
         } catch(e) {
             if (i === retries - 1) throw e;
@@ -702,10 +702,151 @@ async function saveEditedOrder() {
             deltaMap[k].delta -= item.quantity; 
         });
 
+        const orderBranchId = editOrderOriginal.branchId || 'bodega';
+
+        // Fetch branches to map their names and IDs
+        const branchesSnap = await getDocs(collection(db, "branches"));
+        const branchesMap = {};
+        branchesSnap.forEach(d => {
+            branchesMap[d.id] = d.data().name || d.id;
+        });
+        if (!branchesMap['bodega']) {
+            branchesMap['bodega'] = 'Bodega Principal';
+        }
+        const targetBranchName = branchesMap[orderBranchId] || (orderBranchId === 'bodega' ? 'Bodega Principal' : orderBranchId);
+
+        // Fetch all products in deltaMap to check their details
+        const productDocs = {};
+        for (const key in deltaMap) {
+            const sd = deltaMap[key];
+            if (sd.delta !== 0 && !productDocs[sd.id]) {
+                const productSnap = await getDoc(doc(db, "products", sd.id));
+                if (!productSnap.exists()) {
+                    throw new Error(`El producto con ID ${sd.id} no existe.`);
+                }
+                productDocs[sd.id] = productSnap.data();
+            }
+        }
+
+        // Helper to check stock of a product at a specific branch
+        function getProductBranchStock(pData, color, capacity, brId) {
+            if (pData.combinations && pData.combinations.length > 0) {
+                const combo = pData.combinations.find(c => 
+                    (c.color === color || (!c.color && !color)) &&
+                    (c.capacity === capacity || (!c.capacity && !capacity))
+                );
+                if (!combo) return 0;
+                const comboBranchStock = combo.branchStock || {};
+                const hasComboBranchStock = Object.keys(comboBranchStock).length > 0;
+                return hasComboBranchStock
+                    ? (comboBranchStock[brId] || 0)
+                    : (brId === 'bodega' ? (parseInt(combo.stock) || 0) : 0);
+            } else {
+                const branchStock = pData.branchStock || {};
+                const hasBranchStock = Object.keys(branchStock).length > 0;
+                return hasBranchStock
+                    ? (branchStock[brId] || 0)
+                    : (brId === 'bodega' ? (parseInt(pData.stock) || 0) : 0);
+            }
+        }
+
+        // Validation Phase: check stock and plan transfers if needed
+        const plannedTransfers = {}; // key -> array of { sourceBranchId, sourceBranchName, quantity }
+        for (const key in deltaMap) {
+            const sd = deltaMap[key];
+            if (sd.delta < 0) { // We need to deduct stock
+                const reqQty = -sd.delta;
+                const pData = productDocs[sd.id];
+                const currentBranchStock = getProductBranchStock(pData, sd.color, sd.capacity, orderBranchId);
+                const deficit = reqQty - currentBranchStock;
+
+                if (deficit > 0) {
+                    let remainingDeficit = deficit;
+                    plannedTransfers[key] = [];
+
+                    // Try to gather the stock from other branches
+                    for (const brId in branchesMap) {
+                        if (brId === orderBranchId) continue;
+                        const available = getProductBranchStock(pData, sd.color, sd.capacity, brId);
+                        if (available > 0) {
+                            const toTake = Math.min(available, remainingDeficit);
+                            plannedTransfers[key].push({
+                                sourceBranchId: brId,
+                                sourceBranchName: branchesMap[brId],
+                                quantity: toTake
+                            });
+                            remainingDeficit -= toTake;
+                            if (remainingDeficit === 0) break;
+                        }
+                    }
+
+                    if (remainingDeficit > 0) {
+                        throw new Error(`Stock insuficiente en todo el sistema para "${pData.name}" (${sd.color || ''} ${sd.capacity || ''}). Faltan ${remainingDeficit} unidades.`);
+                    }
+                }
+            }
+        }
+
+        // If there are planned transfers, show confirmation to the user
+        let hasTransfers = false;
+        let transferMessage = "⚠️ Se realizarán los siguientes traslados automáticos de stock debido a déficit en esta sede:\n\n";
+        for (const key in plannedTransfers) {
+            const transfers = plannedTransfers[key];
+            if (transfers && transfers.length > 0) {
+                hasTransfers = true;
+                const sd = deltaMap[key];
+                const pName = productDocs[sd.id].name;
+                const variantStr = (sd.color || sd.capacity) ? ` (${sd.color || ''} ${sd.capacity || ''})` : '';
+                transfers.forEach(t => {
+                    transferMessage += `• ${pName}${variantStr}: ${t.quantity} und(s) desde ${t.sourceBranchName}\n`;
+                });
+            }
+        }
+
+        if (hasTransfers) {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            if (!confirm(transferMessage + "\n¿Deseas continuar con la modificación y el traslado?")) {
+                return;
+            }
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Ajustando Inventario...';
+            btn.disabled = true;
+        }
+
+        // Execution Phase: perform transfers and make adjustments
         for (const key in deltaMap) {
             const sd = deltaMap[key];
             if (sd.delta !== 0) {
-                await safeAdjustStock(sd.id, sd.delta, sd.color, sd.capacity);
+                if (sd.delta < 0 && plannedTransfers[key] && plannedTransfers[key].length > 0) {
+                    // Perform all planned transfers first
+                    for (const transfer of plannedTransfers[key]) {
+                        // Deduct from source branch
+                        await adjustStock(sd.id, -transfer.quantity, sd.color, sd.capacity, transfer.sourceBranchId);
+                        // Add to target (order) branch
+                        await adjustStock(sd.id, transfer.quantity, sd.color, sd.capacity, orderBranchId);
+                        // Record transfer in database (marked as APPROVED)
+                        await addDoc(collection(db, "transfers"), {
+                            productId: sd.id,
+                            productName: productDocs[sd.id].name,
+                            color: sd.color || null,
+                            capacity: sd.capacity || null,
+                            quantity: transfer.quantity,
+                            sourceBranchId: transfer.sourceBranchId,
+                            sourceBranchName: transfer.sourceBranchName,
+                            targetBranchId: orderBranchId,
+                            targetBranchName: targetBranchName,
+                            status: 'APPROVED',
+                            requestedBy: 'Traslado Automático por Edición de Orden - ' + (auth.currentUser ? auth.currentUser.email : 'Sistema'),
+                            requestedAt: new Date(),
+                            resolvedBy: 'Admin (Autogestionado) - ' + (auth.currentUser ? auth.currentUser.email : 'Sistema'),
+                            resolvedAt: new Date(),
+                            associatedOrderId: editOrderOriginal.id
+                        });
+                    }
+                }
+
+                // Finally, adjust stock in target branch
+                await safeAdjustStock(sd.id, sd.delta, sd.color, sd.capacity, orderBranchId);
             }
         }
 
@@ -1429,6 +1570,7 @@ if (refundForm) {
 
         try {
             let itemsToRestoreStock = [];
+            let orderBranchId = 'bodega';
 
             await runTransaction(db, async (t) => {
                 const orderRef = doc(db, "orders", orderId);
@@ -1436,6 +1578,7 @@ if (refundForm) {
                 if(!orderDoc.exists()) throw "Orden no encontrada";
                 
                 const oData = orderDoc.data();
+                orderBranchId = oData.branchId || 'bodega';
                 
                 if (wasPaid && amount > 0) {
                     const currentRefunded = oData.refundedAmount || 0;
@@ -1489,7 +1632,7 @@ if (refundForm) {
             });
 
             if (itemsToRestoreStock.length > 0) {
-                for (const item of itemsToRestoreStock) await adjustStock(item.id, item.qty, item.color, item.capacity);
+                for (const item of itemsToRestoreStock) await adjustStock(item.id, item.qty, item.color, item.capacity, orderBranchId);
             }
 
             alert("✅ Devolución procesada correctamente.");
