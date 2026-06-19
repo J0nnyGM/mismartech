@@ -628,7 +628,7 @@ form.onsubmit = async (e) => {
             definedCapacities: definedCaps,
             images: globalUrls,
             colorImages: colorUrlsMap,
-            mainImage: globalUrls[0] || (Object.values(colorUrlsMap)[0] ? Object.values(colorUrlsMap)[0][0] : '')
+            mainImage: globalUrls[0] || Object.values(colorUrlsMap).find(arr => arr && arr.length > 0)?.[0] || ""
         };
 
         await addDoc(collection(db, "products"), productData);

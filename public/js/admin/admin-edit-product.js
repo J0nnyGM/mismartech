@@ -776,7 +776,7 @@ form.onsubmit = async (e) => {
             definedCapacities: definedCaps, 
             images: finalGlobalUrls,
             colorImages: colorUrlsMap,
-            mainImage: finalGlobalUrls[0] || (Object.values(colorUrlsMap)[0] ? Object.values(colorUrlsMap)[0][0] : '')
+            mainImage: finalGlobalUrls[0] || Object.values(colorUrlsMap).find(arr => arr && arr.length > 0)?.[0] || ""
         };
 
         const batch = writeBatch(db);

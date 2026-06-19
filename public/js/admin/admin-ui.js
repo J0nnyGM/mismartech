@@ -1,5 +1,5 @@
 // public/js/admin/admin-ui.js
-import { auth, db, collection, getDocs, doc, getDoc } from '../firebase-init.js';
+import { auth, db, collection, getDocs, doc, getDoc, query, where, onSnapshot } from '../firebase-init.js';
 
 export function loadAdminSidebar(userRole = 'customer') {
     const sidebarContainer = document.getElementById('admin-sidebar');
@@ -88,7 +88,8 @@ export function loadAdminSidebar(userRole = 'customer') {
                                 <div class="w-6 flex justify-center">
                                     <i class="fa-solid ${item.icon} ${isActive ? 'text-brand-black' : 'text-brand-orange group-hover:text-white'} transition-colors"></i> 
                                 </div>
-                                <span>${item.name}</span>
+                                <span class="flex-1">${item.name}</span>
+                                ${item.name === 'WhatsApp' ? `<span id="wa-unread-badge" class="hidden bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full text-center shadow-md animate-pulse" style="min-width: 20px;">0</span>` : ''}
                             </a>
                         `;
                     }).join('')}
@@ -121,6 +122,7 @@ export function loadAdminSidebar(userRole = 'customer') {
                 <i class="fa-solid fa-bars text-lg mb-1"></i>
                 <span class="text-[8px] font-bold uppercase tracking-widest">Menú</span>
                 <span id="mobile-update-badge" class="hidden absolute top-2 right-[25%] w-2.5 h-2.5 bg-brand-orange rounded-full shadow-[0_0_8px_#F05A28] animate-pulse"></span>
+                <span id="mobile-wa-unread-badge" class="hidden absolute top-1 right-[20%] bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full min-w-[15px] text-center shadow-md animate-pulse">0</span>
             </button>
         </nav>
     `;
@@ -284,6 +286,7 @@ export function loadAdminSidebar(userRole = 'customer') {
     }
 
     setupBranchSelectorInSidebar();
+    setupWhatsAppUnreadListener();
 }
 
 async function setupBranchSelectorInSidebar() {
@@ -361,4 +364,46 @@ async function setupBranchSelectorInSidebar() {
             sessionStorage.setItem('activeBranchName', assignedBranchId === 'bodega' ? 'Sede Principal' : assignedBranchId);
         }
     }
+}
+
+function setupWhatsAppUnreadListener() {
+    const badgeEl = document.getElementById('wa-unread-badge');
+    const mobileBadgeEl = document.getElementById('mobile-wa-unread-badge');
+    
+    if (!badgeEl && !mobileBadgeEl) return;
+
+    if (window.unsubscribeWhatsAppUnread) {
+        try {
+            window.unsubscribeWhatsAppUnread();
+        } catch (e) {
+            console.error("Error unsubscribing previous WhatsApp listener:", e);
+        }
+    }
+
+    const chatsRef = collection(db, "chats");
+    const q = query(chatsRef, where("unread", "==", true));
+
+    window.unsubscribeWhatsAppUnread = onSnapshot(q, (snapshot) => {
+        const count = snapshot.size;
+        
+        if (badgeEl) {
+            if (count > 0) {
+                badgeEl.textContent = count;
+                badgeEl.classList.remove('hidden');
+            } else {
+                badgeEl.classList.add('hidden');
+            }
+        }
+
+        if (mobileBadgeEl) {
+            if (count > 0) {
+                mobileBadgeEl.textContent = count;
+                mobileBadgeEl.classList.remove('hidden');
+            } else {
+                mobileBadgeEl.classList.add('hidden');
+            }
+        }
+    }, (error) => {
+        console.error("Error listening to unread WhatsApp chats:", error);
+    });
 }
