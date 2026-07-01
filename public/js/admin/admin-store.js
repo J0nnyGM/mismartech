@@ -270,7 +270,7 @@ const modules = {
         name: 'categories',
         collection: 'categories',
         dateField: 'createdAt',
-        lightweight: (c) => ({ id: c.id, name: c.name, subcategories: c.subcategories || [], createdAt: c.createdAt, updatedAt: c.updatedAt })
+        lightweight: (c) => ({ id: c.id, name: c.name, image: c.image || '', subcategories: c.subcategories || [], createdAt: c.createdAt, updatedAt: c.updatedAt })
     }),
 
     accounts: new StoreModule({

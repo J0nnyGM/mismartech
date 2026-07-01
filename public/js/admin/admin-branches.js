@@ -10,8 +10,11 @@ let accountsList = [];
 let cachedProducts = [];
 let cachedPurchases = [];
 let cachedOrders = [];
+let cachedCategories = [];
 let currentTab = 'branches';
-let currentValuationMode = 'sale'; // 'sale' o 'cost'
+let currentValuationMode = 'cost'; // 'cost' o 'sale'
+let inventorySelectedBranchId = '';
+const openCategories = new Set();
 
 const tabs = {
     branches: { btn: document.getElementById('tab-branches'), sec: document.getElementById('sec-branches'), act: document.getElementById('btn-new-branch') },
@@ -1003,13 +1006,14 @@ function adjustInventoryLayoutForRole() {
         }
         if (valWrapper) valWrapper.classList.remove('hidden');
         if (thead) {
+            const suffix = currentValuationMode === 'sale' ? '(Venta)' : '(Costo)';
             thead.innerHTML = `
                 <tr>
                     <th class="px-6 py-4 w-[35%]">Producto / Variante</th>
                     <th class="px-6 py-4 w-[15%]">SKU</th>
                     <th class="px-6 py-4 w-[12%] text-center">Stock Sede</th>
-                    <th id="th-val-unit" class="px-6 py-4 w-[13%] text-right">Valor Unitario (Venta)</th>
-                    <th id="th-val-total" class="px-6 py-4 w-[13%] text-right">Valor Total Sede (Venta)</th>
+                    <th id="th-val-unit" class="px-6 py-4 w-[13%] text-right">Valor Unitario ${suffix}</th>
+                    <th id="th-val-total" class="px-6 py-4 w-[13%] text-right">Valor Total Sede ${suffix}</th>
                     <th class="px-6 py-4 w-[12%] text-center">Stock Bodega (Otras Sedes)</th>
                 </tr>
             `;
@@ -1035,16 +1039,48 @@ function adjustInventoryLayoutForRole() {
 }
 
 async function loadInventoryTab() {
-    const activeBranchId = sessionStorage.getItem('activeBranchId');
-    if (!activeBranchId) {
-        alert("No se ha detectado una sede activa.");
-        return;
+    const role = sessionStorage.getItem('adminUserRole');
+    const isAdmin = (role === 'admin');
+
+    if (!inventorySelectedBranchId) {
+        inventorySelectedBranchId = sessionStorage.getItem('activeBranchId') || 'bodega';
     }
 
-    // Cargar nombre de la sede activa
-    const activeBranch = branchesList.find(b => b.id === activeBranchId);
-    const branchName = activeBranch ? activeBranch.name : activeBranchId;
-    document.getElementById('inventory-branch-title').innerText = branchName;
+    const branchTitleEl = document.getElementById('inventory-branch-title');
+    const branchSelectEl = document.getElementById('inventory-branch-select');
+
+    if (isAdmin) {
+        if (branchTitleEl) branchTitleEl.classList.add('hidden');
+        if (branchSelectEl) {
+            branchSelectEl.classList.remove('hidden');
+            branchSelectEl.innerHTML = `<option value="global" class="font-black text-brand-orange">🌍 GLOBAL (TODAS)</option>`;
+            branchesList.forEach(b => {
+                branchSelectEl.innerHTML += `<option value="${b.id}">${b.name.toUpperCase()}</option>`;
+            });
+            branchSelectEl.value = inventorySelectedBranchId;
+            branchSelectEl.onchange = (e) => {
+                inventorySelectedBranchId = e.target.value;
+                if (inventorySelectedBranchId !== 'global') {
+                    sessionStorage.setItem('activeBranchId', inventorySelectedBranchId);
+                    const activeBranch = branchesList.find(b => b.id === inventorySelectedBranchId);
+                    if (activeBranch) {
+                        sessionStorage.setItem('activeBranchName', activeBranch.name);
+                    }
+                    const sidebarSelect = document.getElementById('sidebar-branch-select');
+                    if (sidebarSelect) sidebarSelect.value = inventorySelectedBranchId;
+                }
+                renderInventoryRows();
+            };
+        }
+    } else {
+        if (branchSelectEl) branchSelectEl.classList.add('hidden');
+        if (branchTitleEl) {
+            branchTitleEl.classList.remove('hidden');
+            const activeBranch = branchesList.find(b => b.id === inventorySelectedBranchId);
+            const branchName = activeBranch ? activeBranch.name : inventorySelectedBranchId;
+            branchTitleEl.innerText = branchName;
+        }
+    }
 
     // Ajustar encabezados y controles superiores de acuerdo al rol del usuario
     adjustInventoryLayoutForRole();
@@ -1054,8 +1090,6 @@ async function loadInventoryTab() {
     // Inicializar suscripciones de forma reactiva (0 lecturas duplicadas)
     initInventorySubscriptions();
 
-    const role = sessionStorage.getItem('adminUserRole');
-    const isAdmin = (role === 'admin');
     const colSpanCount = isAdmin ? 6 : 4;
 
     // Renderizar de inmediato si hay datos, o mostrar spinner
@@ -1198,7 +1232,7 @@ function calculateValuationFromQueue(queue, quantity, fallbackCost) {
 }
 
 function renderInventoryRows() {
-    const activeBranchId = sessionStorage.getItem('activeBranchId') || 'bodega';
+    const activeBranchId = inventorySelectedBranchId || sessionStorage.getItem('activeBranchId') || 'bodega';
     const term = document.getElementById('inventory-search').value.toLowerCase().trim();
     const tbody = document.getElementById('inventory-table-body');
     tbody.innerHTML = '';
@@ -1213,11 +1247,13 @@ function renderInventoryRows() {
                 const sku = combo.sku || p.sku || '---';
 
                 if (!term || fullName.toLowerCase().includes(term) || sku.toLowerCase().includes(term) || (p.brand && p.brand.toLowerCase().includes(term))) {
-                    const activeStock = (combo.branchStock && combo.branchStock[activeBranchId] !== undefined)
-                        ? (parseInt(combo.branchStock[activeBranchId]) || 0)
-                        : (parseInt(combo.stock) || 0);
                     const totalStock = parseInt(combo.stock) || 0;
-                    const bodegaStock = Math.max(0, totalStock - activeStock);
+                    const activeStock = (activeBranchId === 'global')
+                        ? totalStock
+                        : ((combo.branchStock && combo.branchStock[activeBranchId] !== undefined)
+                            ? (parseInt(combo.branchStock[activeBranchId]) || 0)
+                            : totalStock);
+                    const bodegaStock = (activeBranchId === 'global') ? 0 : Math.max(0, totalStock - activeStock);
 
                     let price = 0;
                     let totalValue = 0;
@@ -1239,18 +1275,21 @@ function renderInventoryRows() {
                         bodegaStock: bodegaStock,
                         category: p.category || 'Sin Categoría',
                         price: price,
-                        totalValue: totalValue
+                        totalValue: totalValue,
+                        image: combo.image || combo.mainImage || p.mainImage || p.image || (p.images && p.images[0]) || 'https://placehold.co/100?text=Sin+Foto'
                     });
                 }
             });
         } else {
             const sku = p.sku || '---';
             if (!term || p.name.toLowerCase().includes(term) || sku.toLowerCase().includes(term) || (p.brand && p.brand.toLowerCase().includes(term))) {
-                const activeStock = (p.branchStock && p.branchStock[activeBranchId] !== undefined)
-                    ? (parseInt(p.branchStock[activeBranchId]) || 0)
-                    : (parseInt(p.stock) || 0);
                 const totalStock = parseInt(p.stock) || 0;
-                const bodegaStock = Math.max(0, totalStock - activeStock);
+                const activeStock = (activeBranchId === 'global')
+                    ? totalStock
+                    : ((p.branchStock && p.branchStock[activeBranchId] !== undefined)
+                        ? (parseInt(p.branchStock[activeBranchId]) || 0)
+                        : totalStock);
+                const bodegaStock = (activeBranchId === 'global') ? 0 : Math.max(0, totalStock - activeStock);
 
                 let price = 0;
                 let totalValue = 0;
@@ -1272,7 +1311,8 @@ function renderInventoryRows() {
                     bodegaStock: bodegaStock,
                     category: p.category || 'Sin Categoría',
                     price: price,
-                    totalValue: totalValue
+                    totalValue: totalValue,
+                    image: p.mainImage || p.image || (p.images && p.images[0]) || 'https://placehold.co/100?text=Sin+Foto'
                 });
             }
         }
@@ -1295,9 +1335,16 @@ function renderInventoryRows() {
     const totalValEl = document.getElementById('inventory-total-value');
     if (totalQtyEl) totalQtyEl.textContent = `${grandTotalUnits.toLocaleString('es-CO')} unds`;
     if (totalValEl) totalValEl.textContent = `$ ${grandTotalValue.toLocaleString('es-CO')}`;
+    const grid = document.getElementById('categories-grid');
+    const tableContainer = document.getElementById('open-products-container');
+
+    if (grid) grid.innerHTML = '';
+    if (tbody) tbody.innerHTML = '';
 
     if (itemsToRender.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="${colSpanCount}" class="p-10 text-center text-gray-400 uppercase font-bold text-xs">No se encontraron productos en el inventario.</td></tr>`;
+        if (grid) grid.innerHTML = `<div class="col-span-full p-10 text-center text-gray-400 font-bold uppercase text-xs">No se encontraron productos.</div>`;
+        if (tableContainer) tableContainer.classList.add('hidden');
+        updateCategorySummarySidebar({});
         return;
     }
 
@@ -1320,7 +1367,9 @@ function renderInventoryRows() {
         return a.localeCompare(b);
     });
 
-    // 4. Renderizar Filas Agrupadas
+    const categoryStats = {};
+
+    // 4. Renderizar Rejilla de Tarjetas
     sortedCategories.forEach(cat => {
         const catItems = groupedByCategory[cat];
         
@@ -1331,124 +1380,392 @@ function renderInventoryRows() {
             catValue += item.totalValue;
         });
 
-        // Crear una clase segura para los productos de esta categoría
-        const safeCatClass = `cat-rows-${cat.replace(/[^a-z0-9]/gi, '_')}`;
+        // Guardar estadísticas para el sidebar
+        categoryStats[cat] = { units: catUnits, value: catValue };
 
-        // Fila de Encabezado de Categoría
-        const catTr = document.createElement('tr');
-        catTr.className = "bg-slate-100/60 font-black text-[10px] text-brand-black border-y border-gray-200/80 cursor-pointer select-none hover:bg-slate-200/50 transition-colors";
-        
-        if (isAdmin) {
-            catTr.innerHTML = `
-                <td class="px-6 py-3 uppercase tracking-wider font-black text-brand-black">
-                    <div class="flex items-center gap-2">
-                        <i class="fa-solid fa-chevron-right text-brand-orange text-[9px] transition-transform duration-200 mr-1 cat-arrow"></i>
-                        <i class="fa-solid fa-folder text-brand-orange text-xs"></i>
-                        <span>Categoría: ${cat}</span>
-                    </div>
-                </td>
-                <td class="px-6 py-3"></td>
-                <td class="px-6 py-3 text-center text-brand-orange font-black">${catUnits} unds</td>
-                <td class="px-6 py-3"></td>
-                <td class="px-6 py-3 text-right text-emerald-700 font-black">$ ${catValue.toLocaleString('es-CO')}</td>
-                <td class="px-6 py-3"></td>
+        const outOfStockCount = catItems.filter(item => item.activeStock === 0).length;
+        const lowStockCount = catItems.filter(item => item.activeStock > 0 && item.activeStock <= 5).length;
+
+        // Generar marcado del badge
+        let badgeHTML = '';
+        if (outOfStockCount > 0) {
+            badgeHTML = `<span class="bg-red-50 text-red-600 border border-red-100 px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider whitespace-nowrap">${outOfStockCount} SIN STOCK</span>`;
+        } else if (lowStockCount > 0) {
+            badgeHTML = `<span class="bg-amber-50 text-amber-600 border border-amber-100 px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider text-brand-orange whitespace-nowrap">${lowStockCount} BAJO</span>`;
+        }
+
+        const catDoc = cachedCategories.find(c => c.name.trim().toLowerCase() === cat.trim().toLowerCase());
+        const catImgUrl = catDoc ? catDoc.image : '';
+
+        // Definir ilustración con fallback
+        let illustration = '';
+        if (catImgUrl) {
+            illustration = `
+                <img src="${catImgUrl}" class="w-12 h-12 object-contain rounded" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div style="display:none;" class="w-12 h-12 items-center justify-center">${getCategoryIllustration(cat)}</div>
             `;
         } else {
-            catTr.innerHTML = `
-                <td class="px-6 py-3 uppercase tracking-wider font-black text-brand-black">
-                    <div class="flex items-center gap-2">
-                        <i class="fa-solid fa-chevron-right text-brand-orange text-[9px] transition-transform duration-200 mr-1 cat-arrow"></i>
-                        <i class="fa-solid fa-folder text-brand-orange text-xs"></i>
-                        <span>Categoría: ${cat}</span>
-                    </div>
-                </td>
-                <td class="px-6 py-3"></td>
-                <td class="px-6 py-3 text-center text-brand-orange font-black">${catUnits} unds</td>
-                <td class="px-6 py-3"></td>
-            `;
+            illustration = getCategoryIllustration(cat);
         }
-        tbody.appendChild(catTr);
 
-        // Click handler para expandir/colapsar
-        catTr.onclick = () => {
-            const rows = tbody.querySelectorAll(`.${safeCatClass}`);
-            const arrow = catTr.querySelector('.cat-arrow');
-            
-            rows.forEach(r => {
-                r.classList.toggle('hidden');
-            });
-            
-            if (arrow) {
-                if (arrow.classList.contains('fa-chevron-right')) {
-                    arrow.classList.remove('fa-chevron-right');
-                    arrow.classList.add('fa-chevron-down');
-                } else {
-                    arrow.classList.remove('fa-chevron-down');
-                    arrow.classList.add('fa-chevron-right');
-                }
-            }
-        };
+        const isOpen = openCategories.has(cat);
 
-        // Filas de Productos de la Categoría
-        catItems.forEach(item => {
-            const tr = document.createElement('tr');
-            // Inicialmente ocultos (comprimidos)
-            tr.className = `hover:bg-slate-50 transition border-b border-gray-50 last:border-0 hidden ${safeCatClass}`;
-            
-            const activeStockClass = item.activeStock > 0 ? "text-green-600 bg-green-50 border-green-100" : "text-red-500 bg-red-50 border-red-100";
-            const bodegaStockClass = item.bodegaStock > 0 ? "text-blue-600 bg-blue-50 border-blue-100" : "text-gray-400 bg-gray-50 border-gray-100";
+        // Crear tarjeta
+        const card = document.createElement('div');
+        card.className = `bg-white rounded-2xl p-4 border cursor-pointer transition-all duration-300 flex items-center select-none relative group min-h-[5.5rem] ${isOpen ? 'border-brand-orange shadow-md ring-1 ring-brand-orange' : 'border-gray-100 hover:border-brand-orange/30 shadow-sm'}`;
+        card.onclick = () => window.toggleCategoryCard(cat);
+        card.innerHTML = `
+            <div class="flex items-center gap-3 w-full pr-20">
+                <div class="w-14 h-14 rounded-xl bg-slate-50 flex items-center justify-center border border-gray-100 shrink-0">
+                    ${illustration}
+                </div>
+                <div class="space-y-0.5 overflow-hidden">
+                    <h4 class="font-black text-[11px] text-brand-black uppercase tracking-tight line-clamp-2 leading-tight break-words" title="${cat}">${cat}</h4>
+                    <div class="text-[9px] text-gray-500 font-bold uppercase leading-normal">
+                        <span class="block">Total: <span class="text-brand-black font-black">${catUnits} unds</span></span>
+                        ${isAdmin ? `<span class="block">Valor: <span class="text-emerald-600 font-black text-[10px]">$${catValue.toLocaleString('es-CO')}</span></span>` : ''}
+                    </div>
+                </div>
+            </div>
+            <div class="absolute right-4 top-4 flex flex-col items-end pointer-events-none">
+                <div class="h-4">
+                    ${badgeHTML}
+                </div>
+            </div>
+            <div class="absolute bottom-2 right-2 text-gray-300 group-hover:text-brand-orange transition-colors">
+                <i class="fa-solid ${isOpen ? 'fa-eye text-brand-orange' : 'fa-eye-slash'} text-[9px]"></i>
+            </div>
+        `;
+        if (grid) grid.appendChild(card);
+    });
 
-            const variantBadge = item.variant 
-                ? `<span class="text-[9px] bg-brand-orange/15 text-brand-orange border border-brand-orange/20 px-2 py-0.5 rounded font-black tracking-wider uppercase">${item.variant}</span>` 
-                : '';
+    // 5. Renderizar Tabla de Productos de Categorías Abiertas
+    const activeOpenCats = sortedCategories.filter(cat => openCategories.has(cat));
 
+    if (activeOpenCats.length === 0) {
+        if (tableContainer) tableContainer.classList.add('hidden');
+    } else {
+        if (tableContainer) tableContainer.classList.remove('hidden');
+
+        activeOpenCats.forEach(cat => {
+            const catItems = groupedByCategory[cat];
+            const safeCatClass = `cat-rows-${cat.replace(/[^a-z0-9]/gi, '_')}`;
+
+            // Fila separadora de categoría
+            const sepTr = document.createElement('tr');
+            sepTr.className = "bg-slate-50 font-black text-[9px] text-gray-400 uppercase tracking-widest border-y border-gray-100";
             if (isAdmin) {
-                tr.innerHTML = `
-                    <td class="px-6 py-4 pl-10">
-                        <div class="flex flex-col gap-1">
-                            <span class="font-black text-xs text-brand-black uppercase">${item.name}</span>
-                            <div class="flex items-center gap-2">${variantBadge}</div>
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 font-mono font-bold text-xs text-gray-400 uppercase">${item.sku}</td>
-                    <td class="px-6 py-4 text-center">
-                        <span class="px-3 py-1.5 rounded-xl border text-xs font-black min-w-[3rem] inline-block ${activeStockClass}">
-                            ${item.activeStock}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 text-right font-bold text-xs text-gray-600">$ ${item.price.toLocaleString('es-CO')}</td>
-                    <td class="px-6 py-4 text-right font-black text-xs text-emerald-600">$ ${item.totalValue.toLocaleString('es-CO')}</td>
-                    <td class="px-6 py-4 text-center">
-                        <span class="px-3 py-1.5 rounded-xl border text-xs font-black min-w-[3rem] inline-block ${bodegaStockClass}">
-                            ${item.bodegaStock}
-                        </span>
-                    </td>
+                sepTr.innerHTML = `
+                    <td class="px-6 py-2.5 font-bold" colspan="2"><i class="fa-solid fa-folder text-brand-orange text-xs mr-2"></i> ${cat}</td>
+                    <td class="px-6 py-2.5 text-center">${categoryStats[cat].units} unds</td>
+                    <td class="px-6 py-2.5"></td>
+                    <td class="px-6 py-2.5 text-right font-black text-emerald-700">$ ${categoryStats[cat].value.toLocaleString('es-CO')}</td>
+                    <td class="px-6 py-2.5"></td>
                 `;
             } else {
-                tr.innerHTML = `
-                    <td class="px-6 py-4 pl-10">
-                        <div class="flex flex-col gap-1">
-                            <span class="font-black text-xs text-brand-black uppercase">${item.name}</span>
-                            <div class="flex items-center gap-2">${variantBadge}</div>
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 font-mono font-bold text-xs text-gray-400 uppercase">${item.sku}</td>
-                    <td class="px-6 py-4 text-center">
-                        <span class="px-3 py-1.5 rounded-xl border text-xs font-black min-w-[3rem] inline-block ${activeStockClass}">
-                            ${item.activeStock}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 text-center">
-                        <span class="px-3 py-1.5 rounded-xl border text-xs font-black min-w-[3rem] inline-block ${bodegaStockClass}">
-                            ${item.bodegaStock}
-                        </span>
-                    </td>
+                sepTr.innerHTML = `
+                    <td class="px-6 py-2.5 font-bold" colspan="2"><i class="fa-solid fa-folder text-brand-orange text-xs mr-2"></i> ${cat}</td>
+                    <td class="px-6 py-2.5 text-center">${categoryStats[cat].units} unds</td>
+                    <td class="px-6 py-2.5"></td>
                 `;
             }
-            tbody.appendChild(tr);
+            if (tbody) tbody.appendChild(sepTr);
+
+            // Filas de productos
+            catItems.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = `hover:bg-slate-50 transition border-b border-gray-50 last:border-0 ${safeCatClass}`;
+                
+                const activeStockClass = item.activeStock > 0 ? "text-green-600 bg-green-50 border-green-100" : "text-red-500 bg-red-50 border-red-100";
+                const bodegaStockClass = item.bodegaStock > 0 ? "text-blue-600 bg-blue-50 border-blue-100" : "text-gray-400 bg-gray-50 border-gray-100";
+
+                const variantBadge = item.variant 
+                    ? `<span class="text-[9px] bg-brand-orange/15 text-brand-orange border border-brand-orange/20 px-2 py-0.5 rounded font-black tracking-wider uppercase">${item.variant}</span>` 
+                    : '';
+
+                if (isAdmin) {
+                    tr.innerHTML = `
+                        <td class="px-6 py-4 pl-10">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-lg bg-white border border-gray-100 p-1 flex-shrink-0 flex items-center justify-center shadow-sm">
+                                    <img src="${item.image}" loading="lazy" class="max-w-full max-h-full object-contain rounded">
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <span class="font-black text-xs text-brand-black uppercase">${item.name}</span>
+                                    <div class="flex items-center gap-2">${variantBadge}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 font-mono font-bold text-xs text-gray-400 uppercase">${item.sku}</td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="px-3 py-1.5 rounded-xl border text-xs font-black min-w-[3rem] inline-block ${activeStockClass}">
+                                ${item.activeStock}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-right font-bold text-xs text-gray-600">$ ${item.price.toLocaleString('es-CO')}</td>
+                        <td class="px-6 py-4 text-right font-black text-xs text-emerald-600">$ ${item.totalValue.toLocaleString('es-CO')}</td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="px-3 py-1.5 rounded-xl border text-xs font-black min-w-[3rem] inline-block ${bodegaStockClass}">
+                                ${item.bodegaStock}
+                            </span>
+                        </td>
+                    `;
+                } else {
+                    tr.innerHTML = `
+                        <td class="px-6 py-4 pl-10">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-lg bg-white border border-gray-100 p-1 flex-shrink-0 flex items-center justify-center shadow-sm">
+                                    <img src="${item.image}" loading="lazy" class="max-w-full max-h-full object-contain rounded">
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <span class="font-black text-xs text-brand-black uppercase">${item.name}</span>
+                                    <div class="flex items-center gap-2">${variantBadge}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 font-mono font-bold text-xs text-gray-400 uppercase">${item.sku}</td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="px-3 py-1.5 rounded-xl border text-xs font-black min-w-[3rem] inline-block ${activeStockClass}">
+                                ${item.activeStock}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="px-3 py-1.5 rounded-xl border text-xs font-black min-w-[3rem] inline-block ${bodegaStockClass}">
+                                ${item.bodegaStock}
+                            </span>
+                        </td>
+                    `;
+                }
+                if (tbody) tbody.appendChild(tr);
+            });
         });
-    });
+    }
+
+    // 6. Actualizar resumen lateral
+    updateCategorySummarySidebar(categoryStats);
 }
+
+function updateCategorySummarySidebar(categoryStats) {
+    const container = document.getElementById('category-summary-sidebar');
+    if (!container) return;
+
+    const role = sessionStorage.getItem('adminUserRole');
+    const isAdmin = (role === 'admin');
+
+    const activeOpenCats = Array.from(openCategories).filter(cat => categoryStats[cat] !== undefined);
+
+    if (activeOpenCats.length === 0) {
+        container.innerHTML = `
+            <div class="h-[550px] flex flex-col justify-center items-center text-center text-gray-400 space-y-3">
+                <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400 text-lg">
+                    <i class="fa-solid fa-folder-open"></i>
+                </div>
+                <p class="text-[10px] font-black uppercase tracking-wider">Categorías Colapsadas</p>
+                <p class="text-xs font-medium leading-relaxed px-4">Haz clic en los encabezados de las categorías en la tabla para expandirlas y ver su resumen aquí.</p>
+            </div>
+        `;
+        return;
+    }
+
+    let totalUnits = 0;
+    let totalVal = 0;
+    let itemsHTML = '';
+
+    activeOpenCats.forEach(cat => {
+        const stats = categoryStats[cat];
+        totalUnits += stats.units;
+        totalVal += stats.value;
+
+        const valDisplay = isAdmin 
+            ? `<span class="text-[11px] font-black text-emerald-600 block">$${stats.value.toLocaleString('es-CO')}</span>`
+            : '';
+
+        itemsHTML += `
+            <div class="bg-white border border-gray-100 p-3.5 rounded-2xl flex items-center justify-between shadow-sm hover:scale-[1.02] transition duration-300">
+                <div class="flex items-center gap-2 max-w-[70%]">
+                    <i class="fa-solid fa-folder text-brand-orange text-xs shrink-0"></i>
+                    <span class="text-xs font-black text-brand-black uppercase truncate" title="${cat}">${cat}</span>
+                </div>
+                <div class="text-right">
+                    <span class="text-[10px] font-black text-gray-500 block uppercase">${stats.units} unds</span>
+                    ${valDisplay}
+                </div>
+            </div>
+        `;
+    });
+
+    const summaryFooter = `
+        <div class="border-t border-gray-100 pt-4 mt-4 space-y-2 shrink-0">
+            <div class="flex justify-between items-center text-xs font-bold text-gray-400 uppercase">
+                <span>Categorías Abiertas:</span>
+                <span class="text-brand-black font-black">${activeOpenCats.length}</span>
+            </div>
+            <div class="flex justify-between items-center text-xs font-bold text-gray-400 uppercase">
+                <span>Unidades en Vista:</span>
+                <span class="text-brand-orange font-black text-sm">${totalUnits.toLocaleString('es-CO')}</span>
+            </div>
+            ${isAdmin ? `
+            <div class="flex justify-between items-center text-xs font-bold text-gray-400 uppercase border-t border-slate-100 pt-2">
+                <span>Valor Total Vista:</span>
+                <span class="text-emerald-700 font-black text-sm">$${totalVal.toLocaleString('es-CO')}</span>
+            </div>
+            ` : ''}
+        </div>
+    `;
+
+    container.innerHTML = `
+        <div class="h-[550px] flex flex-col justify-between animate-in fade-in duration-300">
+            <div class="space-y-4 flex-grow flex flex-col overflow-hidden">
+                <div class="flex items-center justify-between pb-2 border-b border-gray-100 shrink-0">
+                    <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Resumen Vista Activa</h4>
+                    <button onclick="window.clearOpenCategories()" class="text-[9px] font-black uppercase text-brand-orange hover:underline">Colapsar Todas</button>
+                </div>
+                <div class="space-y-2 overflow-y-auto custom-scroll pr-1 flex-grow">
+                    ${itemsHTML}
+                </div>
+            </div>
+            ${summaryFooter}
+        </div>
+    `;
+}
+
+window.clearOpenCategories = () => {
+    openCategories.clear();
+    renderInventoryRows();
+};
+
+function getCategoryIllustration(categoryName) {
+    const norm = categoryName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    if (norm.includes("accesorios") || norm.includes("accesorio") || norm.includes("vidrios") || norm.includes("vidrio")) {
+        return `
+        <svg class="w-10 h-10" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="12" y="4" width="24" height="40" rx="4" fill="#FFEAE2" stroke="#F05A28" stroke-width="2"/>
+            <rect x="16" y="8" width="16" height="26" rx="2" fill="#FFFFFF" stroke="#F05A28" stroke-width="2"/>
+            <circle cx="24" cy="39" r="2" fill="#F05A28"/>
+            <path d="M18 4H30" stroke="#F05A28" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        `;
+    }
+    if (norm.includes("audio") || norm.includes("sonido") || norm.includes("parlante") || norm.includes("audifonos") || norm.includes("audifono") || norm.includes("altavoz")) {
+        return `
+        <svg class="w-10 h-10" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="10" y="4" width="28" height="40" rx="4" fill="#E2F2FF" stroke="#3B82F6" stroke-width="2"/>
+            <circle cx="24" cy="14" r="5" fill="#FFFFFF" stroke="#3B82F6" stroke-width="2"/>
+            <circle cx="24" cy="14" r="2" fill="#3B82F6"/>
+            <circle cx="24" cy="30" r="8" fill="#FFFFFF" stroke="#3B82F6" stroke-width="2"/>
+            <circle cx="24" cy="30" r="4" fill="#3B82F6"/>
+            <rect x="16" y="40" width="16" height="2" fill="#3B82F6"/>
+        </svg>
+        `;
+    }
+    if (norm.includes("celular") || norm.includes("tablet") || norm.includes("telefono") || norm.includes("movil") || norm.includes("tableta")) {
+        return `
+        <svg class="w-10 h-10" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="10" y="4" width="28" height="40" rx="3" fill="#EAE2FF" stroke="#8B5CF6" stroke-width="2"/>
+            <rect x="13" y="8" width="22" height="28" rx="1" fill="#FFFFFF" stroke="#8B5CF6" stroke-width="2"/>
+            <path d="M22 4H26" stroke="#8B5CF6" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="24" cy="40" r="1.5" fill="#8B5CF6"/>
+        </svg>
+        `;
+    }
+    if (norm.includes("oficina") || norm.includes("computacion") || norm.includes("computador") || norm.includes("tecnologia") || norm.includes("laptop") || norm.includes("pc")) {
+        return `
+        <svg class="w-10 h-10" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="8" y="10" width="32" height="22" rx="2" fill="#E2FFF9" stroke="#10B981" stroke-width="2"/>
+            <rect x="11" y="13" width="26" height="16" rx="1" fill="#FFFFFF" stroke="#10B981" stroke-width="2"/>
+            <path d="M4 36H44" stroke="#10B981" stroke-width="3" stroke-linecap="round"/>
+            <path d="M6 32L8 36M42 32L40 36" stroke="#10B981" stroke-width="2"/>
+        </svg>
+        `;
+    }
+    if (norm.includes("movilidad") || norm.includes("herramientas") || norm.includes("scooter") || norm.includes("monopatin") || norm.includes("bici") || norm.includes("bicicleta") || norm.includes("vehiculo")) {
+        return `
+        <svg class="w-10 h-10" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="38" r="6" fill="#FFEAE2" stroke="#EF4444" stroke-width="2"/>
+            <circle cx="36" cy="38" r="6" fill="#FFEAE2" stroke="#EF4444" stroke-width="2"/>
+            <path d="M12 38H36" stroke="#EF4444" stroke-width="3"/>
+            <path d="M12 38L20 12H24" stroke="#EF4444" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M20 12H16" stroke="#EF4444" stroke-width="2" stroke-linecap="round"/>
+            <path d="M26 18L22 24H27L23 30" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        `;
+    }
+    if (norm.includes("smart home") || norm.includes("hogar") || norm.includes("domotica") || norm.includes("casa") || norm.includes("inteligente")) {
+        return `
+        <svg class="w-10 h-10" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M24 4L6 18V40C6 41.1046 6.89543 42 8 42H40C41.1046 42 42 41.1046 42 40V18L24 4Z" fill="#FFFBE2" stroke="#D97706" stroke-width="2" stroke-linejoin="round"/>
+            <rect x="20" y="30" width="8" height="12" fill="#FFFFFF" stroke="#D97706" stroke-width="2"/>
+            <path d="M18 20C21.3137 16.6863 26.6863 16.6863 30 20" stroke="#D97706" stroke-width="2" stroke-linecap="round"/>
+            <path d="M21 24C22.6569 22.3431 25.3431 22.3431 27 24" stroke="#D97706" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="24" cy="27" r="1.5" fill="#D97706"/>
+        </svg>
+        `;
+    }
+    if (norm.includes("watch") || norm.includes("band") || norm.includes("reloj") || norm.includes("pulsera") || norm.includes("smart watch") || norm.includes("wearable")) {
+        return `
+        <svg class="w-10 h-10" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="18" y="2" width="12" height="44" rx="3" fill="#E2F2FF" stroke="#0EA5E9" stroke-width="2"/>
+            <circle cx="24" cy="24" r="12" fill="#FFFFFF" stroke="#0EA5E9" stroke-width="3"/>
+            <circle cx="24" cy="24" r="8" stroke="#0EA5E9" stroke-width="1.5" stroke-dasharray="30 10"/>
+            <path d="M24 19V24H28" stroke="#0EA5E9" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        `;
+    }
+    return `
+    <svg class="w-10 h-10" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M4 10C4 8.89543 4.89543 8 6 8H18L24 14H42C43.1046 14 44 14.8954 44 16V40C44 41.1046 43.1046 42 42 42H6C4.89543 42 4 41.1046 4 40V10Z" fill="#F3F4F6" stroke="#9CA3AF" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M12 22H36" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round"/>
+        <path d="M12 28H28" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    `;
+}
+
+function getSparklineSVG(colorType = 'green') {
+    const points = [
+        [0, 20],
+        [12, 10 + Math.random() * 8],
+        [24, 15 + Math.random() * 10],
+        [36, 5 + Math.random() * 8],
+        [48, 12 + Math.random() * 8],
+        [60, 4 + Math.random() * 6]
+    ];
+    
+    let d = `M ${points[0][0]} ${points[0][1]}`;
+    for (let i = 1; i < points.length; i++) {
+        const cpX1 = points[i-1][0] + 6;
+        const cpY1 = points[i-1][1];
+        const cpX2 = points[i][0] - 6;
+        const cpY2 = points[i][1];
+        d += ` C ${cpX1} ${cpY1}, ${cpX2} ${cpY2}, ${points[i][0]} ${points[i][1]}`;
+    }
+
+    const strokeColor = colorType === 'green' ? '#10B981' : '#EF4444';
+    const gradientId = `grad-${Math.random().toString(36).substr(2, 9)}`;
+
+    return `
+    <svg class="w-14 h-6 overflow-visible" viewBox="0 0 60 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <linearGradient id="${gradientId}" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="${strokeColor}" stop-opacity="0.15"/>
+                <stop offset="100%" stop-color="${strokeColor}" stop-opacity="0"/>
+            </linearGradient>
+        </defs>
+        <path d="${d} L 60 25 L 0 25 Z" fill="url(#${gradientId})"/>
+        <path d="${d}" stroke="${strokeColor}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="60" cy="${points[points.length-1][1]}" r="2" fill="${strokeColor}"/>
+    </svg>
+    `;
+}
+
+window.toggleCategoryCard = (cat) => {
+    const isNowOpen = !openCategories.has(cat);
+    if (isNowOpen) {
+        openCategories.add(cat);
+    } else {
+        openCategories.delete(cat);
+    }
+    renderInventoryRows();
+};
 
 // ==========================================================================
 // 5. GENERALES E INICIALIZACIÓN
@@ -1463,5 +1780,13 @@ function showToast(msg) {
 
 // Iniciar con la primera pestaña
 switchTab('branches');
+
+// Suscribirse a las categorías de la base de datos para cargar sus imágenes
+AdminStore.subscribeToCategories(cats => {
+    cachedCategories = cats;
+    if (currentTab === 'branches') {
+        renderInventoryRows();
+    }
+});
 
 

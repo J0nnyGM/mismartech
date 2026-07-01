@@ -66,7 +66,24 @@ AdminStore.subscribeToAccounts((accs) => {
 });
 
 AdminStore.subscribeToExpenses((expenses) => {
-    adminExpensesCache = expenses;
+    adminExpensesCache = expenses.map(e => {
+        let dateObj = e.dateObj;
+        if (!dateObj || isNaN(dateObj.getTime())) {
+            const rawDate = e.date || e.createdAt;
+            if (rawDate) {
+                if (rawDate.toDate) {
+                    dateObj = rawDate.toDate();
+                } else if (typeof rawDate.seconds === 'number') {
+                    dateObj = new Date(rawDate.seconds * 1000);
+                } else {
+                    dateObj = new Date(rawDate);
+                }
+            } else {
+                dateObj = new Date();
+            }
+        }
+        return { ...e, dateObj };
+    });
     renderExpensesFromMemory();
 });
 
@@ -231,7 +248,8 @@ window.deleteExpense = async (id) => {
                     ref: p.ref,
                     currentPaid: paidInThisDoc,
                     currentTotal: cleanNumber(p.total),
-                    subtract: amountToSubtract
+                    subtract: amountToSubtract,
+                    purchaseId: p.purchaseId || null
                 });
                 
                 remainingReverse -= amountToSubtract;
@@ -257,6 +275,13 @@ window.deleteExpense = async (id) => {
                     status: newPaid === 0 ? 'PENDING' : 'PARTIAL', 
                     updatedAt: new Date() // Trigger al caché central
                 });
+
+                if (item.purchaseId) {
+                    t.update(doc(db, "purchases", item.purchaseId), {
+                        amountPaid: newPaid,
+                        updatedAt: new Date()
+                    });
+                }
             }
 
             const trashRef = doc(db, "expenses_trash", id);

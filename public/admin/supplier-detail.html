@@ -564,6 +564,16 @@
                     }
                 });
 
+                // Buscar payables asociados a las compras
+                const payablesToUpdate = [];
+                for (const item of purchasesToPay) {
+                    const qPay = query(collection(db, "payables"), where("purchaseId", "==", item.ref.id));
+                    const snapPay = await getDocs(qPay);
+                    snapPay.forEach(d => {
+                        payablesToUpdate.push({ ref: d.ref, data: d.data(), purchaseId: item.ref.id });
+                    });
+                }
+
                 // FASE 2: Transacción
                 await runTransaction(db, async (t) => {
                     // Leer Cuenta
@@ -576,6 +586,13 @@
                     for(const item of purchasesToPay) {
                         const freshSnap = await t.get(item.ref);
                         if(freshSnap.exists()) validatedPurchases.push({ ref: item.ref, data: freshSnap.data() });
+                    }
+
+                    // Re-leer deudas (payables) para bloqueo seguro
+                    const validatedPayables = [];
+                    for(const item of payablesToUpdate) {
+                        const freshSnap = await t.get(item.ref);
+                        if(freshSnap.exists()) validatedPayables.push({ ref: item.ref, data: freshSnap.data(), purchaseId: item.purchaseId });
                     }
 
                     // Escritura
@@ -602,16 +619,35 @@
                     }
 
                     let remaining = amount;
+                    const newPaidMap = {};
                     for (const { ref, data } of validatedPurchases) {
                         if (remaining <= 0) break;
                         const currentBalance = (data.totalCost || 0) - (data.amountPaid || 0);
                         const paymentForThis = Math.min(remaining, currentBalance);
+                        const newPaid = (data.amountPaid || 0) + paymentForThis;
                         
                         t.update(ref, {
-                            amountPaid: (data.amountPaid || 0) + paymentForThis,
+                            amountPaid: newPaid,
                             lastPaymentDate: Timestamp.now()
                         });
+
+                        newPaidMap[ref.id] = newPaid;
                         remaining -= paymentForThis;
+                    }
+
+                    for (const payable of validatedPayables) {
+                        const purchaseId = payable.purchaseId;
+                        if (newPaidMap[purchaseId] !== undefined) {
+                            const newPaid = newPaidMap[purchaseId];
+                            const isPaid = newPaid >= (payable.data.total || 0) - 100;
+                            t.update(payable.ref, {
+                                amountPaid: newPaid,
+                                balance: (payable.data.total || 0) - newPaid,
+                                status: isPaid ? 'PAID' : 'PENDING',
+                                lastPaymentDate: Timestamp.now(),
+                                updatedAt: Timestamp.now()
+                            });
+                        }
                     }
 
                     const expenseRef = doc(collection(db, "expenses"));
