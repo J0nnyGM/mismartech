@@ -414,7 +414,7 @@ paymentForm.onsubmit = async (e) => {
                 
                 t.update(dSnap.ref, updates);
 
-                if (type === 'provider' && data.purchaseId) {
+                if (type === 'supplier' && data.purchaseId) {
                     t.update(doc(db, "purchases", data.purchaseId), {
                         amountPaid: newPaid,
                         updatedAt: new Date()

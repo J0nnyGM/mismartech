@@ -440,15 +440,30 @@
         async function loadPaymentsHistory() {
             const paymentsTable = document.getElementById('payments-history-table');
             try {
-                const qPayments = query(collection(db, "expenses"), where("supplierId", "==", supplierId), orderBy("date", "desc"), limit(20));
+                // Consultamos por nombre de proveedor para consolidar los pagos creados desde Cartera y Gastos
+                const qPayments = query(collection(db, "expenses"), where("supplierName", "==", supplierData.name));
                 const snapPayments = await getDocs(qPayments);
                 
+                const payments = [];
+                snapPayments.forEach(d => {
+                    payments.push({ id: d.id, ...d.data() });
+                });
+                
+                // Ordenar por fecha descendente en memoria
+                payments.sort((a, b) => {
+                    const dateA = a.date?.toDate ? a.date.toDate().getTime() : new Date(a.date).getTime();
+                    const dateB = b.date?.toDate ? b.date.toDate().getTime() : new Date(b.date).getTime();
+                    return dateB - dateA;
+                });
+                
+                // Mostrar los 20 más recientes
+                const recentPayments = payments.slice(0, 20);
+                
                 let htmlPay = "";
-                if (snapPayments.empty) {
+                if (recentPayments.length === 0) {
                     htmlPay = `<tr><td colspan="3" class="p-6 text-center text-xs text-gray-400">No hay pagos recientes</td></tr>`;
                 } else {
-                    snapPayments.forEach(d => {
-                        const pay = d.data();
+                    recentPayments.forEach(pay => {
                         const dateObj = pay.date?.toDate ? pay.date.toDate() : new Date(pay.date);
                         htmlPay += `
                             <tr class="hover:bg-slate-50 transition border-b border-gray-50">
