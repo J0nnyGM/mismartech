@@ -18,10 +18,22 @@ let productIndex = [];
 let allPurchases = [];
 let allOrders = [];
 let globalMetrics = []; 
+let currentPeriod = 'GLOBAL';
 
 const STORAGE_KEY = 'mismartech_admin_master_inventory';
 const normalizeText = (str) => str ? str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
 const formatMoney = (val) => `$${Math.round(val).toLocaleString('es-CO')}`;
+
+const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+function getMonthYearLabel(date) {
+    return `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+}
+
+function getMonthYearKey(date) {
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    return `${date.getFullYear()}-${m}`;
+}
 
 // ============================================================================
 // 1. INICIALIZACIÓN Y DESCARGA MASIVA
@@ -49,6 +61,39 @@ async function initAnalysis() {
         ordersSnap.forEach(doc => allOrders.push({ id: doc.id, ...doc.data() }));
 
         calculateGlobalFIFO();
+
+        // Obtener meses únicos con ventas y poblar selector de período
+        const uniqueMonths = new Set();
+        allOrders.forEach(o => {
+            if (['CANCELADO', 'RECHAZADO', 'DEVUELTO'].includes(o.status)) return;
+            if (o.createdAt) {
+                const date = o.createdAt.toDate ? o.createdAt.toDate() : new Date(o.createdAt);
+                uniqueMonths.add(getMonthYearKey(date));
+            }
+        });
+
+        // Asegurar que el mes actual del sistema esté presente si hay órdenes
+        const today = new Date();
+        uniqueMonths.add(getMonthYearKey(today));
+
+        const sortedMonthKeys = Array.from(uniqueMonths).sort().reverse();
+        const periodSelector = document.getElementById('period-selector');
+
+        sortedMonthKeys.forEach(key => {
+            const [year, month] = key.split('-');
+            const date = new Date(parseInt(year), parseInt(month) - 1, 1);
+            const label = getMonthYearLabel(date);
+            const opt = document.createElement('option');
+            opt.value = key;
+            opt.textContent = label;
+            periodSelector.appendChild(opt);
+        });
+
+        periodSelector.addEventListener('change', (e) => {
+            updateDashboardForPeriod(e.target.value);
+        });
+
+        updateDashboardForPeriod('GLOBAL');
 
     } catch (e) {
         console.error("Error en inicialización:", e);
@@ -166,27 +211,88 @@ function calculateGlobalFIFO() {
             nextBatchQty
         });
     });
-
-    renderTop10Lists();
 }
 
 // ============================================================================
-// 3. RENDERIZADO DE LOS TOP 10 (AHORA CON NÚMEROS GIGANTES)
+// 3. ACTUALIZACIÓN DEL DASHBOARD SEGÚN PERIODO
 // ============================================================================
-function renderTop10Lists() {
-    const byRevenue = [...globalMetrics].sort((a, b) => b.totalRevenue - a.totalRevenue).slice(0, 10);
-    const byProfit = [...globalMetrics].sort((a, b) => b.profit - a.profit).slice(0, 10);
+function updateDashboardForPeriod(period) {
+    currentPeriod = period;
+
+    let totalPeriodProfit = 0;
+
+    globalMetrics.forEach(m => {
+        let periodQtySold = 0;
+        let periodRevenue = 0;
+        let periodCOGS = 0;
+
+        m.timeline.forEach(event => {
+            if (event.type === 'OUT') {
+                const eventPeriod = getMonthYearKey(event.date);
+                if (period === 'GLOBAL' || eventPeriod === period) {
+                    periodQtySold += event.qty;
+                    periodRevenue += event.revenueForThisSale;
+                    periodCOGS += event.costForThisSale;
+                }
+            }
+        });
+
+        m.periodQtySold = periodQtySold;
+        m.periodRevenue = periodRevenue;
+        m.periodCOGS = periodCOGS;
+        m.periodProfit = periodRevenue - periodCOGS;
+        m.periodMargin = periodRevenue > 0 ? (m.periodProfit / periodRevenue) * 100 : 0;
+
+        totalPeriodProfit += m.periodProfit;
+    });
+
+    const periodLabel = document.getElementById('period-profit-label');
+    const periodVal = document.getElementById('period-profit-val');
+    
+    if (period === 'GLOBAL') {
+        periodLabel.textContent = "Ganancia Total (Global)";
+    } else {
+        const [year, month] = period.split('-');
+        const date = new Date(parseInt(year), parseInt(month) - 1, 1);
+        periodLabel.textContent = `Ganancia de ${getMonthYearLabel(date)}`;
+    }
+    periodVal.textContent = formatMoney(totalPeriodProfit);
+
+    // Calcular ganancia exclusiva del mes actual (siempre con la fecha del sistema)
+    let totalCurrentMonthProfit = 0;
+    const today = new Date();
+    const currentMonthKey = getMonthYearKey(today);
+
+    globalMetrics.forEach(m => {
+        m.timeline.forEach(event => {
+            if (event.type === 'OUT') {
+                const eventPeriod = getMonthYearKey(event.date);
+                if (eventPeriod === currentMonthKey) {
+                    totalCurrentMonthProfit += event.profitForThisSale;
+                }
+            }
+        });
+    });
+    
+    document.getElementById('current-month-label').textContent = `Ganancia de ${getMonthYearLabel(today)}`;
+    document.getElementById('current-month-val').textContent = formatMoney(totalCurrentMonthProfit);
+
+    renderTop10ListsFiltered();
+}
+
+function renderTop10ListsFiltered() {
+    const byRevenue = [...globalMetrics].sort((a, b) => b.periodRevenue - a.periodRevenue).slice(0, 10);
+    const byProfit = [...globalMetrics].sort((a, b) => b.periodProfit - a.periodProfit).slice(0, 10);
 
     const generateHtml = (arr, type) => {
-        if (arr.length === 0 || arr[0].totalQtySold === 0) return `<div class="text-center p-4 text-gray-400 text-xs font-bold">Sin datos suficientes</div>`;
+        if (arr.length === 0 || arr[0].periodQtySold === 0) return `<div class="text-center p-4 text-gray-400 text-xs font-bold">Sin datos suficientes</div>`;
         
-        return arr.filter(i => i.totalQtySold > 0).map((item, index) => {
+        return arr.filter(i => i.periodQtySold > 0).map((item, index) => {
             const p = item.product;
             
-            // 🔥 TAMAÑOS DE TEXTO AUMENTADOS A text-xl y text-2xl 🔥
             const valueDisplay = type === 'sales'
-                ? `<span class="text-brand-orange font-black text-xl lg:text-2xl tracking-tight">${formatMoney(item.totalRevenue)}</span>`
-                : `<span class="text-emerald-500 font-black text-xl lg:text-2xl tracking-tight">${formatMoney(item.profit)}</span><br><span class="text-[10px] text-gray-400 font-bold tracking-widest uppercase bg-gray-50 px-2 py-1 rounded">Margen: ${item.margin.toFixed(1)}%</span>`;
+                ? `<span class="text-brand-orange font-black text-base sm:text-xl lg:text-2xl tracking-tight">${formatMoney(item.periodRevenue)}</span>`
+                : `<span class="text-emerald-500 font-black text-base sm:text-xl lg:text-2xl tracking-tight">${formatMoney(item.periodProfit)}</span><br><span class="text-[10px] text-gray-400 font-bold tracking-widest uppercase bg-gray-50 px-2 py-1 rounded">Margen: ${item.periodMargin.toFixed(1)}%</span>`;
 
             return `
             <div class="flex items-center gap-4 p-4 hover:bg-slate-50 rounded-2xl transition-all duration-300 cursor-pointer border border-transparent hover:border-gray-100 hover:shadow-sm hover:-translate-y-0.5 group" onclick="window.showSpecificProduct('${p.id}')">
@@ -194,7 +300,7 @@ function renderTop10Lists() {
                 <img src="${p.mainImage || p.image || 'https://placehold.co/50'}" class="w-14 h-14 rounded-lg object-contain bg-white border border-gray-100 shrink-0 p-1 shadow-sm">
                 <div class="flex-grow min-w-0">
                     <p class="text-xs font-black text-brand-black uppercase truncate group-hover:text-brand-orange transition-colors">${p.name}</p>
-                    <p class="text-[10px] font-bold text-gray-400 truncate mt-1">SKU: ${p.sku || 'N/A'} <span class="mx-1">•</span> <i class="fa-solid fa-tags text-gray-300"></i> ${item.totalQtySold} unid.</p>
+                    <p class="text-[10px] font-bold text-gray-400 truncate mt-1">SKU: ${p.sku || 'N/A'} <span class="mx-1">•</span> <i class="fa-solid fa-tags text-gray-300"></i> ${item.periodQtySold} unid.</p>
                 </div>
                 <div class="text-right shrink-0 leading-tight">
                     ${valueDisplay}
@@ -266,11 +372,11 @@ window.showSpecificProduct = (productId) => {
     document.getElementById('dash-sku').textContent = `SKU: ${data.product.sku || 'N/A'}`;
     document.getElementById('dash-img').src = data.product.mainImage || data.product.image || '';
 
-    document.getElementById('dash-qty-sold').textContent = data.totalQtySold;
-    document.getElementById('dash-revenue').textContent = formatMoney(data.totalRevenue);
-    document.getElementById('dash-cogs').textContent = `-${formatMoney(data.totalCOGS)}`;
-    document.getElementById('dash-profit').textContent = formatMoney(data.profit);
-    document.getElementById('dash-margin').textContent = `Margen: ${data.margin.toFixed(1)}%`;
+    document.getElementById('dash-qty-sold').textContent = data.periodQtySold;
+    document.getElementById('dash-revenue').textContent = formatMoney(data.periodRevenue);
+    document.getElementById('dash-cogs').textContent = `-${formatMoney(data.periodCOGS)}`;
+    document.getElementById('dash-profit').textContent = formatMoney(data.periodProfit);
+    document.getElementById('dash-margin').textContent = `Margen: ${data.periodMargin.toFixed(1)}%`;
 
     // Nuevas métricas de Inventario FIFO
     document.getElementById('dash-stock-qty').textContent = data.remainingStock;
@@ -293,12 +399,20 @@ window.showSpecificProduct = (productId) => {
     }
 
     timelineBody.innerHTML = "";
-    if (data.timeline.length === 0) {
-        timelineBody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-sm font-bold text-gray-400">No hay movimientos registrados.</td></tr>`;
+
+    // Filtrar timeline para mostrar solo los movimientos del periodo seleccionado
+    const filteredTimeline = data.timeline.filter(event => {
+        if (currentPeriod === 'GLOBAL') return true;
+        const eventPeriod = getMonthYearKey(event.date);
+        return eventPeriod === currentPeriod;
+    });
+
+    if (filteredTimeline.length === 0) {
+        timelineBody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-sm font-bold text-gray-400">No hay movimientos registrados para este periodo.</td></tr>`;
         return;
     }
 
-    data.timeline.forEach(event => {
+    filteredTimeline.forEach(event => {
         const dateStr = event.date.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
 
         if (event.type === 'IN') {

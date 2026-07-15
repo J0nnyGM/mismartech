@@ -167,6 +167,9 @@ if(searchForm) {
 // =============================================================================
 
 function renderRowHTML(product, index) {
+    const userRole = sessionStorage.getItem('adminUserRole') || 'customer';
+    const isVentas = userRole === 'ventas';
+
     const row = document.createElement('tr');
     row.className = "hover:bg-slate-50 transition-colors group fade-in border-b border-gray-50 last:border-0";
     row.style.animationDelay = `${index * 15}ms`;
@@ -188,6 +191,14 @@ function renderRowHTML(product, index) {
     const toggleIcon = isActive ? 'fa-eye-slash' : 'fa-eye';
     const toggleColor = isActive ? 'hover:text-amber-500 hover:border-amber-500' : 'hover:text-emerald-500 hover:border-emerald-500';
 
+    const nameHTML = isVentas 
+        ? `<p class="font-black text-brand-black text-sm mb-1 leading-tight">${product.name}</p>` 
+        : `<p class="font-black text-brand-black text-sm mb-1 leading-tight group-hover:text-brand-orange transition-colors cursor-pointer" onclick="window.location.href='edit-product.html?id=${product.id}'">${product.name}</p>`;
+
+    const editBtnHTML = isVentas 
+        ? '' 
+        : `<button onclick="window.location.href='edit-product.html?id=${product.id}'" class="w-10 h-10 rounded-xl bg-white border border-gray-200 text-gray-400 hover:text-brand-orange hover:border-brand-orange transition shadow-sm flex items-center justify-center hover:-translate-y-1"><i class="fa-solid fa-pen"></i></button>`;
+
     row.innerHTML = `
         <td class="p-6 pl-8 text-center align-middle">
             <div class="w-20 h-20 rounded-2xl bg-white border border-gray-100 p-2 shadow-sm mx-auto group-hover:scale-105 transition-transform duration-300 ${!isActive ? 'opacity-50 grayscale' : ''}">
@@ -195,7 +206,7 @@ function renderRowHTML(product, index) {
             </div>
         </td>
         <td class="p-6 align-middle">
-            <p class="font-black text-brand-black text-sm mb-1 leading-tight group-hover:text-brand-orange transition-colors cursor-pointer" onclick="window.location.href='edit-product.html?id=${product.id}'">${product.name}</p>
+            ${nameHTML}
             <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">SKU: ${product.sku || '---'}</p>
         </td>
         <td class="p-6 align-middle">
@@ -218,7 +229,7 @@ function renderRowHTML(product, index) {
         <td class="p-6 pr-8 text-right align-middle">
             <div class="flex items-center justify-end gap-3 opacity-60 group-hover:opacity-100 transition-opacity">
                 <button onclick="openDiscountModal('${product.id}')" class="w-10 h-10 rounded-xl bg-white border border-gray-200 text-gray-400 hover:text-purple-600 hover:border-purple-500 transition shadow-sm flex items-center justify-center hover:-translate-y-1"><i class="fa-solid fa-tags"></i></button>
-                <button onclick="window.location.href='edit-product.html?id=${product.id}'" class="w-10 h-10 rounded-xl bg-white border border-gray-200 text-gray-400 hover:text-brand-orange hover:border-brand-orange transition shadow-sm flex items-center justify-center hover:-translate-y-1"><i class="fa-solid fa-pen"></i></button>
+                ${editBtnHTML}
                 <button onclick="toggleProductStatus('${product.id}', '${product.status}')" class="w-10 h-10 rounded-xl bg-white border border-gray-200 text-gray-400 ${toggleColor} transition shadow-sm flex items-center justify-center hover:-translate-y-1">
                     <i class="fa-solid ${toggleIcon}"></i>
                 </button>

@@ -69,8 +69,8 @@ onAuthStateChanged(auth, async (user) => {
             
             const allowedRoutes = {
                 'admin': ['all'], // Todo permitido
-                'contabilidad': ['index.html', 'invoices.html', 'cartera.html', 'treasury.html', 'expenses.html', 'profitability.html', 'branches.html'],
-                'ventas': ['index.html', 'whatsapp.html', 'orders.html', 'clients.html', 'warranties.html', 'products.html', 'categories.html', 'promotions.html', 'branches.html'],
+                'contabilidad': ['index.html', 'invoices.html', 'cartera.html', 'treasury.html', 'expenses.html', 'profitability.html', 'branches.html', 'branches-profitability.html'],
+                'ventas': ['index.html', 'whatsapp.html', 'orders.html', 'clients.html', 'warranties.html', 'products.html', 'categories.html', 'promotions.html', 'branches.html', 'promo-codes.html', 'create-product.html'],
                 'logistica': ['index.html', 'orders.html', 'products.html', 'inventory-entry.html', 'warranty-inventory.html', 'shipping-config.html', 'branches.html']
             };
 

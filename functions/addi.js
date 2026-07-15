@@ -1,5 +1,5 @@
-const functions = require("firebase-functions");
 const admin = require("firebase-admin");
+const { adjustProductStockData } = require("./inventory-helper");
 const axios = require("axios");
 const cors = require('cors')({ origin: true });
 
@@ -276,21 +276,9 @@ exports.webhook = async (req, res) => {
                             const pDoc = await t.get(pRef); // LECTURA
                             if (pDoc.exists) {
                                 const pData = pDoc.data();
-                                let newS = (pData.stock || 0) - (i.quantity || 1);
-                                let newC = pData.combinations || [];
-                                if (i.color || i.capacity) {
-                                    if (newC.length > 0) {
-                                        const idx = newC.findIndex(c => {
-                                            const cColor = (c.color || "").trim().toLowerCase();
-                                            const iColor = (i.color || "").trim().toLowerCase();
-                                            const cCapacity = (c.capacity || "").trim().toLowerCase();
-                                            const iCapacity = (i.capacity || "").trim().toLowerCase();
-                                            return cColor === iColor && cCapacity === iCapacity;
-                                        });
-                                        if (idx >= 0) newC[idx].stock = Math.max(0, newC[idx].stock - i.quantity);
-                                    }
-                                }
-                                prodReads.push({ ref: pRef, stock: Math.max(0, newS), combos: newC });
+                                const qty = i.quantity || 1;
+                                const updatedStockData = adjustProductStockData(pData, -qty, i.color, i.capacity, 'bodega');
+                                prodReads.push({ ref: pRef, data: updatedStockData });
                             }
                         }
                     }
@@ -335,11 +323,7 @@ exports.webhook = async (req, res) => {
 
                     // B. Escribir Inventario
                     for (const p of prodReads) {
-                        t.update(p.ref, { 
-                            stock: p.stock, 
-                            combinations: p.combos,
-                            updatedAt: admin.firestore.FieldValue.serverTimestamp() // 🔥 NUEVO
-                        });
+                        t.update(p.ref, p.data);
                     }
 
                     // C. Escribir Remisión

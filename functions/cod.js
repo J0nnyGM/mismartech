@@ -1,5 +1,6 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
+const { adjustProductStockData } = require("./inventory-helper");
 
 exports.createCODOrder = async (data, context) => {
     const db = admin.firestore();
@@ -63,35 +64,31 @@ exports.createCODOrder = async (data, context) => {
                 const pData = pDoc.data();
                 const qty = item.quantity;
                 
-                // Cálculo de Stock
-                let newStock = (pData.stock || 0) - qty;
-                if (newStock < 0) throw new Error(`Sin stock: ${pData.name}`);
-                
-                let newCombinations = pData.combinations || [];
-                if (item.color || item.capacity) {
-                    if (newCombinations.length > 0) {
-                        const idx = newCombinations.findIndex(c => {
-                            const cColor = (c.color || "").trim().toLowerCase();
-                            const itemColor = (item.color || "").trim().toLowerCase();
-                            const cCapacity = (c.capacity || "").trim().toLowerCase();
-                            const itemCapacity = (item.capacity || "").trim().toLowerCase();
-                            return cColor === itemColor && cCapacity === itemCapacity;
-                        });
-                        if (idx >= 0) {
-                            if (newCombinations[idx].stock < qty) throw new Error(`Sin stock variante: ${pData.name}`);
-                            newCombinations[idx].stock -= qty;
-                        }
-                    }
+                // Cálculo de Stock y validación
+                if (pData.combinations && pData.combinations.length > 0) {
+                    const norm = (val) => val ? String(val).trim().toLowerCase() : "";
+                    const idx = pData.combinations.findIndex(c => 
+                        norm(c.color) === norm(item.color) &&
+                        norm(c.capacity) === norm(item.capacity)
+                    );
+                    if (idx === -1) throw new Error(`Combinación no encontrada para ${pData.name}`);
+                    const combo = pData.combinations[idx];
+                    const comboBranchStock = combo.branchStock || {};
+                    const available = Object.keys(comboBranchStock).length > 0 ? (comboBranchStock['bodega'] || 0) : (parseInt(combo.stock) || 0);
+                    if (available < qty) throw new Error(`Sin stock variante: ${pData.name}`);
+                } else {
+                    const branchStock = pData.branchStock || {};
+                    const available = Object.keys(branchStock).length > 0 ? (branchStock['bodega'] || 0) : (parseInt(pData.stock) || 0);
+                    if (available < qty) throw new Error(`Sin stock: ${pData.name}`);
                 }
+                
+                // Usar helper para descontar stock
+                const updatedStockData = adjustProductStockData(pData, -qty, item.color, item.capacity, 'bodega');
 
                 // Guardar la actualización para la Fase 2 (NO EJECUTAR AÚN)
                 pendingUpdates.push({
                     ref: pRef,
-                    data: { 
-                        stock: newStock, 
-                        combinations: newCombinations,
-                        updatedAt: admin.firestore.FieldValue.serverTimestamp()
-                    }
+                    data: updatedStockData
                 });
             }
 

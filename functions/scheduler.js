@@ -3,6 +3,7 @@ const db = admin.firestore();
 
 const functions = require("firebase-functions");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
+const { adjustProductStockData } = require("./inventory-helper");
 
 /**
  * TAREA PROGRAMADA: EJECUTAR TRANSFERENCIAS AUTOMÁTICAS
@@ -156,39 +157,61 @@ exports.cancelAbandonedPayments = onSchedule({
         });
 
         // --- FASE 2: Órdenes Manuales (36 Horas) ---
-        // La consulta ya trae únicamente los pedidos de hace MÁS de 36 horas.
         const manualSnapshot = await db.collection('orders')
             .where('status', '==', 'PENDIENTE')
             .where('createdAt', '<=', timeoutTimestamp36h)
             .get();
 
-        manualSnapshot.docs.forEach((doc) => {
+        for (const doc of manualSnapshot.docs) {
             const orderData = doc.data();
+            const orderId = doc.id;
             
-            // Ignoramos si ya está pagada (por precaución)
-            if (orderData.paymentStatus === 'PAID') return;
+            if (orderData.paymentStatus === 'PAID') continue;
+            if (orderData.paymentMethod === 'COD' || orderData.paymentMethod === 'CONTRAENTREGA') continue;
 
-            // CRÍTICO: Proteger pedidos Contra Entrega (COD) para que no se cancelen
-            if (orderData.paymentMethod === 'COD' || orderData.paymentMethod === 'CONTRAENTREGA') return;
-
-            // Si es Transferencia Manual y proviene de la TIENDA_WEB, procedemos a cancelar.
-            // Eliminamos la validación extra de fechas porque Firestore ya hizo el filtro.
             if (orderData.paymentMethod === 'MANUAL' && orderData.source === 'TIENDA_WEB') {
-                batch.update(doc.ref, {
-                    status: 'CANCELADO',
-                    statusDetail: 'expired_by_system',
-                    billingStatus: 'CANCELLED',
-                    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-                    notes: (orderData.notes || "") + " [Sistema: Cancelado por superar 36h de espera en Transferencia Manual]"
-                });
-                countCanceled++;
-            }
-        });
+                console.log(`⚠️ Cancelando orden manual vencida ${orderId} de TIENDA_WEB. Revertiendo stock.`);
+                
+                try {
+                    await db.runTransaction(async (t) => {
+                        // 1. LECTURAS (Todos los GETs primero)
+                        const productReads = [];
+                        for (const item of orderData.items || []) {
+                            if (item.id && !item.id.includes('UNKNOWN')) {
+                                const pRef = db.collection('products').doc(item.id);
+                                const pDoc = await t.get(pRef);
+                                productReads.push({ item, ref: pRef, doc: pDoc });
+                            }
+                        }
 
-        // --- EJECUTAR CANCELACIONES ---
+                        // 2. ESCRITURAS (Todos los UPDATEs y SETs después)
+                        for (const { item, ref, doc: pDoc } of productReads) {
+                            if (pDoc.exists) {
+                                const pData = pDoc.data();
+                                const updatedStockData = adjustProductStockData(pData, item.quantity, item.color, item.capacity, 'bodega');
+                                t.update(ref, updatedStockData);
+                            }
+                        }
+
+                        t.update(doc.ref, {
+                            status: 'CANCELADO',
+                            statusDetail: 'expired_by_system',
+                            billingStatus: 'CANCELLED',
+                            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+                            notes: (orderData.notes || "") + " [Sistema: Cancelado por superar 36h de espera en Transferencia Manual y stock devuelto a Bodega]"
+                        });
+                    });
+                    countCanceled++;
+                } catch (err) {
+                    console.error(`❌ Error cancelando orden manual ${orderId}:`, err);
+                }
+            }
+        }
+
+        // --- EJECUTAR CANCELACIONES RESTANTES (FASE 1) ---
         if (countCanceled > 0) {
             await batch.commit();
-            console.log(`🗑️ Se cancelaron automáticamente ${countCanceled} órdenes abandonadas.`);
+            console.log(`🗑️ Finalizado proceso de cancelaciones automáticas.`);
         } else {
             console.log(`✅ Revisiones completadas. No hubo órdenes vencidas para cancelar en este ciclo.`);
         }

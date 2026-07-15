@@ -1000,6 +1000,14 @@
         };
 
         // Initial setup
+        const userRole = sessionStorage.getItem('adminUserRole') || 'customer';
+        if (userRole === 'ventas') {
+            const tabGift = document.getElementById('tab-giftcards');
+            if (tabGift) tabGift.remove();
+            const btnGift = document.getElementById('btn-new-giftcard');
+            if (btnGift) btnGift.remove();
+        }
+
         loadRestrictionsLists();
         fetchPromoCodes();
     </script>

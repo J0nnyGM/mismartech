@@ -93,6 +93,8 @@ exports.assignSequentialNumber = orderCounterModule.assignSequentialNumber;
 exports.mercadolibreWebhook = functions.https.onRequest(mercadolibreModule.webhook);
 exports.renewMercadoLibreToken = onSchedule("every 5 hours", mercadolibreModule.renewTokenTask);
 exports.getMercadoLibreLabel = functions.https.onRequest(mercadolibreModule.getLabel);
+exports.getMercadoLibreAuthUrl = functions.https.onCall(mercadolibreModule.getAuthUrl);
+exports.authorizeMercadoLibreCode = functions.https.onCall(mercadolibreModule.authorizeCode);
 
 // Tienda 2
 exports.mercadolibreStore2Webhook = functions.https.onRequest(mercadolibre2Module.webhook);

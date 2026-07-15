@@ -1,6 +1,7 @@
 // functions/mercadolibre2.js
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
+const { adjustProductStockData } = require("./inventory-helper");
 
 // Leemos las credenciales de la TIENDA 2
 const ML_APP_ID = process.env.ML_APP_ID_2;
@@ -81,50 +82,45 @@ exports.webhook = async (req, res) => {
             if (newMLStatus === 'cancelled' && existingOrder.status !== 'CANCELADO') {
                 console.log(`⚠️ Orden de MercadoLibre 2 ${orderId} fue CANCELADA. Revirtiendo stock y estado.`);
                 await db.runTransaction(async (t) => {
-                    // 1. Devolver Stock
+                    // 1. LECTURAS (Todos los GETs primero)
+                    const productReads = [];
                     for (const item of existingOrder.items || []) {
                         if (item.id && !item.id.includes('UNKNOWN')) {
                             const pRef = db.collection('products').doc(item.id);
                             const pDoc = await t.get(pRef);
-                            if (pDoc.exists) {
-                                const pData = pDoc.data();
-                                let newStock = (pData.stock || 0) + item.quantity;
-                                let updatePayload = { stock: newStock, updatedAt: admin.firestore.FieldValue.serverTimestamp() };
-
-                                if (item.color || item.capacity) {
-                                    let newCombos = [...(pData.combinations || [])];
-                                    const idx = newCombos.findIndex(c => 
-                                        (c.color === item.color || (!c.color && !item.color)) &&
-                                        (c.capacity === item.capacity || (!c.capacity && !item.capacity))
-                                    );
-                                    if (idx >= 0) {
-                                        newCombos[idx].stock = (newCombos[idx].stock || 0) + item.quantity;
-                                        updatePayload.combinations = newCombos;
-                                    }
-                                }
-                                t.update(pRef, updatePayload);
-                            }
+                            productReads.push({ item, ref: pRef, doc: pDoc });
                         }
                     }
 
-                    // 2. Descontar balance de la cuenta de tesorería (Reverso)
+                    let accDoc = null;
+                    let accRef = null;
                     if (existingOrder.paymentAccountId) {
-                        const accRef = db.collection('accounts').doc(existingOrder.paymentAccountId);
-                        const accDoc = await t.get(accRef);
-                        if (accDoc.exists) {
-                            t.update(accRef, { balance: Math.max(0, (Number(accDoc.data().balance) || 0) - Number(existingOrder.total)) });
-                            
-                            // Crear un reverso (EXPENSE) de anulación
-                            const expenseRef = db.collection('expenses').doc();
-                            t.set(expenseRef, {
-                                amount: Number(existingOrder.total),
-                                category: "Anulación de Venta",
-                                description: `Reverso por cancelación de Orden MercadoLibre 2 #${orderData.id}`,
-                                paymentMethod: accDoc.data().name, type: 'EXPENSE', orderId: orderId,
-                                isRefund: true, date: admin.firestore.FieldValue.serverTimestamp(),
-                                createdAt: admin.firestore.FieldValue.serverTimestamp()
-                            });
+                        accRef = db.collection('accounts').doc(existingOrder.paymentAccountId);
+                        accDoc = await t.get(accRef);
+                    }
+
+                    // 2. ESCRITURAS (Todos los UPDATEs y SETs después)
+                    for (const { item, ref, doc } of productReads) {
+                        if (doc.exists) {
+                            const pData = doc.data();
+                            const updatedStockData = adjustProductStockData(pData, item.quantity, item.color, item.capacity, 'bodega');
+                            t.update(ref, updatedStockData);
                         }
+                    }
+
+                    if (accDoc && accDoc.exists) {
+                        t.update(accRef, { balance: Math.max(0, (Number(accDoc.data().balance) || 0) - Number(existingOrder.total)) });
+                        
+                        // Crear un reverso (EXPENSE) de anulación
+                        const expenseRef = db.collection('expenses').doc();
+                        t.set(expenseRef, {
+                            amount: Number(existingOrder.total),
+                            category: "Anulación de Venta",
+                            description: `Reverso por cancelación de Orden MercadoLibre 2 #${orderData.id}`,
+                            paymentMethod: accDoc.data().name, type: 'EXPENSE', orderId: orderId,
+                            isRefund: true, date: admin.firestore.FieldValue.serverTimestamp(),
+                            createdAt: admin.firestore.FieldValue.serverTimestamp()
+                        });
                     }
 
                     // 3. Marcar Orden como CANCELADA
@@ -208,32 +204,29 @@ exports.webhook = async (req, res) => {
 
         // --- TRANSACCIÓN SEGURA ---
         await db.runTransaction(async (t) => {
-            // Buscamos cuenta tesorería (Puedes crear una llamada 'MercadoLibre 2' si quieres llevar la cuenta separada)
+            // 1. LECTURAS (Todos los GETs primero)
             const accQ = await t.get(db.collection('accounts').where('name', '==', 'MercadoLibre 2').limit(1));
-            let accId = null, accName = 'MercadoLibre 2';
             
+            const productReads = [];
+            for (const p of itemsToDeduct) {
+                const pRef = db.collection('products').doc(p.docId);
+                const pDoc = await t.get(pRef);
+                productReads.push({ p, ref: pRef, doc: pDoc });
+            }
+
+            // 2. ESCRITURAS (Todos los UPDATEs y SETs después)
+            let accId = null, accName = 'MercadoLibre 2';
             if (!accQ.empty) {
                 const accDoc = accQ.docs[0];
                 accId = accDoc.id;
                 t.update(accDoc.ref, { balance: (Number(accDoc.data().balance) || 0) + Number(orderData.total_amount) });
             }
 
-            for (const p of itemsToDeduct) {
-                const pRef = db.collection('products').doc(p.docId);
-                const pDoc = await t.get(pRef);
-                if (pDoc.exists) {
-                    const pData = pDoc.data();
-                    let newStock = Math.max(0, (pData.stock || 0) - p.qty);
-                    let updatePayload = { stock: newStock };
-
-                    if (p.isVariant && pData.combinations) {
-                        let newCombos = [...pData.combinations];
-                        if (newCombos[p.variantIndex]) {
-                            newCombos[p.variantIndex].stock = Math.max(0, newCombos[p.variantIndex].stock - p.qty);
-                        }
-                        updatePayload.combinations = newCombos;
-                    }
-                    t.update(pRef, updatePayload);
+            for (const { p, ref, doc } of productReads) {
+                if (doc.exists) {
+                    const pData = doc.data();
+                    const updatedStockData = adjustProductStockData(pData, -p.qty, p.color, p.capacity, 'bodega');
+                    t.update(ref, updatedStockData);
                 }
             }
 

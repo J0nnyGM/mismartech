@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rentabilidad por Sede | Mi Smartech Admin</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Compiled Tailwind CSS -->
+    <link rel="stylesheet" href="../css/styles.css">
+    
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+        }
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        .fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans text-brand-black flex h-screen overflow-hidden selection:bg-brand-orange selection:text-white" style="display: none;">
+
+    <div id="admin-sidebar"></div>
+
+    <main class="flex-grow overflow-y-auto flex flex-col relative custom-scroll">
+        <!-- Cabecera -->
+        <header class="bg-white/90 backdrop-blur-xl border-b border-gray-100 px-8 py-5 flex justify-between items-center sticky top-0 z-40 shadow-sm">
+            <div>
+                <h2 class="font-black text-gray-400 text-[9px] uppercase tracking-[0.4em]">Finanzas & Análisis</h2>
+            </div>
+            <div class="w-10 h-10 bg-brand-black text-white rounded-xl flex items-center justify-center font-bold shadow-lg">
+                <i class="fa-solid fa-building-columns"></i>
+            </div>
+        </header>
+
+        <!-- Contenido principal -->
+        <div class="p-4 sm:p-8 max-w-7xl mx-auto pb-40 w-full">
+            
+            <!-- Título e Introducción -->
+            <div class="mb-8 flex flex-col sm:flex-row justify-between sm:items-end gap-4">
+                <div>
+                    <h1 class="text-3xl sm:text-4xl font-black text-brand-black tracking-tighter uppercase leading-none">
+                        Rentabilidad <span class="text-brand-orange">Por Sede</span>
+                    </h1>
+                    <p class="text-gray-400 text-xs sm:text-sm font-bold mt-2 tracking-wide">Analiza ventas, gastos y utilidades detalladas de cada punto de venta.</p>
+                </div>
+                
+                <!-- Selector de Periodo -->
+                <div class="bg-white px-4 py-3 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-3 w-full sm:w-auto shrink-0">
+                    <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest shrink-0"><i class="fa-regular fa-calendar mr-1"></i> Periodo:</span>
+                    <select id="period-selector" class="bg-slate-50 border-0 rounded-xl py-2 px-3 text-xs font-black text-gray-600 outline-none focus:bg-white focus:ring-1 focus:ring-brand-orange/30 transition-all cursor-pointer">
+                        <option value="GLOBAL">Global (Todos los tiempos)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Loader Inicial -->
+            <div id="loading-view" class="py-20 text-center">
+                <i class="fa-solid fa-circle-notch fa-spin text-4xl text-brand-orange mb-4"></i>
+                <p class="text-xs font-black uppercase text-gray-400 tracking-widest">Calculando balances contables FIFO por sedes...</p>
+            </div>
+
+            <!-- Dashboard Principal (Oculto al inicio) -->
+            <div id="dashboard-content" class="hidden fade-in space-y-10">
+                
+                <!-- 1. KPI Cards Resumen Negocio -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                    <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-orange-50 text-brand-orange flex items-center justify-center text-xl shrink-0">
+                            <i class="fa-solid fa-wallet"></i>
+                        </div>
+                        <div>
+                            <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Ventas Totales</p>
+                            <h3 id="kpi-total-sales" class="text-2xl font-black text-brand-black">$0</h3>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-purple-50 text-purple-500 flex items-center justify-center text-xl shrink-0">
+                            <i class="fa-solid fa-hand-holding-dollar"></i>
+                        </div>
+                        <div>
+                            <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Costo de Ventas (COGS)</p>
+                            <h3 id="kpi-total-cogs" class="text-2xl font-black text-purple-600">$0</h3>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-red-50 text-brand-red flex items-center justify-center text-xl shrink-0">
+                            <i class="fa-solid fa-receipt"></i>
+                        </div>
+                        <div>
+                            <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Gastos Operacionales</p>
+                            <h3 id="kpi-total-expenses" class="text-2xl font-black text-brand-red">$0</h3>
+                        </div>
+                    </div>
+
+                    <div id="kpi-net-profit-card" class="bg-gradient-to-br from-emerald-500 to-teal-600 p-6 rounded-3xl shadow-lg text-white flex items-center gap-4 transition-all duration-300">
+                        <div class="w-12 h-12 rounded-2xl bg-white/20 text-white flex items-center justify-center text-xl shrink-0">
+                            <i class="fa-solid fa-chart-line"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[9px] font-black text-white/70 uppercase tracking-widest mb-1">Utilidad Neta</p>
+                            <h3 id="kpi-total-net-profit" class="text-2xl font-black tracking-tight">$0</h3>
+                            <p id="kpi-net-margin" class="text-[10px] font-bold text-white/95 mt-0.5">Margen: 0%</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Grid de Sedes Detallado -->
+                <div>
+                    <h3 class="font-black text-brand-black uppercase text-xs tracking-wider mb-6 flex items-center gap-2">
+                        <i class="fa-solid fa-store text-brand-orange text-base"></i> Resumen de Puntos de Venta
+                    </h3>
+                    <div id="branches-cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Sede Cards renderizadas dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- 3. Tabla General Comparativa -->
+                <div class="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+                    <div class="p-6 border-b border-gray-50 bg-slate-50/50 flex justify-between items-center">
+                        <h3 class="font-black text-brand-black uppercase text-[11px] tracking-widest flex items-center gap-2">
+                            <i class="fa-solid fa-table-list text-brand-orange"></i> Balance de Sedes Comparativo
+                        </h3>
+                    </div>
+                    <div class="overflow-x-auto custom-scroll">
+                        <table class="w-full text-left text-sm min-w-[900px]">
+                            <thead class="bg-white text-[9px] uppercase font-black text-gray-400 tracking-widest border-b border-gray-100">
+                                <tr>
+                                    <th class="px-6 py-5">Sede</th>
+                                    <th class="px-6 py-5 text-right">Ventas ($)</th>
+                                    <th class="px-6 py-5 text-right">Costos (COGS) ($)</th>
+                                    <th class="px-6 py-5 text-right text-brand-orange">Utilidad Bruta ($)</th>
+                                    <th class="px-6 py-5 text-right text-brand-red">Gastos ($)</th>
+                                    <th class="px-6 py-5 text-right text-emerald-500">Utilidad Neta ($)</th>
+                                    <th class="px-6 py-5 text-center">Margen Neto</th>
+                                </tr>
+                            </thead>
+                            <tbody id="branches-table-body" class="divide-y divide-gray-50 font-medium">
+                                <!-- Filas de sedes renderizadas dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 4. Sección de Tendencias Históricas -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Configuración / Filtro de Tendencias -->
+                    <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col justify-between lg:col-span-1">
+                        <div>
+                            <h4 class="font-black text-brand-black uppercase text-[11px] tracking-widest mb-3 flex items-center gap-2">
+                                <i class="fa-solid fa-timeline text-brand-orange"></i> Análisis Histórico
+                            </h4>
+                            <p class="text-gray-400 text-xs leading-relaxed mb-6">Visualiza la evolución de ventas, gastos y utilidades mes a mes para una sede específica.</p>
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2">Selecciona una Sede:</label>
+                                    <select id="trend-branch-selector" class="w-full bg-slate-50 border border-gray-200 rounded-xl py-3.5 px-4 text-xs font-black text-gray-600 outline-none focus:bg-white focus:border-brand-orange/30 transition-all cursor-pointer">
+                                        <!-- Opciones cargadas dinámicamente -->
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-8 pt-6 border-t border-gray-100 text-center">
+                            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wide"><i class="fa-solid fa-circle-info mr-1"></i> Basado en contabilidad FIFO real</span>
+                        </div>
+                    </div>
+
+                    <!-- Tabla de Historial Mensual -->
+                    <div class="bg-white rounded-3xl shadow-md border border-gray-100 overflow-hidden lg:col-span-2">
+                        <div class="p-6 border-b border-gray-50 bg-slate-50/50">
+                            <h3 id="trend-table-title" class="font-black text-brand-black uppercase text-[11px] tracking-widest">
+                                Historial Mensual: Bodega Principal
+                            </h3>
+                        </div>
+                        <div class="overflow-y-auto max-h-[350px] custom-scroll">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-white text-[9px] uppercase font-black text-gray-400 tracking-widest border-b border-gray-100 sticky top-0">
+                                    <tr>
+                                        <th class="px-6 py-4">Mes</th>
+                                        <th class="px-6 py-4 text-right">Ventas ($)</th>
+                                        <th class="px-6 py-4 text-right text-brand-red">Gastos ($)</th>
+                                        <th class="px-6 py-4 text-right text-emerald-500">Utilidad Neta ($)</th>
+                                        <th class="px-6 py-4 text-center">Margen Neto</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="trend-table-body" class="divide-y divide-gray-50 font-medium">
+                                    <!-- Filas del historial mensual renderizadas dinámicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <script type="module" src="../js/admin/admin-guard.js"></script>
+    <script type="module" src="../js/admin/admin-branches-profitability.js"></script>
+</body>
+</html>

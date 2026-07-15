@@ -1,6 +1,7 @@
 // functions/falabella.js
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
+const { adjustProductStockData } = require("./inventory-helper");
 const crypto = require("crypto");
 
 /**
@@ -146,50 +147,45 @@ exports.webhook = async (req, res) => {
                     if ((newStatus === 'canceled' || newStatus === 'cancelled' || newStatus === 'returned' || newStatus === 'shipped_back') && existingOrder.status !== 'CANCELADO') {
                         console.log(`⚠️ Orden de Falabella ${orderId} fue CANCELADA. Revirtiendo stock y estado.`);
                         await db.runTransaction(async (t) => {
-                            // 1. Devolver Stock
+                            // 1. LECTURAS (Todos los GETs primero)
+                            const productReads = [];
                             for (const item of existingOrder.items || []) {
                                 if (item.id && !item.id.includes('UNKNOWN')) {
                                     const pRef = db.collection('products').doc(item.id);
                                     const pDoc = await t.get(pRef);
-                                    if (pDoc.exists) {
-                                        const pData = pDoc.data();
-                                        let newStock = (pData.stock || 0) + item.quantity;
-                                        let updatePayload = { stock: newStock, updatedAt: admin.firestore.FieldValue.serverTimestamp() };
-
-                                        if (item.color || item.capacity) {
-                                            let newCombos = [...(pData.combinations || [])];
-                                            const idx = newCombos.findIndex(c => 
-                                                (c.color === item.color || (!c.color && !item.color)) &&
-                                                (c.capacity === item.capacity || (!c.capacity && !item.capacity))
-                                            );
-                                            if (idx >= 0) {
-                                                newCombos[idx].stock = (newCombos[idx].stock || 0) + item.quantity;
-                                                updatePayload.combinations = newCombos;
-                                            }
-                                        }
-                                        t.update(pRef, updatePayload);
-                                    }
+                                    productReads.push({ item, ref: pRef, doc: pDoc });
                                 }
                             }
 
-                            // 2. Descontar balance de la cuenta de tesorería (Reverso)
+                            let accDoc = null;
+                            let accRef = null;
                             if (existingOrder.paymentAccountId) {
-                                const accRef = db.collection('accounts').doc(existingOrder.paymentAccountId);
-                                const accDoc = await t.get(accRef);
-                                if (accDoc.exists) {
-                                    t.update(accRef, { balance: Math.max(0, (Number(accDoc.data().balance) || 0) - Number(existingOrder.total)) });
-                                    
-                                    // Crear un reverso (EXPENSE) de anulación
-                                    const expenseRef = db.collection('expenses').doc();
-                                    t.set(expenseRef, {
-                                        amount: Number(existingOrder.total),
-                                        category: "Anulación de Venta",
-                                        description: `Reverso por cancelación de Orden Falabella #${orderIdRaw}`,
-                                        paymentMethod: accDoc.data().name, type: 'EXPENSE', orderId: orderId,
-                                        isRefund: true, date: admin.firestore.FieldValue.serverTimestamp(),
-                                        createdAt: admin.firestore.FieldValue.serverTimestamp()
-                                    });
+                                accRef = db.collection('accounts').doc(existingOrder.paymentAccountId);
+                                accDoc = await t.get(accRef);
+                            }
+
+                            // 2. ESCRITURAS (Todos los UPDATEs y SETs después)
+                            for (const { item, ref, doc } of productReads) {
+                                if (doc.exists) {
+                                    const pData = doc.data();
+                                    const updatedStockData = adjustProductStockData(pData, item.quantity, item.color, item.capacity, 'bodega');
+                                    t.update(ref, updatedStockData);
                                 }
+                            }
+
+                            if (accDoc && accDoc.exists) {
+                                t.update(accRef, { balance: Math.max(0, (Number(accDoc.data().balance) || 0) - Number(existingOrder.total)) });
+                                
+                                // Crear un reverso (EXPENSE) de anulación
+                                const expenseRef = db.collection('expenses').doc();
+                                t.set(expenseRef, {
+                                    amount: Number(existingOrder.total),
+                                    category: "Anulación de Venta",
+                                    description: `Reverso por cancelación de Orden Falabella #${orderIdRaw}`,
+                                    paymentMethod: accDoc.data().name, type: 'EXPENSE', orderId: orderId,
+                                    isRefund: true, date: admin.firestore.FieldValue.serverTimestamp(),
+                                    createdAt: admin.firestore.FieldValue.serverTimestamp()
+                                });
                             }
 
                             // 3. Marcar Orden como CANCELADA
@@ -283,8 +279,15 @@ exports.webhook = async (req, res) => {
 
         // --- TRANSACCIÓN SEGURA EN FIRESTORE ---
         await db.runTransaction(async (t) => {
-            // Registrar saldo en la cuenta de tesorería "Falabella"
-            const accQ = await t.get(db.collection('accounts').where('name', '==', 'Falabella').limit(1));
+            // Descontar inventarios (LECTURAS)
+            const productReads = [];
+            for (const p of itemsToDeduct) {
+                const pRef = db.collection('products').doc(p.docId);
+                const pDoc = await t.get(pRef);
+                productReads.push({ p, ref: pRef, doc: pDoc });
+            }
+
+            // Registrar saldo en la cuenta de tesorería "Falabella" (ESCRITURA)
             let accId = null, accName = 'Falabella';
             if (!accQ.empty) {
                 const accDoc = accQ.docs[0];
@@ -292,23 +295,12 @@ exports.webhook = async (req, res) => {
                 t.update(accDoc.ref, { balance: (Number(accDoc.data().balance) || 0) + Number(totalAmount) });
             }
 
-            // Descontar inventarios
-            for (const p of itemsToDeduct) {
-                const pRef = db.collection('products').doc(p.docId);
-                const pDoc = await t.get(pRef);
-                if (pDoc.exists) {
-                    const pData = pDoc.data();
-                    let newStock = Math.max(0, (pData.stock || 0) - p.qty);
-                    let updatePayload = { stock: newStock };
-
-                    if (p.isVariant && pData.combinations) {
-                        let newCombos = [...pData.combinations];
-                        if (newCombos[p.variantIndex]) {
-                            newCombos[p.variantIndex].stock = Math.max(0, newCombos[p.variantIndex].stock - p.qty);
-                        }
-                        updatePayload.combinations = newCombos;
-                    }
-                    t.update(pRef, updatePayload);
+            // Descontar inventarios (ESCRITURAS)
+            for (const { p, ref, doc } of productReads) {
+                if (doc.exists) {
+                    const pData = doc.data();
+                    const updatedStockData = adjustProductStockData(pData, -p.qty, p.color, p.capacity, 'bodega');
+                    t.update(ref, updatedStockData);
                 }
             }
 

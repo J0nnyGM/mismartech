@@ -10,8 +10,8 @@ export function loadAdminSidebar(userRole = 'customer') {
     // --- 1. PERMISOS DE MÓDULOS (Nombres exactos del menú) ---
     const rolePermissions = {
         'admin': ['all'],
-        'contabilidad': ['Dashboard', 'Facturación', 'Gestión de Cartera', 'Cuentas', 'Control de Gastos', 'Rentabilidad FIFO', 'Sedes y Cierres'],
-        'ventas': ['Dashboard', 'WhatsApp', 'Pedidos', 'Clientes', 'Garantías', 'Productos', 'Categorías', 'Banners y Promos', 'Sedes y Cierres'],
+        'contabilidad': ['Dashboard', 'Facturación', 'Gestión de Cartera', 'Cuentas', 'Control de Gastos', 'Rentabilidad FIFO', 'Rentabilidad Sedes', 'Sedes y Cierres'],
+        'ventas': ['Dashboard', 'WhatsApp', 'Pedidos', 'Clientes', 'Garantías', 'Productos', 'Categorías', 'Banners y Promos', 'Cupones Descuento', 'Sedes y Cierres'],
         'logistica': ['Dashboard', 'Pedidos', 'Productos', 'Nueva Entrada', 'Inventario RMA', 'Logística', 'Sedes y Cierres']
     };
 
@@ -55,6 +55,7 @@ export function loadAdminSidebar(userRole = 'customer') {
                 { name: 'Cuentas', icon: 'fa-vault', path: '/admin/treasury.html' },
                 { name: 'Control de Gastos', icon: 'fa-money-bill-trend-up', path: '/admin/expenses.html' }, 
                 { name: 'Rentabilidad FIFO', icon: 'fa-chart-pie', path: '/admin/profitability.html' },
+                { name: 'Rentabilidad Sedes', icon: 'fa-building-shield', path: '/admin/branches-profitability.html' },
                 { name: 'Logística', icon: 'fa-truck-fast', path: '/admin/shipping-config.html' },
                 { name: 'Banners y Promos', icon: 'fa-bullhorn', path: '/admin/promotions.html' },
                 { name: 'Cupones Descuento', icon: 'fa-ticket-simple', path: '/admin/promo-codes.html' },
@@ -68,7 +69,7 @@ export function loadAdminSidebar(userRole = 'customer') {
         const allowedItems = group.items.filter(item => {
             if (userRole === 'admin') return true;
             // Configuración, Usuarios y Cupones siempre restringidos a Admin
-            if (item.name === 'Gestión Usuarios' || item.name === 'Configuración' || item.name === 'Proveedores' || item.name === 'Marcas' || item.name === 'Cupones Descuento') return false; 
+            if (item.name === 'Gestión Usuarios' || item.name === 'Configuración' || item.name === 'Proveedores' || item.name === 'Marcas') return false; 
             return rolePermissions[userRole]?.includes(item.name);
         });
         return { ...group, items: allowedItems };

@@ -310,73 +310,104 @@ exports.sendTestTemplate = onCall(async (request) => {
 });
 
 // --- FUNCIÓN DE MARKETING MASIVO (CAMPAÑAS) ---
-exports.sendMassTemplate = onCall(async (request) => {
+exports.sendMassTemplate = onCall({ timeoutSeconds: 300 }, async (request) => {
     if (!request.auth) throw new HttpsError('unauthenticated', 'Login requerido.');
     
-    const { phoneNumber, templateName, imageUrl, clientName, customMessage, linkPath } = request.data;
+    let { recipients, phoneNumber, clientName, templateName, imageUrl, customMessage, linkPath } = request.data;
+    
+    // Convertir formato anterior a nuevo si es necesario para retrocompatibilidad
+    if (!recipients && phoneNumber) {
+        recipients = [ { phone: phoneNumber, name: clientName } ];
+    }
+
+    if (!recipients || !Array.isArray(recipients) || recipients.length === 0) {
+        throw new HttpsError('invalid-argument', 'Falta el parámetro recipients.');
+    }
     
     try {
         // 🔥 PROCESAR LA IMAGEN DE LA CAMPAÑA (Solo se procesa 1 vez gracias a la caché)
         const finalImageUrl = await getMetaCompatibleUrl(imageUrl);
-
         const url = `https://graph.facebook.com/v17.0/${PHONE_ID}/messages`;
         
-        const body = {
-            messaging_product: 'whatsapp',
-            to: phoneNumber,
-            type: 'template',
-            template: {
-                name: templateName,
-                language: { code: 'es' }, 
-                components: [
-                    {
-                        type: 'header',
-                        parameters: [
-                            { type: 'image', image: { link: finalImageUrl } }
-                        ]
-                    },
-                    {
-                        type: 'body',
-                        parameters: [
-                            { type: 'text', text: clientName || "Cliente" }, 
-                            { type: 'text', text: customMessage || "Promoción especial" } 
-                        ]
-                    },
-                    {
-                        type: 'button',
-                        sub_type: 'url',
-                        index: "0", 
-                        parameters: [
-                            { type: 'text', text: linkPath }
-                        ]
-                    }
-                ]
-            }
-        };
+        const results = [];
+        const batchSize = 25; // Enviar en paralelo de 25 en 25
 
-        const response = await axios.post(url, body, {
-            headers: { 'Authorization': `Bearer ${API_TOKEN}`, 'Content-Type': 'application/json' }
-        });
+        for (let i = 0; i < recipients.length; i += batchSize) {
+            const batch = recipients.slice(i, i + batchSize);
+            const batchPromises = batch.map(async (rec) => {
+                const phone = String(rec.phone).trim();
+                const name = String(rec.name || "Cliente").trim();
+                
+                try {
+                    const body = {
+                        messaging_product: 'whatsapp',
+                        to: phone,
+                        type: 'template',
+                        template: {
+                            name: templateName,
+                            language: { code: 'es' }, 
+                            components: [
+                                {
+                                    type: 'header',
+                                    parameters: [
+                                        { type: 'image', image: { link: finalImageUrl } }
+                                    ]
+                                },
+                                {
+                                    type: 'body',
+                                    parameters: [
+                                        { type: 'text', text: name }, 
+                                        { type: 'text', text: customMessage || "Promoción especial" } 
+                                    ]
+                                },
+                                {
+                                    type: 'button',
+                                    sub_type: 'url',
+                                    index: "0", 
+                                    parameters: [
+                                        { type: 'text', text: linkPath }
+                                    ]
+                                }
+                            ]
+                        }
+                    };
 
-        const chatRef = db.collection('chats').doc(phoneNumber);
-        await chatRef.set({
-            lastMessage: '📢 [Campaña Enviada]',
-            lastMessageAt: admin.firestore.FieldValue.serverTimestamp(),
-            unread: false 
-        }, { merge: true });
+                    const response = await axios.post(url, body, {
+                        headers: { 'Authorization': `Bearer ${API_TOKEN}`, 'Content-Type': 'application/json' }
+                    });
 
-        await chatRef.collection('messages').add({
-            type: 'outgoing',
-            content: `📢 *Campaña Masiva:*\n${customMessage}\n🔗 URL: /${linkPath}`,
-            mediaUrl: finalImageUrl,
-            messageType: 'template',
-            whatsappId: response.data.messages[0].id,
-            timestamp: admin.firestore.Timestamp.now()
-        });
+                    const waId = response.data.messages[0].id;
 
-        return { success: true, waId: response.data.messages[0].id };
+                    const chatRef = db.collection('chats').doc(phone);
+                    await chatRef.set({
+                        lastMessage: '📢 [Campaña Enviada]',
+                        lastMessageAt: admin.firestore.FieldValue.serverTimestamp(),
+                        unread: false 
+                    }, { merge: true });
+
+                    await chatRef.collection('messages').add({
+                        type: 'outgoing',
+                        content: `📢 *Campaña Masiva:*\n${customMessage}\n🔗 URL: /${linkPath}`,
+                        mediaUrl: finalImageUrl,
+                        messageType: 'template',
+                        whatsappId: waId,
+                        timestamp: admin.firestore.Timestamp.now()
+                    });
+
+                    return { phone, name, status: "Enviado", waId };
+                } catch (err) {
+                    console.error(`❌ Falló envío a ${phone}:`, err.response?.data || err.message);
+                    return { phone, name, status: "Fallido", error: err.response?.data?.error?.message || err.message };
+                }
+            });
+
+            const batchResults = await Promise.all(batchPromises);
+            results.push(...batchResults);
+        }
+
+        return { success: true, results };
     } catch (error) {
-        console.error("❌ Error Meta API (Campaña Masiva):", JSON.stringify(error.response?.data || error.message));
-        throw new HttpsError('internal', error.response?.data?.error?.message || "Fallo al enviar campaña a Meta");
+        console.error("❌ Error General en sendMassTemplate:", error);
+        throw new HttpsError('internal', error.message || "Fallo general en el servidor al enviar la campaña");
     }
 });

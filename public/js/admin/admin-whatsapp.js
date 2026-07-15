@@ -1573,7 +1573,7 @@ function renderCurrentMonthView() {
             <div class="text-center">
                 <h3 class="text-xl md:text-2xl font-black uppercase text-brand-black tracking-tighter">${readableMonth}</h3>
                 <p class="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-widest mt-1">
-                    ${group.campaigns.length} Campañas <span class="mx-1 text-gray-300">|</span> ${group.totalSent.toLocaleString('es-CO')} Mensajes <span class="mx-1 text-gray-300">|</span> <span class="${effectiveness >= 90 ? 'text-emerald-500' : 'text-orange-500'}">${effectiveness}% Efectividad</span>
+                    ${group.campaigns.length} Campañas <span class="mx-1 text-gray-300">|</span> ${group.totalSuccess.toLocaleString('es-CO')} de ${group.totalSent.toLocaleString('es-CO')} Exitosos <span class="mx-1 text-gray-300">|</span> <span class="${effectiveness >= 90 ? 'text-emerald-500' : 'text-orange-500'}">${effectiveness}% Efectividad</span>
                 </p>
             </div>
             <button id="btn-next-month" class="w-12 h-12 rounded-full bg-white border border-gray-200 text-gray-500 hover:text-brand-orange hover:border-brand-orange transition flex items-center justify-center shadow-sm disabled:opacity-30 disabled:cursor-not-allowed" ${currentMonthIndex === 0 ? 'disabled' : ''} title="Mes Siguiente">
@@ -1640,7 +1640,7 @@ function renderCampaignRow(camp, idx) {
     const successRate = camp.targetCount > 0 ? Math.round((camp.successCount / camp.targetCount) * 100) : 0;
 
     const audienceListHtml = (camp.audience || []).map(person => `
-        <div class="flex items-center justify-between bg-white shadow-sm p-2.5 rounded-lg border border-gray-100">
+        <div class="audience-card flex items-center justify-between bg-white shadow-sm p-2.5 rounded-lg border border-gray-100" data-status="${person.status}">
             <div class="min-w-0 pr-2">
                 <p class="text-[10px] font-black text-brand-black uppercase truncate">${person.name || "Sin nombre"}</p>
                 <p class="text-[9px] text-gray-500 font-mono mt-0.5">${person.phone}</p>
@@ -1650,6 +1650,8 @@ function renderCampaignRow(camp, idx) {
             </span>
         </div>
     `).join('');
+
+    const campIdKey = camp.id || `camp-${idx}`;
 
     return `
         <tr class="hover:bg-slate-50/80 transition group">
@@ -1678,18 +1680,23 @@ function renderCampaignRow(camp, idx) {
                 <p class="text-[9px] text-gray-500 font-bold mt-2">${camp.successCount} Entregados</p>
             </td>
             <td class="p-4 pr-6 align-top text-center">
-                <button onclick="document.getElementById('det-${camp.id || idx}').classList.toggle('hidden')" class="w-10 h-10 rounded-full bg-white border border-gray-200 text-brand-orange hover:bg-brand-orange hover:text-white transition shadow-sm" title="Ver Lista de Clientes">
+                <button onclick="document.getElementById('det-${campIdKey}').classList.toggle('hidden')" class="w-10 h-10 rounded-full bg-white border border-gray-200 text-brand-orange hover:bg-brand-orange hover:text-white transition shadow-sm" title="Ver Lista de Clientes">
                     <i class="fa-solid fa-users-viewfinder text-sm"></i>
                 </button>
             </td>
         </tr>
         
-        <tr id="det-${camp.id || idx}" class="hidden bg-slate-50/50 border-b-2 border-brand-orange/20">
+        <tr id="det-${campIdKey}" class="hidden bg-slate-50/50 border-b-2 border-brand-orange/20">
             <td colspan="6" class="p-6">
-                <div class="flex items-center justify-between mb-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
                     <h4 class="text-[10px] font-black uppercase text-brand-black tracking-widest flex items-center gap-2">
                         <i class="fa-solid fa-list-check text-brand-orange"></i> Reporte de Entrega
                     </h4>
+                    <div class="flex flex-wrap gap-1.5">
+                        <button onclick="window.filterAudience('${campIdKey}', 'todos')" id="btn-aud-${campIdKey}-todos" class="bg-brand-orange text-white px-2.5 py-1 rounded-full text-[8px] font-black uppercase shadow-sm">Todos (${camp.audience ? camp.audience.length : 0})</button>
+                        <button onclick="window.filterAudience('${campIdKey}', 'Enviado')" id="btn-aud-${campIdKey}-Enviado" class="bg-white border border-gray-200 text-gray-500 px-2.5 py-1 rounded-full text-[8px] font-black uppercase hover:border-brand-orange hover:text-brand-orange transition shadow-sm">Exitosos (${camp.audience ? camp.audience.filter(p => p.status === 'Enviado').length : 0})</button>
+                        <button onclick="window.filterAudience('${campIdKey}', 'Fallido')" id="btn-aud-${campIdKey}-Fallido" class="bg-white border border-gray-200 text-gray-500 px-2.5 py-1 rounded-full text-[8px] font-black uppercase hover:border-brand-orange hover:text-brand-orange transition shadow-sm">Fallidos (${camp.audience ? camp.audience.filter(p => p.status === 'Fallido').length : 0})</button>
+                    </div>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 max-h-60 overflow-y-auto custom-scroll pr-2">
                     ${audienceListHtml}
@@ -1698,6 +1705,36 @@ function renderCampaignRow(camp, idx) {
         </tr>
     `;
 }
+
+window.filterAudience = (campId, status) => {
+    const parent = document.getElementById(`det-${campId}`);
+    if (!parent) return;
+
+    const btnTodos = document.getElementById(`btn-aud-${campId}-todos`);
+    const btnExito = document.getElementById(`btn-aud-${campId}-Enviado`);
+    const btnFallo = document.getElementById(`btn-aud-${campId}-Fallido`);
+
+    [btnTodos, btnExito, btnFallo].forEach(btn => {
+        if (btn) {
+            btn.className = "bg-white border border-gray-200 text-gray-500 px-2.5 py-1 rounded-full text-[8px] font-black uppercase hover:border-brand-orange hover:text-brand-orange transition shadow-sm";
+        }
+    });
+
+    const activeBtn = document.getElementById(`btn-aud-${campId}-${status}`);
+    if (activeBtn) {
+        activeBtn.className = "bg-brand-orange text-white px-2.5 py-1 rounded-full text-[8px] font-black uppercase shadow-sm";
+    }
+
+    const cards = parent.querySelectorAll('.audience-card');
+    cards.forEach(card => {
+        const cardStatus = card.getAttribute('data-status');
+        if (status === 'todos' || cardStatus === status) {
+            card.classList.remove('hidden');
+        } else {
+            card.classList.add('hidden');
+        }
+    });
+};
 
 onAuthStateChanged(auth, (user) => {
     if (user) {

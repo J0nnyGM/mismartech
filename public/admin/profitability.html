@@ -33,20 +33,20 @@
             </div>
         </header>
 
-        <div class="p-8 max-w-7xl mx-auto pb-40">
-            <div class="mb-10 flex justify-between items-end">
+        <div class="p-4 sm:p-8 max-w-7xl mx-auto pb-40">
+            <div class="mb-8 flex flex-col sm:flex-row justify-between sm:items-end gap-4">
                 <div>
-                    <h1 class="text-4xl font-black text-brand-black tracking-tighter uppercase leading-none">
+                    <h1 class="text-3xl sm:text-4xl font-black text-brand-black tracking-tighter uppercase leading-none">
                         Rentabilidad <span class="text-brand-orange">FIFO</span>
                     </h1>
-                    <p class="text-gray-400 text-sm font-bold mt-2 tracking-wide">Analiza el margen de ganancia real basado en tu historial de abastecimiento.</p>
+                    <p class="text-gray-400 text-xs sm:text-sm font-bold mt-2 tracking-wide">Analiza el margen de ganancia real basado en tu historial de abastecimiento.</p>
                 </div>
-                <button id="btn-back-general" onclick="window.showGeneralDashboard()" class="hidden bg-white border border-gray-200 text-brand-black px-5 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:border-brand-orange hover:text-brand-orange transition shadow-sm items-center gap-2">
+                <button id="btn-back-general" onclick="window.showGeneralDashboard()" class="hidden bg-white border border-gray-200 text-brand-black px-5 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:border-brand-orange hover:text-brand-orange transition shadow-sm items-center justify-center gap-2 self-start sm:self-auto w-full sm:w-auto">
                     <i class="fa-solid fa-arrow-left"></i> Volver al Resumen
                 </button>
             </div>
 
-            <div class="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm mb-8 relative z-30">
+            <div class="bg-white p-4 sm:p-8 rounded-3xl sm:rounded-[2.5rem] border border-gray-100 shadow-sm mb-8 relative z-30">
                 <div class="flex items-center gap-3 mb-4">
                     <div class="w-8 h-8 rounded-full bg-brand-orange/10 flex items-center justify-center text-brand-orange">
                         <i class="fa-solid fa-box-open"></i>
@@ -65,8 +65,47 @@
             </div>
 
             <div id="general-dashboard" class="fade-in space-y-8">
+                <!-- Resumen de Rentabilidad -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
+                    <!-- Selector de Periodo -->
+                    <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col justify-between">
+                        <div class="mb-2">
+                            <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Filtrar por Periodo</p>
+                            <h3 class="text-xs font-bold text-gray-400">Selecciona el mes a analizar</h3>
+                        </div>
+                        <div class="relative">
+                            <select id="period-selector" class="w-full bg-slate-50 border-2 border-transparent rounded-xl py-3 px-4 pr-10 text-sm font-black text-gray-600 outline-none focus:bg-white focus:border-brand-orange/30 focus:text-brand-black transition-all appearance-none cursor-pointer">
+                                <option value="GLOBAL">Global (Todos los tiempos)</option>
+                            </select>
+                            <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                        </div>
+                    </div>
+
+                    <!-- Ganancia del Periodo Seleccionado -->
+                    <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center text-xl shrink-0">
+                            <i class="fa-solid fa-chart-line"></i>
+                        </div>
+                        <div>
+                            <p id="period-profit-label" class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Ganancia del Periodo</p>
+                            <h3 id="period-profit-val" class="text-3xl font-black text-emerald-500">$0</h3>
+                        </div>
+                    </div>
+
+                    <!-- Ganancia Exclusiva del Mes Actual -->
+                    <div class="bg-gradient-to-br from-brand-orange to-orange-600 p-6 rounded-3xl shadow-lg text-white flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-white/20 text-white flex items-center justify-center text-xl shrink-0">
+                            <i class="fa-solid fa-calendar-day"></i>
+                        </div>
+                        <div>
+                            <p id="current-month-label" class="text-[9px] font-black text-white/70 uppercase tracking-widest mb-1">Ganancia del Mes Actual</p>
+                            <h3 id="current-month-val" class="text-3xl font-black text-white">$0</h3>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div class="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
+                    <div class="bg-white p-4 sm:p-8 rounded-3xl sm:rounded-[2.5rem] border border-gray-100 shadow-sm">
                         <h3 class="font-black text-brand-black uppercase text-sm mb-6 flex items-center gap-2 border-b border-gray-50 pb-4">
                             <i class="fa-solid fa-trophy text-yellow-500 text-xl"></i> Top 10 Más Vendidos <span class="text-[9px] text-gray-400 ml-auto">(Por Ingresos)</span>
                         </h3>
@@ -74,7 +113,7 @@
                             <div class="text-center p-8 text-gray-400 text-xs"><i class="fa-solid fa-circle-notch fa-spin text-2xl text-brand-orange mb-2"></i><br>Calculando finanzas...</div>
                         </div>
                     </div>
-                    <div class="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
+                    <div class="bg-white p-4 sm:p-8 rounded-3xl sm:rounded-[2.5rem] border border-gray-100 shadow-sm">
                         <h3 class="font-black text-brand-black uppercase text-sm mb-6 flex items-center gap-2 border-b border-gray-50 pb-4">
                             <i class="fa-solid fa-chart-pie text-emerald-500 text-xl"></i> Top 10 Más Rentables <span class="text-[9px] text-gray-400 ml-auto">(Por Utilidad Neta)</span>
                         </h3>
@@ -87,15 +126,15 @@
 
             <div id="specific-dashboard" class="hidden fade-in space-y-8">
                 
-                <div class="flex items-center gap-4 bg-slate-900 p-6 rounded-[2rem] shadow-xl border border-slate-800">
-                    <img id="dash-img" src="" class="w-16 h-16 rounded-xl bg-white object-contain p-1">
-                    <div>
-                        <h2 id="dash-name" class="text-xl font-black text-white uppercase">Producto</h2>
-                        <p id="dash-sku" class="text-xs font-bold text-gray-400 uppercase tracking-widest">SKU: ---</p>
+                <div class="flex flex-col sm:flex-row items-center gap-4 bg-slate-900 p-6 rounded-3xl sm:rounded-[2rem] shadow-xl border border-slate-800 text-center sm:text-left">
+                    <img id="dash-img" src="" class="w-16 h-16 rounded-xl bg-white object-contain p-1 shrink-0">
+                    <div class="min-w-0">
+                        <h2 id="dash-name" class="text-lg sm:text-xl font-black text-white uppercase break-words">Producto</h2>
+                        <p id="dash-sku" class="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">SKU: ---</p>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                     <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
                         <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Unidades Vendidas</p>
                         <h3 id="dash-qty-sold" class="text-3xl font-black text-brand-black">0</h3>
@@ -116,7 +155,7 @@
                 </div>
 
                 <!-- Inventario FIFO Actual -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
                     <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-4">
                         <div class="w-12 h-12 rounded-2xl bg-orange-50 text-brand-orange flex items-center justify-center text-xl shrink-0">
                             <i class="fa-solid fa-boxes-stacked"></i>
@@ -169,7 +208,7 @@
                     </div>
                 </div>
 
-                <div class="bg-white rounded-[2.5rem] shadow-xl border border-gray-100 overflow-hidden">
+                <div class="bg-white rounded-3xl sm:rounded-[2.5rem] shadow-xl border border-gray-100 overflow-hidden">
                     <div class="p-6 border-b border-gray-50 bg-slate-50/50">
                         <h3 class="font-black text-brand-black uppercase text-[11px] tracking-widest">Línea de Tiempo FIFO</h3>
                     </div>

@@ -6,7 +6,9 @@ loadAdminSidebar();
 
 // --- DOM ---
 const listContainer = document.getElementById('expenses-list');
-const loadMoreBtn = document.getElementById('load-more-container');
+const btnPrev = document.getElementById('btn-prev-page');
+const btnNext = document.getElementById('btn-next-page');
+const pageIndicator = document.getElementById('page-indicator');
 const modal = document.getElementById('expense-modal');
 const form = document.getElementById('expense-form');
 const accountSelect = document.getElementById('account-select');
@@ -23,7 +25,7 @@ const trashModal = document.getElementById('trash-modal');
 const trashList = document.getElementById('trash-list');
 
 // --- ESTADO ---
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 20;
 let currentPage = 1;
 let currentFilterDate = null;
 let adminExpensesCache = []; // Base de datos maestra de gastos en RAM
@@ -103,6 +105,7 @@ function init() {
     currentFilterDate = new Date(yyyy, now.getMonth(), 1); 
     
     // AdminStore ya inicializó la descarga en background, solo esperamos a que llame al render.
+    loadBranchesDropdown();
 }
 
 filterMonthInput.addEventListener('change', (e) => {
@@ -128,10 +131,20 @@ searchInput.addEventListener('input', () => {
     renderExpensesFromMemory();
 });
 
-window.loadMoreExpenses = () => {
-    currentPage++;
-    renderExpensesFromMemory();
-};
+if (btnPrev) {
+    btnPrev.onclick = () => {
+        if (currentPage > 1) {
+            currentPage--;
+            renderExpensesFromMemory();
+        }
+    };
+}
+if (btnNext) {
+    btnNext.onclick = () => {
+        currentPage++;
+        renderExpensesFromMemory();
+    };
+}
 
 function renderExpensesFromMemory() {
     if (!listContainer) return;
@@ -168,14 +181,22 @@ function renderExpensesFromMemory() {
     // 4. Paginación y Renderizado
     listContainer.innerHTML = "";
     
-    if (filtered.length === 0) {
+    const totalItems = filtered.length;
+    const maxPage = Math.ceil(totalItems / PAGE_SIZE) || 1;
+    if (currentPage > maxPage) currentPage = maxPage;
+    if (currentPage < 1) currentPage = 1;
+
+    if (totalItems === 0) {
         listContainer.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-gray-400 text-xs font-bold uppercase">No se encontraron gastos.</td></tr>`;
-        loadMoreBtn.classList.add('hidden');
+        if (pageIndicator) pageIndicator.textContent = "Página 1 de 1 (0 items)";
+        if (btnPrev) btnPrev.disabled = true;
+        if (btnNext) btnNext.disabled = true;
         return;
     }
 
-    const endIdx = currentPage * PAGE_SIZE;
-    const pageExpenses = filtered.slice(0, endIdx);
+    const startIdx = (currentPage - 1) * PAGE_SIZE;
+    const endIdx = startIdx + PAGE_SIZE;
+    const pageExpenses = filtered.slice(startIdx, endIdx);
 
     const html = pageExpenses.map(item => `
         <tr class="hover:bg-slate-50 transition border-b border-gray-50 last:border-0 group fade-in">
@@ -194,11 +215,14 @@ function renderExpensesFromMemory() {
 
     listContainer.innerHTML = html;
 
-    if (endIdx < filtered.length) {
-        loadMoreBtn.classList.remove('hidden');
-        loadMoreBtn.querySelector('button').innerHTML = `<i class="fa-solid fa-circle-plus"></i> Cargar siguientes 50 (${endIdx}/${filtered.length})`;
-    } else {
-        loadMoreBtn.classList.add('hidden');
+    if (pageIndicator) {
+        pageIndicator.textContent = `Página ${currentPage} de ${maxPage} (${totalItems} items)`;
+    }
+    if (btnPrev) {
+        btnPrev.disabled = (currentPage === 1);
+    }
+    if (btnNext) {
+        btnNext.disabled = (currentPage === maxPage);
     }
 }
 
@@ -458,7 +482,7 @@ form.addEventListener('submit', async (e) => {
 
             t.update(accRef, { balance: accData.balance - totalDeduction });
 
-            const expenseBranchId = accData.branchId || 'ALL';
+            const expenseBranchId = document.getElementById('branch-select').value || 'ALL';
 
             if (tax > 0) {
                 t.set(doc(collection(db, "expenses")), {
@@ -505,5 +529,48 @@ window.openModal = () => {
     modal.classList.remove('hidden');
 };
 window.closeModal = () => modal.classList.add('hidden');
+
+// --- POPULATE BRANCHES IN FORM ---
+async function loadBranchesDropdown() {
+    const branchSelect = document.getElementById('branch-select');
+    if (!branchSelect) return;
+
+    try {
+        const snap = await getDocs(collection(db, "branches"));
+        const branches = [];
+        snap.forEach(d => {
+            branches.push({ id: d.id, ...d.data() });
+        });
+
+        if (!branches.find(b => b.id === 'bodega')) {
+            branches.unshift({ id: 'bodega', name: 'Bodega Principal' });
+        }
+
+        let html = '<option value="ALL">General / Corporativo (Todas)</option>';
+        branches.forEach(b => {
+            html += `<option value="${b.id}">${b.name}</option>`;
+        });
+        branchSelect.innerHTML = html;
+    } catch (e) {
+        console.error("Error loading branches for expenses dropdown:", e);
+        branchSelect.innerHTML = `
+            <option value="ALL">General / Corporativo (Todas)</option>
+            <option value="bodega">Bodega Principal</option>
+        `;
+    }
+}
+
+// Auto-default branch when account changes
+accountSelect.addEventListener('change', () => {
+    const accountId = accountSelect.value;
+    if (!accountId) return;
+    const acc = accountsList.find(a => a.id === accountId);
+    if (acc) {
+        const branchSelect = document.getElementById('branch-select');
+        if (branchSelect) {
+            branchSelect.value = acc.branchId || 'ALL';
+        }
+    }
+});
 
 init();

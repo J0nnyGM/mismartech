@@ -28,12 +28,12 @@
                 <span class="font-black text-brand-black">CONFIGURACIÓN</span>
             </header>
 
-            <div class="p-6 md:p-12 max-w-6xl mx-auto w-full pb-24 md:pb-12">
+            <div class="p-6 md:p-12 w-full pb-24 md:pb-12">
                 
                 <h1 class="text-3xl md:text-4xl font-black mb-2 text-brand-black tracking-tight">Configuración</h1>
                 <p class="text-gray-500 mb-10 text-sm font-medium">Estado de integraciones y pasarelas.</p>
 
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
 
                     <div class="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-xl relative overflow-hidden">
                         <div class="flex justify-between items-start mb-6">
@@ -113,6 +113,50 @@
                         </div>
                     </div>
 
+                    <!-- Mercado Libre Card -->
+                    <div class="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-xl relative overflow-hidden flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-start mb-6">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-500 text-2xl font-black">
+                                        ML
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-xl text-gray-900">Mercado Libre</h3>
+                                        <p class="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">Integración de Ventas</p>
+                                    </div>
+                                </div>
+                                <span id="ml-status-badge" class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-gray-100 text-gray-500 border border-gray-200">
+                                    Cargando...
+                                </span>
+                            </div>
+                            <p class="text-sm text-gray-500 mb-4">
+                                Sincroniza stock, órdenes y rótulos de despacho de tus tiendas de Mercado Libre de forma automática.
+                            </p>
+                            
+                            <div class="space-y-3 mb-6">
+                                <div class="p-3 bg-gray-50 rounded-xl border border-gray-100 text-xs">
+                                    <p class="font-bold text-gray-700 mb-1">Tienda 1 (Principal):</p>
+                                    <p id="ml-store1-info" class="text-gray-500">Cargando estado...</p>
+                                </div>
+                                <div class="p-3 bg-gray-50 rounded-xl border border-gray-100 text-xs">
+                                    <p class="font-bold text-gray-700 mb-1">Tienda 2:</p>
+                                    <p id="ml-store2-info" class="text-gray-500">Cargando estado...</p>
+                                </div>
+                                <div class="p-3 bg-gray-50 rounded-xl border border-gray-100 text-xs">
+                                    <p class="font-bold text-gray-700 mb-1">Tienda 3:</p>
+                                    <p id="ml-store3-info" class="text-gray-500">Cargando estado...</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <button onclick="window.openMeliAuthModal()" class="w-full bg-brand-orange text-white py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-black hover:shadow-lg transition-all duration-300 transform active:scale-95">
+                                <i class="fa-solid fa-key"></i> Autorizar Aplicación
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- Modo Mantenimiento Card -->
                     <div class="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-xl relative overflow-hidden">
                         <div class="flex justify-between items-start mb-6">
@@ -145,13 +189,61 @@
         </main>
     </div>
 
+    <!-- Meli Auth Modal -->
+    <div id="meli-auth-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[999] flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-[2rem] p-8 max-w-md w-full shadow-2xl border border-gray-100 transform transition-all relative">
+            <button onclick="window.closeMeliAuthModal()" class="absolute top-6 right-6 w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-gray-400 hover:bg-slate-100 hover:text-brand-black transition">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+            
+            <h2 class="text-2xl font-black text-brand-black tracking-tight mb-2 uppercase">Vincular Mercado Libre</h2>
+            <p class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-6">Autorizar tiendas mediante OAuth</p>
+            
+            <form id="meli-auth-form" class="space-y-6">
+                <div>
+                    <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">Seleccionar Tienda</label>
+                    <select id="meli-auth-store" class="w-full bg-slate-50 border border-gray-100 px-4 py-3 rounded-xl text-xs font-bold text-brand-black focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition">
+                        <option value="1">Tienda 1 (Principal)</option>
+                        <option value="2">Tienda 2</option>
+                        <option value="3">Tienda 3</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">Redirect URI de tu App</label>
+                    <input type="url" id="meli-auth-redirect" placeholder="https://mi-tienda.com/admin/settings.html" class="w-full bg-slate-50 border border-gray-100 px-4 py-3 rounded-xl text-xs font-bold text-brand-black focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition" required>
+                    <p class="text-[9px] text-gray-400 mt-2 leading-relaxed">
+                        Debe coincidir exactamente con la URI de redireccionamiento configurada en la consola de Mercado Libre Developers.
+                    </p>
+                </div>
+
+                <div class="flex gap-3">
+                    <button type="button" onclick="window.startMeliRedirect()" class="flex-1 bg-brand-black text-white py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-orange transition-all duration-300 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Ir a Autorización
+                    </button>
+                </div>
+                
+                <div class="pt-4 border-t border-gray-100">
+                    <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">¿Ya fuiste redireccionado? Pega el código aquí:</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="meli-auth-code" placeholder="TG-XXXXXXXXXX" class="flex-1 bg-slate-50 border border-gray-100 px-4 py-3 rounded-xl text-xs font-bold text-brand-black focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition">
+                        <button type="button" onclick="window.submitMeliCode()" class="bg-emerald-600 text-white px-4 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-700 transition">
+                            Activar
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script type="module">
-        import { auth, onAuthStateChanged, db, doc, setDoc, onSnapshot } from '../js/firebase-init.js';
+        import { auth, onAuthStateChanged, db, doc, setDoc, onSnapshot, functions, httpsCallable } from '../js/firebase-init.js';
         import { loadAdminSidebar } from '../js/admin/admin-ui.js';
 
         document.addEventListener('DOMContentLoaded', () => {
             loadAdminSidebar();
             initMaintenanceSettings();
+            initMeliSettings();
         });
 
         onAuthStateChanged(auth, (user) => {
@@ -247,6 +339,185 @@
                 toast.classList.add('translate-y-5', 'opacity-0');
                 setTimeout(() => toast.remove(), 300);
             }, 3000);
+        }
+
+        // ============================================================================
+        // MERCADO LIBRE INTEGRACIÓN FLOW
+        // ============================================================================
+        function initMeliSettings() {
+            // Escuchar estado de Mercado Libre Tienda 1
+            onSnapshot(doc(db, "config", "mercadolibre"), (snap) => {
+                const infoEl = document.getElementById('ml-store1-info');
+                if (snap.exists() && snap.data().accessToken) {
+                    const data = snap.data();
+                    const dateStr = data.updatedAt?.toDate ? data.updatedAt.toDate().toLocaleString() : 'N/A';
+                    infoEl.innerHTML = `<span class="text-green-600 font-bold">🟢 Conectado</span> <span class="text-gray-400 text-[10px]">(Actualizado: ${dateStr})</span>`;
+                    updateMLOverallStatus();
+                } else {
+                    infoEl.innerHTML = `<span class="text-red-500 font-bold">🔴 Desconectado</span>`;
+                    updateMLOverallStatus();
+                }
+            });
+
+            // Escuchar estado de Mercado Libre Tienda 2
+            onSnapshot(doc(db, "config", "mercadolibre_store2"), (snap) => {
+                const infoEl = document.getElementById('ml-store2-info');
+                if (snap.exists() && snap.data().accessToken) {
+                    const data = snap.data();
+                    const dateStr = data.updatedAt?.toDate ? data.updatedAt.toDate().toLocaleString() : 'N/A';
+                    infoEl.innerHTML = `<span class="text-green-600 font-bold">🟢 Conectado</span> <span class="text-gray-400 text-[10px]">(Actualizado: ${dateStr})</span>`;
+                    updateMLOverallStatus();
+                } else {
+                    infoEl.innerHTML = `<span class="text-red-500 font-bold">🔴 Desconectado</span>`;
+                    updateMLOverallStatus();
+                }
+            });
+
+            // Escuchar estado de Mercado Libre Tienda 3
+            onSnapshot(doc(db, "config", "mercadolibre_store3"), (snap) => {
+                const infoEl = document.getElementById('ml-store3-info');
+                if (snap.exists() && snap.data().accessToken) {
+                    const data = snap.data();
+                    const dateStr = data.updatedAt?.toDate ? data.updatedAt.toDate().toLocaleString() : 'N/A';
+                    infoEl.innerHTML = `<span class="text-green-600 font-bold">🟢 Conectado</span> <span class="text-gray-400 text-[10px]">(Actualizado: ${dateStr})</span>`;
+                    updateMLOverallStatus();
+                } else {
+                    infoEl.innerHTML = `<span class="text-red-500 font-bold">🔴 Desconectado</span>`;
+                    updateMLOverallStatus();
+                }
+            });
+
+            function updateMLOverallStatus() {
+                setTimeout(() => {
+                    const el1 = document.getElementById('ml-store1-info');
+                    const el2 = document.getElementById('ml-store2-info');
+                    const el3 = document.getElementById('ml-store3-info');
+                    if (!el1 || !el2 || !el3) return;
+
+                    const s1 = el1.innerText.includes('Conectado');
+                    const s2 = el2.innerText.includes('Conectado');
+                    const s3 = el3.innerText.includes('Conectado');
+                    const badge = document.getElementById('ml-status-badge');
+                    
+                    if (s1 || s2 || s3) {
+                        badge.className = "px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-green-100 text-green-600 border border-green-200";
+                        badge.textContent = "ACTIVO";
+                    } else {
+                        badge.className = "px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-red-100 text-red-600 border border-red-200";
+                        badge.textContent = "DESCONECTADO";
+                    }
+                }, 100);
+            }
+
+            // Detección automática del code en la URL tras redirección
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+            if (code) {
+                const pendingStore = localStorage.getItem('pending_meli_store');
+                const pendingRedirect = localStorage.getItem('pending_meli_redirect');
+                
+                if (pendingStore && pendingRedirect) {
+                    // Limpiar localStorage
+                    localStorage.removeItem('pending_meli_store');
+                    localStorage.removeItem('pending_meli_redirect');
+                    
+                    // Limpiar URL de forma limpia sin recargar
+                    const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                    window.history.replaceState({ path: newUrl }, '', newUrl);
+                    
+                    autoActivateMeli(pendingStore, code, pendingRedirect);
+                }
+            }
+        }
+
+        // ML Modal UI Helpers
+        window.openMeliAuthModal = () => {
+            document.getElementById('meli-auth-redirect').value = window.location.protocol + "//" + window.location.host + window.location.pathname;
+            document.getElementById('meli-auth-modal').classList.remove('hidden');
+        };
+        window.closeMeliAuthModal = () => {
+            document.getElementById('meli-auth-modal').classList.add('hidden');
+            document.getElementById('meli-auth-form').reset();
+        };
+
+        window.startMeliRedirect = async () => {
+            const store = document.getElementById('meli-auth-store').value;
+            const redirectUri = document.getElementById('meli-auth-redirect').value.trim();
+            
+            if (!redirectUri) {
+                alert("Por favor, introduce una URI de redireccionamiento válida.");
+                return;
+            }
+            
+            try {
+                localStorage.setItem('pending_meli_store', store);
+                localStorage.setItem('pending_meli_redirect', redirectUri);
+                
+                const getAuthUrlFn = httpsCallable(functions, 'getMercadoLibreAuthUrl');
+                const res = await getAuthUrlFn({ store, redirectUri });
+                
+                if (res.data && res.data.authUrl) {
+                    window.location.href = res.data.authUrl;
+                } else {
+                    alert("No se pudo obtener la URL de autorización.");
+                }
+            } catch (err) {
+                console.error("Error al iniciar autorización:", err);
+                alert("Error: " + err.message);
+            }
+        };
+
+        window.submitMeliCode = async () => {
+            const store = document.getElementById('meli-auth-store').value;
+            const code = document.getElementById('meli-auth-code').value.trim();
+            const redirectUri = document.getElementById('meli-auth-redirect').value.trim();
+            
+            if (!code) {
+                alert("Por favor, introduce el código de autorización (TG-...).");
+                return;
+            }
+            if (!redirectUri) {
+                alert("Por favor, introduce la URI de redireccionamiento utilizada.");
+                return;
+            }
+            
+            const activateBtn = document.querySelector('#meli-auth-form button[type="button"][onclick="window.submitMeliCode()"]');
+            const originalText = activateBtn.innerText;
+            activateBtn.disabled = true; activateBtn.innerText = "...";
+            
+            try {
+                const authorizeFn = httpsCallable(functions, 'authorizeMercadoLibreCode');
+                const res = await authorizeFn({ store, code, redirectUri });
+                
+                if (res.data && res.data.success) {
+                    showNotification(`Tienda ${store} autorizada con éxito`, "success");
+                    window.closeMeliAuthModal();
+                } else {
+                    alert(res.data?.message || "Error al autorizar");
+                }
+            } catch (err) {
+                console.error("Error al activar código:", err);
+                alert("Error: " + err.message);
+            } finally {
+                activateBtn.disabled = false; activateBtn.innerText = originalText;
+            }
+        };
+
+        async function autoActivateMeli(store, code, redirectUri) {
+            try {
+                showNotification(`Auto-activando Mercado Libre Tienda ${store}...`, "warning");
+                const authorizeFn = httpsCallable(functions, 'authorizeMercadoLibreCode');
+                const res = await authorizeFn({ store, code, redirectUri });
+                
+                if (res.data && res.data.success) {
+                    showNotification(`Tienda ${store} autorizada con éxito`, "success");
+                } else {
+                    alert("Error en auto-activación: " + (res.data?.message || "Desconocido"));
+                }
+            } catch (err) {
+                console.error("Error en auto-activación:", err);
+                alert("Error en auto-activación: " + err.message);
+            }
         }
     </script>
     <script type="module" src="../js/admin/admin-guard.js"></script>

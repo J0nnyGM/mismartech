@@ -1,6 +1,7 @@
 // functions/mercadolibre.js
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
+const { adjustProductStockData } = require("./inventory-helper");
 
 const ML_APP_ID = process.env.ML_APP_ID;
 const ML_CLIENT_SECRET = process.env.ML_CLIENT_SECRET;
@@ -81,50 +82,45 @@ exports.webhook = async (req, res) => {
             if (newMLStatus === 'cancelled' && existingOrder.status !== 'CANCELADO') {
                 console.log(`⚠️ Orden de MercadoLibre ${orderId} fue CANCELADA. Revirtiendo stock y estado.`);
                 await db.runTransaction(async (t) => {
-                    // 1. Devolver Stock
+                    // 1. LECTURAS (Todos los GETs primero)
+                    const productReads = [];
                     for (const item of existingOrder.items || []) {
                         if (item.id && !item.id.includes('UNKNOWN')) {
                             const pRef = db.collection('products').doc(item.id);
                             const pDoc = await t.get(pRef);
-                            if (pDoc.exists) {
-                                const pData = pDoc.data();
-                                let newStock = (pData.stock || 0) + item.quantity;
-                                let updatePayload = { stock: newStock, updatedAt: admin.firestore.FieldValue.serverTimestamp() };
-
-                                if (item.color || item.capacity) {
-                                    let newCombos = [...(pData.combinations || [])];
-                                    const idx = newCombos.findIndex(c => 
-                                        (c.color === item.color || (!c.color && !item.color)) &&
-                                        (c.capacity === item.capacity || (!c.capacity && !item.capacity))
-                                    );
-                                    if (idx >= 0) {
-                                        newCombos[idx].stock = (newCombos[idx].stock || 0) + item.quantity;
-                                        updatePayload.combinations = newCombos;
-                                    }
-                                }
-                                t.update(pRef, updatePayload);
-                            }
+                            productReads.push({ item, ref: pRef, doc: pDoc });
                         }
                     }
 
-                    // 2. Descontar balance de la cuenta de tesorería (Reverso)
+                    let accDoc = null;
+                    let accRef = null;
                     if (existingOrder.paymentAccountId) {
-                        const accRef = db.collection('accounts').doc(existingOrder.paymentAccountId);
-                        const accDoc = await t.get(accRef);
-                        if (accDoc.exists) {
-                            t.update(accRef, { balance: Math.max(0, (Number(accDoc.data().balance) || 0) - Number(existingOrder.total)) });
-                            
-                            // Crear un reverso (EXPENSE) de anulación
-                            const expenseRef = db.collection('expenses').doc();
-                            t.set(expenseRef, {
-                                amount: Number(existingOrder.total),
-                                category: "Anulación de Venta",
-                                description: `Reverso por cancelación de Orden MercadoLibre #${orderData.id}`,
-                                paymentMethod: accDoc.data().name, type: 'EXPENSE', orderId: orderId,
-                                isRefund: true, date: admin.firestore.FieldValue.serverTimestamp(),
-                                createdAt: admin.firestore.FieldValue.serverTimestamp()
-                            });
+                        accRef = db.collection('accounts').doc(existingOrder.paymentAccountId);
+                        accDoc = await t.get(accRef);
+                    }
+
+                    // 2. ESCRITURAS (Todos los UPDATEs y SETs después)
+                    for (const { item, ref, doc } of productReads) {
+                        if (doc.exists) {
+                            const pData = doc.data();
+                            const updatedStockData = adjustProductStockData(pData, item.quantity, item.color, item.capacity, 'bodega');
+                            t.update(ref, updatedStockData);
                         }
+                    }
+
+                    if (accDoc && accDoc.exists) {
+                        t.update(accRef, { balance: Math.max(0, (Number(accDoc.data().balance) || 0) - Number(existingOrder.total)) });
+                        
+                        // Crear un reverso (EXPENSE) de anulación
+                        const expenseRef = db.collection('expenses').doc();
+                        t.set(expenseRef, {
+                            amount: Number(existingOrder.total),
+                            category: "Anulación de Venta",
+                            description: `Reverso por cancelación de Orden MercadoLibre #${orderData.id}`,
+                            paymentMethod: accDoc.data().name, type: 'EXPENSE', orderId: orderId,
+                            isRefund: true, date: admin.firestore.FieldValue.serverTimestamp(),
+                            createdAt: admin.firestore.FieldValue.serverTimestamp()
+                        });
                     }
 
                     // 3. Marcar Orden como CANCELADA
@@ -208,7 +204,17 @@ exports.webhook = async (req, res) => {
 
         // --- TRANSACCIÓN SEGURA: GUARDAR ORDEN, COBRO Y STOCK ---
         await db.runTransaction(async (t) => {
+            // 1. LECTURAS (Todos los GETs primero)
             const accQ = await t.get(db.collection('accounts').where('name', '==', 'MercadoLibre').limit(1));
+            
+            const productReads = [];
+            for (const p of itemsToDeduct) {
+                const pRef = db.collection('products').doc(p.docId);
+                const pDoc = await t.get(pRef);
+                productReads.push({ p, ref: pRef, doc: pDoc });
+            }
+
+            // 2. ESCRITURAS (Todos los UPDATEs y SETs después)
             let accId = null, accName = 'MercadoLibre';
             if (!accQ.empty) {
                 const accDoc = accQ.docs[0];
@@ -216,22 +222,11 @@ exports.webhook = async (req, res) => {
                 t.update(accDoc.ref, { balance: (Number(accDoc.data().balance) || 0) + Number(orderData.total_amount) });
             }
 
-            for (const p of itemsToDeduct) {
-                const pRef = db.collection('products').doc(p.docId);
-                const pDoc = await t.get(pRef);
-                if (pDoc.exists) {
-                    const pData = pDoc.data();
-                    let newStock = Math.max(0, (pData.stock || 0) - p.qty);
-                    let updatePayload = { stock: newStock };
-
-                    if (p.isVariant && pData.combinations) {
-                        let newCombos = [...pData.combinations];
-                        if (newCombos[p.variantIndex]) {
-                            newCombos[p.variantIndex].stock = Math.max(0, newCombos[p.variantIndex].stock - p.qty);
-                        }
-                        updatePayload.combinations = newCombos;
-                    }
-                    t.update(pRef, updatePayload);
+            for (const { p, ref, doc } of productReads) {
+                if (doc.exists) {
+                    const pData = doc.data();
+                    const updatedStockData = adjustProductStockData(pData, -p.qty, p.color, p.capacity, 'bodega');
+                    t.update(ref, updatedStockData);
                 }
             }
 
@@ -386,5 +381,107 @@ exports.getLabel = async (req, res) => {
     } catch (error) {
         console.error("❌ Error en getLabel:", error);
         return res.status(500).send("Error interno del servidor al obtener el rótulo.");
+    }
+};
+
+// ============================================================================
+// 4. AUTORIZACIÓN OAUTH (OBTENER URL Y CANJEAR CÓDIGO)
+// ============================================================================
+exports.getAuthUrl = async (data, context) => {
+    const rawData = (data && data.data) ? data.data : data;
+    const store = rawData.store || "1";
+    const redirectUri = rawData.redirectUri;
+
+    if (!redirectUri) {
+        throw new functions.https.HttpsError('invalid-argument', 'Falta el parámetro redirectUri.');
+    }
+
+    let appId = process.env.ML_APP_ID;
+    if (store === "2") appId = process.env.ML_APP_ID_2;
+    else if (store === "3") appId = process.env.ML_APP_ID_3;
+
+    appId = String(appId || "").trim();
+
+    if (!appId) {
+        throw new functions.https.HttpsError('failed-precondition', `No se ha configurado la credencial ML_APP_ID para la tienda ${store} en el servidor.`);
+    }
+
+    const authUrl = `https://auth.mercadolibre.com.co/authorization?response_type=code&client_id=${appId}&redirect_uri=${encodeURIComponent(redirectUri)}`;
+
+    return { authUrl };
+};
+
+exports.authorizeCode = async (data, context) => {
+    const rawData = (data && data.data) ? data.data : data;
+    const store = rawData.store || "1";
+    const code = rawData.code;
+    const redirectUri = rawData.redirectUri;
+
+    if (!code) {
+        throw new functions.https.HttpsError('invalid-argument', 'Falta el parámetro code.');
+    }
+    if (!redirectUri) {
+        throw new functions.https.HttpsError('invalid-argument', 'Falta el parámetro redirectUri.');
+    }
+
+    let appId = process.env.ML_APP_ID;
+    let clientSecret = process.env.ML_CLIENT_SECRET;
+    let configDocName = "mercadolibre";
+
+    if (store === "2") {
+        appId = process.env.ML_APP_ID_2;
+        clientSecret = process.env.ML_CLIENT_SECRET_2;
+        configDocName = "mercadolibre_store2";
+    } else if (store === "3") {
+        appId = process.env.ML_APP_ID_3;
+        clientSecret = process.env.ML_CLIENT_SECRET_3;
+        configDocName = "mercadolibre_store3";
+    }
+
+    appId = String(appId || "").trim();
+    clientSecret = String(clientSecret || "").trim();
+
+    if (!appId || !clientSecret) {
+        throw new functions.https.HttpsError('failed-precondition', `Faltan credenciales configuradas para la tienda ${store} en el servidor.`);
+    }
+
+    console.log(`🔑 Canjeando código de autorización de MercadoLibre para tienda ${store}...`);
+
+    try {
+        const response = await fetch("https://api.mercadolibre.com/oauth/token", {
+            method: "POST",
+            headers: {
+                "accept": "application/json",
+                "content-type": "application/x-www-form-urlencoded"
+            },
+            body: new URLSearchParams({
+                grant_type: "authorization_code",
+                client_id: appId,
+                client_secret: clientSecret,
+                code: code,
+                redirect_uri: redirectUri
+            })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            console.error("❌ Error de MercadoLibre al canjear código:", result);
+            throw new Error(result.message || "Fallo en la petición de token");
+        }
+
+        const db = admin.firestore();
+        await db.collection('config').doc(configDocName).set({
+            accessToken: result.access_token,
+            refreshToken: result.refresh_token,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+
+        console.log(`✅ Autorización de MercadoLibre completada para tienda ${store}`);
+        return { success: true, message: `Tienda ${store} autorizada con éxito.` };
+
+    } catch (err) {
+        console.error("❌ Error en authorizeCode:", err);
+        throw new functions.https.HttpsError('internal', `Error al autorizar con MercadoLibre: ${err.message}`);
     }
 };
