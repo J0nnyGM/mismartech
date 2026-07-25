@@ -201,11 +201,25 @@
     </main>
 
 <script type="module">
-        import { db, collection, getDocs, doc, runTransaction } from '../js/firebase-init.js';
+        import { db, collection, getDocs, doc, runTransaction, auth, getDoc } from '../js/firebase-init.js';
         import { loadAdminSidebar } from '../js/admin/admin-ui.js';
         import { AdminStore } from '../js/admin/admin-store.js';
 
         loadAdminSidebar();
+
+        // --- Cargar Perfil de Administrador ---
+        auth.onAuthStateChanged(async user => {
+            if (user) {
+                try {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    const name = userDoc.exists() ? (userDoc.data().name || user.displayName || user.email) : (user.displayName || user.email);
+                    const el = document.getElementById('admin-name');
+                    if (el) el.textContent = name;
+                } catch (e) {
+                    console.error("Error setting admin name:", e);
+                }
+            }
+        });
 
         // --- Cargar Sedes ---
         async function loadBranchesForEntry() {

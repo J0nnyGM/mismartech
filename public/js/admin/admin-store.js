@@ -233,14 +233,14 @@ const modules = {
         name: 'purchases',
         collection: 'purchases',
         dateField: 'createdAt',
-        lightweight: (p) => ({ id: p.id, supplierName: p.supplierName, totalCost: p.totalCost, createdBy: p.createdBy, createdAt: p.createdAt, items: p.items, hasIVA: p.hasIVA, updatedAt: p.updatedAt })
+        lightweight: (p) => ({ id: p.id, supplierName: p.supplierName, totalCost: p.totalCost, createdBy: p.createdBy, createdAt: p.createdAt, items: p.items, hasIVA: p.hasIVA, updatedAt: p.updatedAt, branchId: p.branchId })
     }),
 
     orders: new StoreModule({
         name: 'orders',
         collection: 'orders',
         dateField: 'createdAt',
-        lightweight: (o) => ({ id: o.id, status: o.status, internalOrderNumber: o.internalOrderNumber || '', items: o.items || [], createdAt: o.createdAt, updatedAt: o.updatedAt })
+        lightweight: (o) => ({ id: o.id, status: o.status, internalOrderNumber: o.internalOrderNumber || '', items: o.items || [], createdAt: o.createdAt, updatedAt: o.updatedAt, branchId: o.branchId })
     }),
 
     warranties: new StoreModule({

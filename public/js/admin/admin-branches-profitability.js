@@ -177,6 +177,41 @@ function calculateGlobalFIFO() {
             }
         });
 
+        // Calcular discrepancia entre stock real e historial transaccional de compras/ventas
+        let totalQtyPurchased = 0;
+        let totalQtySoldFromHistory = 0;
+        timeline.forEach(event => {
+            if (event.type === 'IN') {
+                totalQtyPurchased += event.qty;
+            } else if (event.type === 'OUT') {
+                totalQtySoldFromHistory += event.qty;
+            }
+        });
+
+        const realStock = parseInt(product.stock) || 0;
+        const initialStockDiff = realStock + totalQtySoldFromHistory - totalQtyPurchased;
+
+        if (initialStockDiff > 0) {
+            // Inyectar stock inicial al principio
+            timeline.unshift({
+                type: 'IN',
+                date: new Date(0),
+                qty: initialStockDiff,
+                unitCost: parseFloat(product.lastPurchaseCost) || 0,
+                refId: 'INITIAL_STOCK_OR_ADJUSTMENT'
+            });
+        } else if (initialStockDiff < 0) {
+            // Inyectar ajuste de reducción manual al principio
+            timeline.unshift({
+                type: 'OUT',
+                date: new Date(0),
+                qty: Math.abs(initialStockDiff),
+                unitPrice: 0,
+                refId: 'MANUAL_STOCK_REDUCTION',
+                status: 'ADJUSTMENT'
+            });
+        }
+
         timeline.sort((a, b) => a.date - b.date);
 
         let inventoryQueue = []; 
@@ -207,6 +242,9 @@ function calculateGlobalFIFO() {
                 if (qtyToFulfill > 0) {
                     costForThisSale += (qtyToFulfill * lastKnownCost);
                 }
+
+                // Omitir agregación de métricas de ventas si es una reducción de ajuste de stock
+                if (event.status === 'ADJUSTMENT') return;
 
                 const monthKey = getMonthYearKey(event.date);
                 const brId = event.branchId || 'bodega';

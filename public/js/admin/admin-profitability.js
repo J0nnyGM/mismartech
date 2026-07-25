@@ -1,4 +1,4 @@
-import { db, collection, getDocs, query, orderBy } from '../firebase-init.js';
+import { db, collection, getDocs, query, orderBy, addDoc, deleteDoc, doc, auth } from '../firebase-init.js';
 import { loadAdminSidebar } from './admin-ui.js';
 
 loadAdminSidebar();
@@ -19,6 +19,11 @@ let allPurchases = [];
 let allOrders = [];
 let globalMetrics = []; 
 let currentPeriod = 'GLOBAL';
+let currentProfitabilityBranchId = 'ALL';
+let currentProductIdOpen = null;
+let currentTimelinePage = 1;
+const TIMELINE_PAGE_SIZE = 10;
+let currentTimelineData = [];
 
 const STORAGE_KEY = 'mismartech_admin_master_inventory';
 const normalizeText = (str) => str ? str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
@@ -89,11 +94,63 @@ async function initAnalysis() {
             periodSelector.appendChild(opt);
         });
 
+        // Poblar selector de Sedes para filtrado dinámico en Rentabilidad FIFO
+        const branchFilterSelector = document.getElementById('branch-filter-selector');
+        if (branchFilterSelector) {
+            try {
+                const branchesSnap = await getDocs(collection(db, "branches"));
+                branchesSnap.forEach(d => {
+                    const b = d.data();
+                    const opt = document.createElement('option');
+                    opt.value = d.id;
+                    opt.textContent = b.name || d.id;
+                    branchFilterSelector.appendChild(opt);
+                });
+            } catch (err) {
+                console.error("Error al cargar sedes para el filtro:", err);
+            }
+
+            branchFilterSelector.addEventListener('change', (e) => {
+                currentProfitabilityBranchId = e.target.value;
+                calculateGlobalFIFO();
+                updateDashboardForPeriod(currentPeriod);
+                if (currentProductIdOpen) {
+                    window.showSpecificProduct(currentProductIdOpen);
+                }
+            });
+        }
+
         periodSelector.addEventListener('change', (e) => {
             updateDashboardForPeriod(e.target.value);
         });
 
+        const btnPrev = document.getElementById('btn-timeline-prev');
+        const btnNext = document.getElementById('btn-timeline-next');
+        if (btnPrev) {
+            btnPrev.addEventListener('click', () => {
+                if (currentTimelinePage > 1) {
+                    currentTimelinePage--;
+                    renderTimelinePage();
+                }
+            });
+        }
+        if (btnNext) {
+            btnNext.addEventListener('click', () => {
+                const totalPages = Math.ceil(currentTimelineData.length / TIMELINE_PAGE_SIZE) || 1;
+                if (currentTimelinePage < totalPages) {
+                    currentTimelinePage++;
+                    renderTimelinePage();
+                }
+            });
+        }
+
         updateDashboardForPeriod('GLOBAL');
+
+        const btnSync = document.getElementById('btn-sync-fifo');
+        if (btnSync) {
+            btnSync.classList.remove('hidden');
+            btnSync.classList.add('flex');
+        }
 
     } catch (e) {
         console.error("Error en inicialización:", e);
@@ -110,8 +167,13 @@ function calculateGlobalFIFO() {
 
     productIndex.forEach(product => {
         let timeline = [];
+        const activeBranchId = currentProfitabilityBranchId;
 
         allPurchases.forEach(p => {
+            if (p.supplierName === "Ajuste de Inventario (Sistema)") return;
+            const pBranch = p.branchId || 'bodega';
+            if (activeBranchId !== 'ALL' && pBranch !== activeBranchId) return;
+
             if (p.items) {
                 p.items.forEach(item => {
                     if (item.id === product.id) {
@@ -129,6 +191,9 @@ function calculateGlobalFIFO() {
 
         allOrders.forEach(o => {
             if (['CANCELADO', 'RECHAZADO', 'DEVUELTO'].includes(o.status)) return;
+            const oBranch = o.branchId || 'bodega';
+            if (activeBranchId !== 'ALL' && oBranch !== activeBranchId) return;
+
             if (o.items) {
                 o.items.forEach(item => {
                     if (item.id === product.id) {
@@ -194,7 +259,54 @@ function calculateGlobalFIFO() {
         const profit = totalRevenue - totalCOGS;
         const margin = totalRevenue > 0 ? (profit / totalRevenue) * 100 : 0;
 
-        const remainingStock = inventoryQueue.reduce((sum, item) => sum + item.qty, 0);
+        // Obtener stock real correspondiente a la sede seleccionada en el filtro
+        let realStock = 0;
+        if (product.combinations && product.combinations.length > 0) {
+            product.combinations.forEach(combo => {
+                const comboStock = (activeBranchId === 'ALL')
+                    ? (parseInt(combo.stock) || 0)
+                    : ((combo.branchStock && combo.branchStock[activeBranchId] !== undefined)
+                        ? (parseInt(combo.branchStock[activeBranchId]) || 0)
+                        : (activeBranchId === 'bodega' ? (parseInt(combo.stock) || 0) : 0));
+                realStock += comboStock;
+            });
+        } else {
+            realStock = (activeBranchId === 'ALL')
+                ? (parseInt(product.stock) || 0)
+                : ((product.branchStock && product.branchStock[activeBranchId] !== undefined)
+                    ? (parseInt(product.branchStock[activeBranchId]) || 0)
+                    : (activeBranchId === 'bodega' ? (parseInt(product.stock) || 0) : 0));
+        }
+
+        let calculatedRemaining = inventoryQueue.reduce((sum, item) => sum + item.qty, 0);
+        const stockDiff = realStock - calculatedRemaining;
+
+        if (stockDiff > 0) {
+            timeline.push({
+                type: 'IN',
+                date: new Date(),
+                qty: stockDiff,
+                unitCost: lastKnownCost,
+                totalIn: stockDiff * lastKnownCost,
+                refId: 'AJUSTE_INVENTARIO',
+                isAdjustment: true
+            });
+            inventoryQueue.push({ qty: stockDiff, cost: lastKnownCost });
+        } else if (stockDiff < 0) {
+            timeline.push({
+                type: 'OUT',
+                date: new Date(),
+                qty: Math.abs(stockDiff),
+                unitPrice: 0,
+                revenueForThisSale: 0,
+                costForThisSale: 0,
+                profitForThisSale: 0,
+                refId: 'AJUSTE_INVENTARIO',
+                isAdjustment: true
+            });
+        }
+
+        const remainingStock = realStock;
         const nextBatchCost = inventoryQueue.length > 0 ? inventoryQueue[0].cost : lastKnownCost;
         const nextBatchQty = inventoryQueue.length > 0 ? inventoryQueue[0].qty : 0;
 
@@ -291,8 +403,8 @@ function renderTop10ListsFiltered() {
             const p = item.product;
             
             const valueDisplay = type === 'sales'
-                ? `<span class="text-brand-orange font-black text-base sm:text-xl lg:text-2xl tracking-tight">${formatMoney(item.periodRevenue)}</span>`
-                : `<span class="text-emerald-500 font-black text-base sm:text-xl lg:text-2xl tracking-tight">${formatMoney(item.periodProfit)}</span><br><span class="text-[10px] text-gray-400 font-bold tracking-widest uppercase bg-gray-50 px-2 py-1 rounded">Margen: ${item.periodMargin.toFixed(1)}%</span>`;
+                ? `<span class="text-brand-orange font-black text-sm sm:text-base lg:text-lg xl:text-xl tracking-tight">${formatMoney(item.periodRevenue)}</span>`
+                : `<span class="text-emerald-500 font-black text-sm sm:text-base lg:text-lg xl:text-xl tracking-tight">${formatMoney(item.periodProfit)}</span><br><span class="text-[9px] sm:text-[10px] text-gray-400 font-bold tracking-widest uppercase bg-gray-50 px-1.5 py-0.5 rounded inline-block mt-0.5">Margen: ${item.periodMargin.toFixed(1)}%</span>`;
 
             return `
             <div class="flex items-center gap-4 p-4 hover:bg-slate-50 rounded-2xl transition-all duration-300 cursor-pointer border border-transparent hover:border-gray-100 hover:shadow-sm hover:-translate-y-0.5 group" onclick="window.showSpecificProduct('${p.id}')">
@@ -354,12 +466,14 @@ searchInput.addEventListener('input', (e) => {
 });
 
 window.showGeneralDashboard = () => {
+    currentProductIdOpen = null;
     specificDashboard.classList.add('hidden');
     btnBack.classList.add('hidden');
     generalDashboard.classList.remove('hidden');
 };
 
 window.showSpecificProduct = (productId) => {
+    currentProductIdOpen = productId;
     const data = globalMetrics.find(m => m.product.id === productId);
     if (!data) return;
 
@@ -407,23 +521,60 @@ window.showSpecificProduct = (productId) => {
         return eventPeriod === currentPeriod;
     });
 
-    if (filteredTimeline.length === 0) {
+    // Ordenar los movimientos del más nuevo al más viejo para la visualización del usuario
+    filteredTimeline.sort((a, b) => b.date - a.date);
+
+    currentTimelineData = filteredTimeline;
+    currentTimelinePage = 1;
+    renderTimelinePage();
+};
+
+function renderTimelinePage() {
+    timelineBody.innerHTML = "";
+    const totalItems = currentTimelineData.length;
+    const infoEl = document.getElementById('timeline-pagination-info');
+    const pageNumEl = document.getElementById('timeline-page-num');
+    const btnPrev = document.getElementById('btn-timeline-prev');
+    const btnNext = document.getElementById('btn-timeline-next');
+
+    if (totalItems === 0) {
         timelineBody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-sm font-bold text-gray-400">No hay movimientos registrados para este periodo.</td></tr>`;
+        if (infoEl) infoEl.textContent = "Mostrando 0 - 0 de 0 movimientos";
+        if (pageNumEl) pageNumEl.textContent = "Página 1";
+        if (btnPrev) btnPrev.disabled = true;
+        if (btnNext) btnNext.disabled = true;
         return;
     }
 
-    filteredTimeline.forEach(event => {
-        const dateStr = event.date.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
+    const totalPages = Math.ceil(totalItems / TIMELINE_PAGE_SIZE) || 1;
+    if (currentTimelinePage > totalPages) currentTimelinePage = totalPages;
+    if (currentTimelinePage < 1) currentTimelinePage = 1;
+
+    const startIdx = (currentTimelinePage - 1) * TIMELINE_PAGE_SIZE;
+    const endIdx = Math.min(startIdx + TIMELINE_PAGE_SIZE, totalItems);
+    const pageItems = currentTimelineData.slice(startIdx, endIdx);
+
+    if (infoEl) infoEl.textContent = `Mostrando ${startIdx + 1} - ${endIdx} de ${totalItems} movimientos`;
+    if (pageNumEl) pageNumEl.textContent = `Página ${currentTimelinePage} de ${totalPages}`;
+    if (btnPrev) btnPrev.disabled = (currentTimelinePage <= 1);
+    if (btnNext) btnNext.disabled = (currentTimelinePage >= totalPages);
+
+    pageItems.forEach(event => {
+        const dateStr = event.isAdjustment ? 'Actual' : event.date.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
 
         if (event.type === 'IN') {
+            const movementBadge = event.isAdjustment
+                ? `<span class="bg-purple-100 text-purple-700 px-2 py-1 rounded text-[10px] font-black uppercase"><i class="fa-solid fa-sync mr-1"></i> Ajuste Sincro</span><br><span class="text-[9px] text-purple-500 mt-1 block">Ajuste de Stock Real</span>`
+                : `<span class="bg-blue-100 text-blue-600 px-2 py-1 rounded text-[10px] font-black uppercase"><i class="fa-solid fa-arrow-down mr-1"></i> Compra</span><br><span class="text-[9px] text-gray-400 mt-1 block">Ref: ${event.refId.slice(0,6)}</span>`;
+
             timelineBody.innerHTML += `
                 <tr class="bg-blue-50/30 border-b border-gray-50">
-                    <td class="px-6 py-5 text-sm font-bold text-gray-500">${dateStr}</td>
-                    <td class="px-6 py-5"><span class="bg-blue-100 text-blue-600 px-2 py-1 rounded text-[10px] font-black uppercase"><i class="fa-solid fa-arrow-down mr-1"></i> Compra</span><br><span class="text-[9px] text-gray-400 mt-1 block">Ref: ${event.refId.slice(0,6)}</span></td>
-                    <td class="px-6 py-5 text-center font-black text-brand-black text-base">+${event.qty}</td>
-                    <td class="px-6 py-5 text-right text-sm font-bold">${formatMoney(event.unitCost)}</td>
-                    <td class="px-6 py-5 text-right font-black text-brand-black text-base">${formatMoney(event.totalIn)}</td>
-                    <td class="px-6 py-5 text-right text-gray-300">---</td>
+                    <td class="px-3 py-3.5 sm:px-6 sm:py-5 text-xs sm:text-sm font-bold text-gray-500">${dateStr}</td>
+                    <td class="px-3 py-3.5 sm:px-6 sm:py-5">${movementBadge}</td>
+                    <td class="px-3 py-3.5 sm:px-6 sm:py-5 text-center font-black text-brand-black text-sm sm:text-base">+${event.qty}</td>
+                    <td class="px-3 py-3.5 sm:px-6 sm:py-5 text-right text-xs sm:text-sm font-bold">${formatMoney(event.unitCost)}</td>
+                    <td class="px-3 py-3.5 sm:px-6 sm:py-5 text-right font-black text-brand-black text-sm sm:text-base">${formatMoney(event.totalIn)}</td>
+                    <td class="px-3 py-3.5 sm:px-6 sm:py-5 text-right text-gray-300">---</td>
                 </tr>
             `;
         } else if (event.type === 'OUT') {
@@ -431,15 +582,19 @@ window.showSpecificProduct = (productId) => {
                 ? `<span class="inline-block mt-1 text-[8px] bg-orange-100 text-orange-600 border border-orange-200 px-2 py-0.5 rounded uppercase font-bold" title="Costo estimado">Costo Estimado</span>` 
                 : '';
 
+            const movementBadge = event.isAdjustment
+                ? `<span class="bg-amber-100 text-amber-700 px-2 py-1 rounded text-[10px] font-black uppercase"><i class="fa-solid fa-minus-circle mr-1"></i> Reducción Stock</span><br><span class="text-[9px] text-amber-500 mt-1 block">Ajuste de Stock Real</span>`
+                : `<span class="bg-emerald-50 text-emerald-600 px-2 py-1 rounded text-[10px] font-black uppercase"><i class="fa-solid fa-arrow-up mr-1"></i> Venta</span><br><span class="text-[9px] text-gray-400 mt-1 block">Ord: #${event.refId.slice(0,6)}</span>`;
+
             timelineBody.innerHTML += `
                 <tr class="hover:bg-slate-50 border-b border-gray-50 transition-colors">
-                    <td class="px-6 py-5 text-sm font-bold text-gray-500">${dateStr}</td>
-                    <td class="px-6 py-5"><span class="bg-emerald-50 text-emerald-600 px-2 py-1 rounded text-[10px] font-black uppercase"><i class="fa-solid fa-arrow-up mr-1"></i> Venta</span><br><span class="text-[9px] text-gray-400 mt-1 block">Ord: #${event.refId.slice(0,6)}</span></td>
-                    <td class="px-6 py-5 text-center font-black text-brand-black text-base">-${event.qty}</td>
-                    <td class="px-6 py-5 text-right text-sm font-bold">${formatMoney(event.unitPrice)}</td>
-                    <td class="px-6 py-5 text-right font-black text-brand-black text-base">${formatMoney(event.revenueForThisSale)}</td>
-                    <td class="px-6 py-5 text-right">
-                        <span class="font-black text-base ${event.profitForThisSale >= 0 ? 'text-brand-orange' : 'text-red-500'}">
+                    <td class="px-3 py-3.5 sm:px-6 sm:py-5 text-xs sm:text-sm font-bold text-gray-500">${dateStr}</td>
+                    <td class="px-3 py-3.5 sm:px-6 sm:py-5">${movementBadge}</td>
+                    <td class="px-3 py-3.5 sm:px-6 sm:py-5 text-center font-black text-brand-black text-sm sm:text-base">-${event.qty}</td>
+                    <td class="px-3 py-3.5 sm:px-6 sm:py-5 text-right text-xs sm:text-sm font-bold">${formatMoney(event.unitPrice)}</td>
+                    <td class="px-3 py-3.5 sm:px-6 sm:py-5 text-right font-black text-brand-black text-sm sm:text-base">${formatMoney(event.revenueForThisSale)}</td>
+                    <td class="px-3 py-3.5 sm:px-6 sm:py-5 text-right">
+                        <span class="font-black text-sm sm:text-base ${event.profitForThisSale >= 0 ? 'text-brand-orange' : 'text-red-500'}">
                             ${event.profitForThisSale >= 0 ? '+' : ''}${formatMoney(event.profitForThisSale)}
                         </span>
                         <br><span class="text-[10px] text-gray-400 font-bold tracking-widest block mt-1">Costo: -${formatMoney(event.costForThisSale)}</span>
@@ -449,6 +604,142 @@ window.showSpecificProduct = (productId) => {
             `;
         }
     });
+}
+
+window.syncRealStockWithFIFO = async () => {
+    const confirmMessage = `⚠️ ¿Está seguro de que desea alinear la base de datos de TODAS las sedes a la vez?\n\n` + 
+                           `Este proceso eliminara primero cualquier ajuste de sistema previo anterior para no duplicar datos, ` +
+                           `y creará los nuevos registros de ajuste exactos para igualar el stock real con el historial de cada sede en Firestore.`;
+    
+    if (!confirm(confirmMessage)) return;
+
+    const btnSync = document.getElementById('btn-sync-fifo');
+    const originalText = btnSync.innerHTML;
+    btnSync.disabled = true;
+    btnSync.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Limpiando y Alineando...`;
+
+    try {
+        // PASO 1: Eliminar ajustes previos del sistema de la colección "purchases"
+        const existingPurchasesSnap = await getDocs(collection(db, "purchases"));
+        let deletedCount = 0;
+        
+        for (const pDoc of existingPurchasesSnap.docs) {
+            const pData = pDoc.data();
+            if (pData.supplierName === "Ajuste de Inventario (Sistema)" || pData.refId === 'INITIAL_STOCK_OR_ADJUSTMENT' || pData.refId === 'MANUAL_STOCK_REDUCTION') {
+                await deleteDoc(doc(db, "purchases", pDoc.id));
+                deletedCount++;
+            }
+        }
+        console.log(`🗑️ Se eliminaron ${deletedCount} registros de ajuste anteriores.`);
+
+        // PASO 2: Recargar la lista fresca de compras reales (sin los ajustes eliminados) y pedidos
+        const [freshPurchasesSnap, freshOrdersSnap, branchesSnap] = await Promise.all([
+            getDocs(query(collection(db, "purchases"), orderBy("createdAt", "asc"))),
+            getDocs(query(collection(db, "orders"), orderBy("createdAt", "asc"))),
+            getDocs(collection(db, "branches"))
+        ]);
+
+        const freshPurchases = [];
+        freshPurchasesSnap.forEach(d => freshPurchases.push({ id: d.id, ...d.data() }));
+
+        const freshOrders = [];
+        freshOrdersSnap.forEach(d => freshOrders.push({ id: d.id, ...d.data() }));
+
+        const branchIds = [];
+        branchesSnap.forEach(d => branchIds.push(d.id));
+        if (!branchIds.includes('bodega')) branchIds.push('bodega'); // Asegurar bodega principal
+
+        let createdCount = 0;
+
+        // PASO 3: Recalcular discrepancias reales por sede y producto
+        for (const product of productIndex) {
+            
+            for (const branchId of branchIds) {
+                let branchPurchased = 0;
+                let branchSold = 0;
+
+                // Compras reales
+                freshPurchases.forEach(p => {
+                    const pBranch = p.branchId || 'bodega';
+                    if (pBranch !== branchId) return;
+
+                    if (p.items) {
+                        p.items.forEach(item => {
+                            if (item.id === product.id) {
+                                branchPurchased += parseInt(item.quantity) || 0;
+                            }
+                        });
+                    }
+                });
+
+                // Ventas reales
+                freshOrders.forEach(o => {
+                    if (['CANCELADO', 'RECHAZADO', 'DEVUELTO'].includes(o.status)) return;
+                    const oBranch = o.branchId || 'bodega';
+                    if (oBranch !== branchId) return;
+
+                    if (o.items) {
+                        o.items.forEach(item => {
+                            if (item.id === product.id) {
+                                branchSold += parseInt(item.quantity) || 0;
+                            }
+                        });
+                    }
+                });
+
+                // Stock real en la sede
+                let realStock = 0;
+                if (product.combinations && product.combinations.length > 0) {
+                    product.combinations.forEach(combo => {
+                        const comboStock = (combo.branchStock && combo.branchStock[branchId] !== undefined)
+                            ? (parseInt(combo.branchStock[branchId]) || 0)
+                            : (branchId === 'bodega' ? (parseInt(combo.stock) || 0) : 0);
+                        realStock += comboStock;
+                    });
+                } else {
+                    realStock = (product.branchStock && product.branchStock[branchId] !== undefined)
+                        ? (parseInt(product.branchStock[branchId]) || 0)
+                        : (branchId === 'bodega' ? (parseInt(product.stock) || 0) : 0);
+                }
+
+                const discrepancy = realStock + branchSold - branchPurchased;
+
+                if (discrepancy !== 0) {
+                    const cost = parseFloat(product.lastPurchaseCost || product.cost || 0) || 0;
+
+                    const purchaseDoc = {
+                        supplierName: "Ajuste de Inventario (Sistema)",
+                        createdBy: auth.currentUser?.email || sessionStorage.getItem('adminUserEmail') || "Sistema",
+                        createdAt: new Date(0), // Epoch 0 (1970)
+                        branchId: branchId,
+                        hasIVA: false,
+                        totalCost: discrepancy * cost,
+                        items: [{
+                            id: product.id,
+                            name: product.name,
+                            quantity: discrepancy,
+                            unitCostBase: cost,
+                            totalRow: discrepancy * cost
+                        }]
+                    };
+
+                    await addDoc(collection(db, "purchases"), purchaseDoc);
+                    createdCount++;
+                }
+            }
+        }
+
+        alert(`✅ Proceso finalizado con éxito.\n` + 
+              `- Registros de ajuste anteriores eliminados: ${deletedCount}\n` + 
+              `- Nuevos registros de ajuste creados en Firestore: ${createdCount}`);
+        window.location.reload();
+    } catch (err) {
+        console.error("Error durante la depuración y alineación de stock:", err);
+        alert(`❌ Error durante el proceso: ${err.message || err}`);
+    } finally {
+        btnSync.disabled = false;
+        btnSync.innerHTML = originalText;
+    }
 };
 
 initAnalysis();
