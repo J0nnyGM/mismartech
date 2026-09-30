@@ -37,12 +37,80 @@
                     <h3 class="font-black text-brand-black uppercase tracking-widest mb-1 text-xs md:text-sm">Costos de Envío</h3>
                     <p>El costo de envío para cualquier ciudad de Colombia es asumido por el cliente al momento de realizar la transacción o contraentrega, según aplique el método de pago seleccionado.</p>
                     
-                    <div id="free-shipping-policy" class="mt-3 p-3 bg-brand-orange/10 border border-brand-orange/20 rounded-xl hidden">
+                    <div id="free-shipping-policy" class="mt-3 p-4 bg-orange-50/80 border border-brand-orange/30 rounded-2xl hidden shadow-xs">
                         <p class="font-bold text-brand-orange flex items-center gap-2 text-xs md:text-sm">
                             <i class="fa-solid fa-gift"></i> 
-                            <span>¡Disfruta de envío GRATIS por compras superiores a <strong id="free-shipping-amount" class="text-brand-black">$--</strong>!</span>
+                            <span>¡Disfruta de envío GRATIS* por compras superiores a <strong id="free-shipping-amount" class="text-brand-black">$--</strong>!</span>
+                        </p>
+                        <p class="text-[11px] text-gray-500 mt-1 pl-6">
+                            *Aplican términos, condiciones y restricciones de cobertura ordinaria y volumen de producto según la Ley 1480 de 2011 (Estatuto del Consumidor). Consulta los detalles a continuación.
                         </p>
                     </div>
+                </div>
+            </div>
+
+            <!-- TÉRMINOS Y CONDICIONES DEL BENEFICIO DE ENVÍO GRATIS (*) -->
+            <div id="terminos-envio-gratis" class="bg-gradient-to-br from-orange-50/60 via-white to-orange-50/20 border border-brand-orange/20 p-6 md:p-8 rounded-3xl space-y-6 shadow-xs">
+                <div class="flex items-center gap-3 border-b border-orange-100 pb-4">
+                    <div class="w-9 h-9 rounded-xl bg-brand-orange text-white flex items-center justify-center shrink-0 shadow-sm">
+                        <i class="fa-solid fa-shield-halved text-sm"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-black text-brand-black uppercase tracking-wider text-sm md:text-base">
+                            Términos, Condiciones y Restricciones del Envío Gratis (*)
+                        </h2>
+                        <p class="text-[11px] text-gray-500 font-medium">
+                            En cumplimiento de los artículos 23, 29, 30 y 33 de la Ley 1480 de 2011 (Estatuto del Consumidor) y lineamientos de la SIC.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 text-xs md:text-sm text-gray-700">
+                    <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-xs space-y-1.5">
+                        <h4 class="font-black text-brand-black uppercase tracking-wide text-xs flex items-center gap-2">
+                            <i class="fa-solid fa-cart-shopping text-brand-orange"></i> 1. Monto Mínimo de Compra
+                        </h4>
+                        <p class="text-gray-600 leading-relaxed text-xs">
+                            Aplica únicamente cuando el valor subtotal neto de los productos (después de aplicar descuentos o promociones vigentes) iguale o supere el umbral configurado publicado en la tienda. El valor del flete o cargos adicionales no computan para alcanzar el monto mínimo.
+                        </p>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-xs space-y-1.5">
+                        <h4 class="font-black text-brand-black uppercase tracking-wide text-xs flex items-center gap-2">
+                            <i class="fa-solid fa-map-location-dot text-brand-orange"></i> 2. Cobertura Ordinaria Nacional
+                        </h4>
+                        <p class="text-gray-600 leading-relaxed text-xs">
+                            El beneficio aplica exclusivamente a destinos nacionales con <strong>cobertura terrestre directa ordinaria</strong> atendida por nuestras transportadoras aliadas. Se excluyen trayectos especiales con sobrecosto o reexpedición (tales como San Andrés y Providencia, Amazonas, Guainía, Vaupés, Vichada o zonas rurales de difícil acceso), en cuyo caso el cliente asumirá el recargo del flete especial.
+                        </p>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-xs space-y-1.5">
+                        <h4 class="font-black text-brand-black uppercase tracking-wide text-xs flex items-center gap-2">
+                            <i class="fa-solid fa-box-open text-brand-orange"></i> 3. Exclusiones por Peso y Volumen
+                        </h4>
+                        <p class="text-gray-600 leading-relaxed text-xs">
+                            El beneficio de envío gratuito aplica para paquetería estándar de tecnología liviana. Quedan expresamente exceptuados productos catalogados como sobredimensionados, pesados o de gran volumen (tales como televisores, monitores de gran formato, muebles tecnológicos o sillas gamer), los cuales se identificarán claramente al agregar al carrito o en el checkout.
+                        </p>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-xs space-y-1.5">
+                        <h4 class="font-black text-brand-black uppercase tracking-wide text-xs flex items-center gap-2">
+                            <i class="fa-solid fa-truck text-brand-orange"></i> 4. Modalidad y Tiempos de Tránsito
+                        </h4>
+                        <p class="text-gray-600 leading-relaxed text-xs">
+                            Los despachos bajo el beneficio de envío gratis se realizan en modalidad estándar terrestre ordinaria con tiempos de entrega estimados de <strong>2 a 5 días hábiles</strong>. No aplica para modalidades exprés, entregas urgentes o envíos inmediatos fuera del Valle de Aburrá.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-2xl border border-gray-100 text-xs text-gray-600 space-y-2">
+                    <p class="font-bold text-brand-black flex items-center gap-2">
+                        <i class="fa-solid fa-circle-info text-blue-500"></i> Información Relevante sobre Devoluciones y Datos de Entrega:
+                    </p>
+                    <ul class="list-disc pl-5 space-y-1 text-gray-600">
+                        <li><strong>Dirección o Entrega Fallida:</strong> Si el paquete no puede entregarse por datos erróneos suministrados por el comprador o ausencia tras los intentos de la transportadora, los costos de reenvío deberán ser cancelados por el comprador.</li>
+                        <li><strong>Derecho de Retracto (Art. 47 Ley 1480 de 2011):</strong> Si el consumidor decide retractarse de su compra dentro de los 5 días hábiles legales siguientes a la entrega, deberá restituir el producto en perfecto estado por los mismos medios y en las mismas condiciones en que lo recibió. <em>Los costos de transporte y demás gastos logísticos que conlleve la devolución del bien serán asumidos en su totalidad por el consumidor</em>.</li>
+                    </ul>
                 </div>
             </div>
 
@@ -87,13 +155,13 @@
             <section class="bg-slate-900 text-gray-300 p-8 rounded-3xl mt-8">
                 <h3 class="font-black text-white uppercase tracking-widest mb-3 text-sm flex items-center gap-2">
                     <i class="fa-solid fa-rotate-left text-brand-orange"></i>
-                    Retractos y Cambios
+                    Retractos y Cambios (Art. 47 Ley 1480 de 2011)
                 </h3>
                 <p class="text-xs md:text-sm mb-3">
                     Tienes un plazo máximo de <strong>5 días hábiles</strong> desde la entrega del producto para ejercer tu derecho de retracto. El producto debe devolverse sin usar, en su empaque original sellado e intacto y con la totalidad de sus manuales y accesorios.
                 </p>
                 <p class="text-xs md:text-sm">
-                    Todos los costos logísticos y de transporte para la devolución de artículos por retracto de compra correrán por cuenta del cliente.
+                    De conformidad con el Artículo 47 del Estatuto del Consumidor (Ley 1480 de 2011), todos los costos logísticos y de transporte para la devolución de artículos por retracto de compra correrán por cuenta del cliente.
                 </p>
             </section>
 

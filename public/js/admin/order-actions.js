@@ -134,13 +134,33 @@ export async function viewOrderDetail(orderId) {
         if (itemsList) {
             itemsList.innerHTML = (o.items || []).map((item, idx) => {
                 const img = item.mainImage || item.image || '/img/placeholder-tech.webp';
+                const isUnlinked = !item.id || String(item.id).startsWith('ML-UNKNOWN') || String(item.id).includes('UNKNOWN') || String(item.id).includes('NO_SKU');
+                
+                let unlinkedBanner = '';
+                if (isUnlinked && !isLocked) {
+                    unlinkedBanner = `
+                    <div class="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <div class="flex items-center gap-2 text-amber-900 text-xs font-bold">
+                            <i class="fa-solid fa-triangle-exclamation text-amber-600 text-base shrink-0"></i>
+                            <div>
+                                <p class="font-black text-amber-900 text-[11px] uppercase leading-tight">Producto Sin Vincular a Inventario</p>
+                                <p class="text-[9px] text-amber-700 font-normal mt-0.5">Asocia este pedido con un producto real de tu catálogo para descontar existencias.</p>
+                            </div>
+                        </div>
+                        <button type="button" onclick="window.openLinkProductModal(${idx})" class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-[10px] font-black uppercase tracking-wider transition flex items-center gap-1.5 shadow-sm shrink-0 cursor-pointer">
+                            <i class="fa-solid fa-link"></i> Vincular Producto
+                        </button>
+                    </div>
+                    `;
+                }
+
                 let snInputs = '';
                 for (let i = 0; i < (item.quantity || 1); i++) {
                     const val = (item.sns && item.sns[i]) ? item.sns[i] : '';
                     const lockClass = isLocked ? 'bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200' : 'bg-white text-brand-black border-gray-200 focus:border-brand-orange focus:ring-1 focus:ring-brand-orange/20';
                     snInputs += `<div class="relative mb-2"><i class="fa-solid fa-barcode absolute left-3 top-3 text-brand-black text-xs"></i><input type="text" placeholder="${isLocked ? (val || 'No registrado') : 'Escanea Serial'}" value="${val}" data-item-index="${idx}" data-unit-index="${i}" class="sn-input w-full rounded-xl py-2 pl-8 pr-3 text-xs font-mono font-bold outline-none transition-all uppercase border ${lockClass}" ${isLocked ? 'readonly' : ''}></div>`;
                 }
-                return `<div class="p-6 border-b border-gray-100 last:border-0 flex flex-col md:flex-row gap-6 items-start"><div class="w-16 h-16 rounded-xl bg-white border border-gray-100 p-2 shrink-0 flex items-center justify-center"><img src="${img}" class="max-w-full max-h-full object-contain"></div><div class="flex-grow w-full"><div class="flex justify-between mb-2"><h5 class="font-black text-xs uppercase text-brand-black">${item.name || item.title}</h5><span class="text-xs font-black text-brand-orange">x${item.quantity}</span></div><div class="flex gap-2 mb-4">${item.color ? `<span class="text-[8px] font-black uppercase bg-slate-100 px-2 py-1 rounded text-brand-black border border-gray-200">${item.color}</span>` : ''}</div><div class="bg-slate-100/50 p-3 rounded-xl border border-dashed border-gray-200"><p class="text-[8px] font-black text-brand-black uppercase tracking-widest mb-2">Seriales</p><div class="grid grid-cols-1 sm:grid-cols-2 gap-2">${snInputs}</div></div></div></div>`;
+                return `<div class="p-6 border-b border-gray-100 last:border-0 flex flex-col md:flex-row gap-6 items-start"><div class="w-16 h-16 rounded-xl bg-white border border-gray-100 p-2 shrink-0 flex items-center justify-center"><img src="${img}" class="max-w-full max-h-full object-contain"></div><div class="flex-grow w-full"><div class="flex justify-between mb-2"><h5 class="font-black text-xs uppercase text-brand-black">${item.name || item.title} ${isUnlinked ? '<span class="text-[8px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-black ml-1 uppercase">Sin SKU Vincular</span>' : ''}</h5><span class="text-xs font-black text-brand-orange">x${item.quantity}</span></div><div class="flex gap-2 mb-2">${item.color ? `<span class="text-[8px] font-black uppercase bg-slate-100 px-2 py-1 rounded text-brand-black border border-gray-200">${item.color}</span>` : ''}${item.capacity ? `<span class="text-[8px] font-black uppercase bg-slate-100 px-2 py-1 rounded text-brand-black border border-gray-200">${item.capacity}</span>` : ''}</div>${unlinkedBanner}<div class="bg-slate-100/50 p-3 rounded-xl border border-dashed border-gray-200 mt-3"><p class="text-[8px] font-black text-brand-black uppercase tracking-widest mb-2">Seriales</p><div class="grid grid-cols-1 sm:grid-cols-2 gap-2">${snInputs}</div></div></div></div>`;
             }).join('');
 
             if (!isLocked) {
@@ -180,8 +200,9 @@ export async function viewOrderDetail(orderId) {
         const refunded = o.refundedAmount || 0;
         const netTotal = totalOriginal - refunded;
 
-        safeSetText('modal-order-subtotal', `$${subtotal.toLocaleString('es-CO')}`);
-        safeSetText('modal-order-shipping', shipping === 0 ? "GRATIS" : `$${shipping.toLocaleString('es-CO')}`);
+        const isFleteCobro = o.shippingType === 'FLETE_AL_COBRO' || o.shippingData?.shippingType === 'FLETE_AL_COBRO';
+        const shippingText = isFleteCobro ? "FLETE AL COBRO" : (shipping === 0 ? "GRATIS" : `$${shipping.toLocaleString('es-CO')}`);
+        safeSetText('modal-order-shipping', shippingText);
         
         // Mostrar descuento y cupones aplicados si existen
         const discount = o.discountAmount || 0;
@@ -211,7 +232,27 @@ export async function viewOrderDetail(orderId) {
         if (totalContainer) {
             let taxHtml = tax4x1000 > 0 ? `<p class="text-[9px] font-black text-purple-500 uppercase tracking-widest mt-2 mb-1">4x1000: +$${tax4x1000.toLocaleString('es-CO')}</p>` : '';
             
-            if (refunded > 0) {
+            if (o.source && o.source.toUpperCase().startsWith('MERCADOLIBRE')) {
+                const netVal = o.netAmount || o.total || 0;
+                const feeVal = o.mlFee || 0;
+                const grossVal = netVal + feeVal;
+                
+                let mlBreakdownHtml = '';
+                if (feeVal > 0) {
+                    mlBreakdownHtml = `
+                        <div class="flex flex-col items-end gap-1 mb-2 text-right bg-amber-50/80 p-2.5 rounded-xl border border-amber-200/60 w-full">
+                            <p class="text-[9px] font-black text-gray-500 uppercase tracking-wider">Venta Bruta ML: <span class="font-bold text-gray-700">$${grossVal.toLocaleString('es-CO')}</span></p>
+                            <p class="text-[9px] font-black text-red-500 uppercase tracking-wider">Deducciones (Comisión / Envío): <span class="font-bold">-$${feeVal.toLocaleString('es-CO')}</span></p>
+                        </div>
+                    `;
+                }
+
+                if (refunded > 0) {
+                    totalContainer.innerHTML = `<div class="flex flex-col items-end w-full">${mlBreakdownHtml}<p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Total Consignado Original</p><p class="text-xs font-bold text-gray-400 line-through decoration-red-300">$${netVal.toLocaleString('es-CO')}</p>${taxHtml}<p class="text-[9px] font-black text-red-500 uppercase tracking-widest mt-1">Devolución</p><p class="text-xs font-bold text-red-500">-$${refunded.toLocaleString('es-CO')}</p><div class="w-full h-px bg-gray-200 my-2"></div><p class="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Consignado a Tienda (Neto)</p><h4 class="text-3xl font-black text-emerald-600 leading-none">$${(netVal - refunded).toLocaleString('es-CO')}</h4></div>`;
+                } else {
+                    totalContainer.innerHTML = `<div class="flex flex-col items-end w-full">${mlBreakdownHtml}${taxHtml}<p class="text-[9px] font-black text-emerald-600 uppercase tracking-widest mt-1">Consignado a Tienda (Neto)</p><h4 id="modal-order-total" class="text-3xl font-black text-emerald-600 leading-none">$${netVal.toLocaleString('es-CO')}</h4></div>`;
+                }
+            } else if (refunded > 0) {
                 totalContainer.innerHTML = `<div class="flex flex-col items-end"><p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Total Original</p><p class="text-xs font-bold text-gray-400 line-through decoration-red-300">$${totalOriginal.toLocaleString('es-CO')}</p>${taxHtml}<p class="text-[9px] font-black text-red-500 uppercase tracking-widest mt-1">Devolución</p><p class="text-xs font-bold text-red-500">-$${refunded.toLocaleString('es-CO')}</p><div class="w-full h-px bg-gray-200 my-2"></div><p class="text-[9px] font-black text-brand-black uppercase tracking-widest">Total Neto</p><h4 class="text-3xl font-black text-brand-black leading-none">$${netTotal.toLocaleString('es-CO')}</h4></div>`;
             } else {
                 totalContainer.innerHTML = `<div class="flex flex-col items-end">${taxHtml}<p class="text-[9px] font-black text-brand-black uppercase tracking-widest mt-1">Total Neto</p><h4 id="modal-order-total" class="text-3xl font-black text-brand-black leading-none">$${totalOriginal.toLocaleString('es-CO')}</h4></div>`;
@@ -326,6 +367,10 @@ async function cancelManualOrder(order) {
     const btn = getEl('btn-cancel-action');
     if(btn) { btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Anulando...'; btn.disabled = true; }
 
+    let itemsToRestore = [];
+    let branchIdToRestore = 'bodega';
+    let shouldRestoreStock = false;
+
     try {
         await runTransaction(db, async (t) => {
             const oRef = doc(db, "orders", order.id);
@@ -334,6 +379,10 @@ async function cancelManualOrder(order) {
             const oData = oSnap.data();
 
             if (oData.status === 'CANCELADO') throw new Error("La orden ya estaba cancelada.");
+
+            itemsToRestore = oData.items || order.items || [];
+            branchIdToRestore = oData.branchId || order.branchId || 'bodega';
+            shouldRestoreStock = (oData.source === 'MANUAL') || ['ALISTADO', 'DESPACHADO', 'EN_RUTA', 'ENTREGADO', 'DEVUELTO', 'DEVOLUCION_PARCIAL'].includes(oData.status) || !!oData.stockDeducted;
 
             const remRef = doc(db, "remissions", order.id);
             const remSnap = await t.get(remRef);
@@ -415,9 +464,14 @@ async function cancelManualOrder(order) {
             }
         });
 
-        if (order.items && order.items.length > 0) {
-            for (const item of order.items) {
-                await safeAdjustStock(item.id, item.quantity, item.color, item.capacity, order.branchId || 'bodega');
+        if (shouldRestoreStock && itemsToRestore.length > 0) {
+            for (const item of itemsToRestore) {
+                if (!item.id) continue;
+                const alreadyReturned = item.returnedQty || 0;
+                const netToRestore = (item.quantity || 0) - alreadyReturned;
+                if (netToRestore > 0) {
+                    await safeAdjustStock(item.id, netToRestore, item.color, item.capacity, branchIdToRestore);
+                }
             }
         }
 
@@ -426,7 +480,7 @@ async function cancelManualOrder(order) {
         currentOrderData = null;
 
     } catch (error) {
-        console.error(error); alert("Error al anular: " + error.message);
+        console.error(error); alert("Error al anular: " + (error?.message || error));
         if(btn) { btn.innerHTML = '<i class="fa-solid fa-ban"></i> Anular Venta'; btn.disabled = false; }
     }
 }
@@ -693,7 +747,8 @@ async function saveEditedOrder() {
         oldItems.forEach(item => {
             const k = `${item.id}|${item.color||''}|${item.capacity||''}`;
             if(!deltaMap[k]) deltaMap[k] = { id: item.id, color: item.color, capacity: item.capacity, delta: 0 };
-            deltaMap[k].delta += item.quantity; 
+            const netActiveQty = Math.max(0, (item.quantity || 0) - (item.returnedQty || 0));
+            deltaMap[k].delta += netActiveQty; 
         });
 
         newItems.forEach(item => {
@@ -874,7 +929,7 @@ async function saveEditedOrder() {
 
     } catch(e) {
         console.error(e);
-        alert("Error al editar la orden: " + e.message);
+        alert("Error al editar la orden: " + (e?.message || e));
     } finally {
         btn.innerHTML = originalText;
         btn.disabled = false;
@@ -896,6 +951,17 @@ export async function saveAlistamiento(onSuccess) {
             const inputs = document.querySelectorAll(`.sn-input[data-item-index="${idx}"]`);
             return { ...item, sns: Array.from(inputs).map(i => i.value.trim()) };
         });
+
+        // 🔥 0. VERIFICAR SI HAY PRODUCTOS SIN VINCULAR A INVENTARIO
+        const unlinkedIdx = updatedItems.findIndex(item => !item.id || String(item.id).startsWith('ML-UNKNOWN') || String(item.id).includes('UNKNOWN') || String(item.id).includes('NO_SKU'));
+        if (unlinkedIdx !== -1) {
+            btn.disabled = false;
+            btn.innerHTML = "Guardar Alistamiento";
+            const unlinkedItem = updatedItems[unlinkedIdx];
+            alert(`⚠️ Atención: El producto "${unlinkedItem.name || unlinkedItem.title || 'MercadoLibre'}" no está vinculado a tu catálogo de inventario.\n\nPor favor vincúlalo a un producto de tu catálogo para poder alistar y descontar existencias correctamente.`);
+            openLinkProductModal(unlinkedIdx);
+            return;
+        }
 
         // 🔥 VERIFICAR STOCK ANTES DE HACER ALISTAMIENTO PARA EVITAR SOBREVENTAS O ERRORES
         if (orderData.source !== 'MANUAL') {
@@ -1104,7 +1170,7 @@ function showTransferRequestModal(def, branchesWithStock, activeBranchId, active
             getEl('order-modal').classList.add('hidden');
         } catch (err) {
             console.error("Error al crear traslado desde alistamiento:", err);
-            alert("⚠️ Error al crear solicitud de traslado: " + err.message);
+            alert("⚠️ Error al crear solicitud de traslado: " + (err?.message || err));
         } finally {
             btnConfirm.disabled = false;
             btnConfirm.innerHTML = 'Solicitar';
@@ -1116,6 +1182,43 @@ function showTransferRequestModal(def, branchesWithStock, activeBranchId, active
 
 export async function openDispatchModal() {
     if (!currentOrderId || !currentOrderData) return;
+
+    const isML = currentOrderData.source && currentOrderData.source.toUpperCase().startsWith('MERCADOLIBRE');
+
+    if (isML) {
+        const carrier = currentOrderData.shippingCarrier || currentOrderData.shippingData?.carrier || 'MercadoEnvíos';
+        const tracking = currentOrderData.shippingTracking || currentOrderData.shippingData?.guideNumber || currentOrderData.shippingId || 'MercadoEnvíos';
+        
+        if (confirm(`🚚 ¿Confirmar despacho de la orden MercadoLibre #${currentOrderData.internalOrderNumber || currentOrderData.id.slice(0, 8)}?\n\n• Transportadora: ${carrier}\n• Guía / Envío: ${tracking}\n\n(Los datos de envío ya fueron generados por MercadoLibre).`)) {
+            const btnDespachar = getEl('btn-set-despachado');
+            if (btnDespachar) btnDespachar.disabled = true;
+            try {
+                await updateDoc(doc(db, "orders", currentOrderId), { 
+                    status: 'DESPACHADO', 
+                    shippingCarrier: carrier, 
+                    shippingTracking: tracking, 
+                    shippedAt: new Date(), 
+                    updatedAt: new Date() 
+                });
+                alert("🚚 Pedido de MercadoLibre despachado con éxito");
+                getEl('order-modal').classList.add('hidden');
+                
+                if (window.switchTab) {
+                    window.switchTab('ACTIONABLE');
+                } else if (window.renderOrdersFromMemory) {
+                    window.renderOrdersFromMemory();
+                } else {
+                    location.reload();
+                }
+            } catch (e) {
+                console.error(e);
+                alert("Error al despachar: " + (e?.message || e));
+            } finally {
+                if (btnDespachar) btnDespachar.disabled = false;
+            }
+        }
+        return;
+    }
 
     const addressText = currentOrderData.shippingData?.address || currentOrderData.address || 'Retiro en Tienda / Local';
     const addressLower = normalizeText(addressText);
@@ -1148,12 +1251,16 @@ export async function openDispatchModal() {
                 }
             } catch (e) {
                 console.error(e);
-                alert("Error al despachar: " + e.message);
+                alert("Error al despachar: " + (e?.message || e));
             } finally {
                 if (btnDespachar) btnDespachar.disabled = false;
             }
         }
     } else {
+        const carrierInput = getEl('dispatch-carrier');
+        const trackingInput = getEl('dispatch-tracking');
+        if (carrierInput) carrierInput.value = currentOrderData.shippingCarrier || currentOrderData.shippingData?.carrier || 'Servientrega';
+        if (trackingInput) trackingInput.value = currentOrderData.shippingTracking || currentOrderData.shippingData?.guideNumber || '';
         getEl('dispatch-modal').classList.remove('hidden');
     }
 }
@@ -1289,7 +1396,7 @@ export async function printRemission(orderId) {
                 <div class="totals-container">
                     <table class="totals-table">
                         <tr><td>Subtotal</td><td>$${subtotal.toLocaleString('es-CO')}</td></tr>
-                        <tr><td>Envío</td><td>$${shipping.toLocaleString('es-CO')}</td></tr>
+                        <tr><td>Envío</td><td>${(o.shippingType === 'FLETE_AL_COBRO' || o.shippingData?.shippingType === 'FLETE_AL_COBRO') ? 'Flete al Cobro (En Destino)' : `$${shipping.toLocaleString('es-CO')}`}</td></tr>
                         ${taxRow}
                         <tr><td>TOTAL</td><td>$${total.toLocaleString('es-CO')}</td></tr>
                     </table>
@@ -1310,7 +1417,7 @@ export async function requestInvoice(orderId) {
         await updateDoc(doc(db, "orders", orderId), { requiresInvoice: true, billingStatus: 'PENDING', updatedAt: new Date() });
         alert("✅ Solicitud enviada al Módulo de Facturación.");
         location.reload();
-    } catch (e) { alert("Error al actualizar: " + e.message); }
+    } catch (e) { alert("Error al actualizar: " + (e?.message || e)); }
 }
 
 // --- 5. EXPORTAR AL WINDOW ---
@@ -1596,11 +1703,21 @@ if (refundForm) {
                     const check = row.querySelector('.refund-check');
                     if (check.checked) {
                         const idx = parseInt(check.dataset.index);
-                        const qtyToReturn = parseInt(row.querySelector('.refund-qty').value);
+                        const qtyRequested = parseInt(row.querySelector('.refund-qty').value) || 0;
                         
-                        if (qtyToReturn > 0) {
-                            updatedItems[idx].returnedQty = (updatedItems[idx].returnedQty || 0) + qtyToReturn;
-                            itemsToRestoreStock.push({ id: updatedItems[idx].id, qty: qtyToReturn, color: updatedItems[idx].color, capacity: updatedItems[idx].capacity });
+                        const origQty = updatedItems[idx].quantity || 0;
+                        const alreadyRet = updatedItems[idx].returnedQty || 0;
+                        const maxReturnable = Math.max(0, origQty - alreadyRet);
+                        const actualQtyToReturn = Math.min(qtyRequested, maxReturnable);
+
+                        if (actualQtyToReturn > 0) {
+                            updatedItems[idx].returnedQty = alreadyRet + actualQtyToReturn;
+                            itemsToRestoreStock.push({ 
+                                id: updatedItems[idx].id, 
+                                qty: actualQtyToReturn, 
+                                color: updatedItems[idx].color, 
+                                capacity: updatedItems[idx].capacity 
+                            });
                         }
                     }
                 });
@@ -1632,7 +1749,7 @@ if (refundForm) {
             });
 
             if (itemsToRestoreStock.length > 0) {
-                for (const item of itemsToRestoreStock) await adjustStock(item.id, item.qty, item.color, item.capacity, orderBranchId);
+                for (const item of itemsToRestoreStock) await safeAdjustStock(item.id, item.qty, item.color, item.capacity, orderBranchId);
             }
 
             alert("✅ Devolución procesada correctamente.");
@@ -1679,9 +1796,16 @@ if (payForm) {
         }
 
         if (splits.length === 0) {
-            alert("Debes agregar al menos una cuenta de pago.");
-            btn.disabled = false; btn.innerHTML = originalText;
-            return;
+            const singleAcc = document.getElementById('pay-account-select')?.value;
+            const singleAmount = parseCurrency(document.getElementById('pay-amount')?.value) || maxAmount;
+            if (singleAcc && singleAmount > 0) {
+                splits.push({ accountId: singleAcc, amount: singleAmount });
+                totalAmount = singleAmount;
+            } else {
+                alert("Debes seleccionar una cuenta de pago.");
+                btn.disabled = false; btn.innerHTML = originalText;
+                return;
+            }
         }
 
         // Validar cuentas duplicadas
@@ -2236,13 +2360,18 @@ export async function openBulkDispatchModal() {
             const clientName = o.buyerInfo?.name || o.userName || 'Cliente';
             const orderNum = o.internalOrderNumber ? `#${o.internalOrderNumber}` : o.id.slice(0,6);
             
+            const isML = o.source && o.source.toUpperCase().startsWith('MERCADOLIBRE');
+            const trackingVal = isML 
+                ? (o.shippingTracking || o.shippingData?.guideNumber || o.shippingId || 'MercadoEnvíos')
+                : (o.shippingTracking || o.shippingData?.guideNumber || '');
+
             htmlList += `
             <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 p-3 bg-slate-50 border border-gray-100 rounded-xl mb-2">
                 <div>
-                    <p class="font-black text-xs text-brand-black">${orderNum} - ${clientName.toUpperCase()}</p>
+                    <p class="font-black text-xs text-brand-black">${orderNum} - ${clientName.toUpperCase()} ${isML ? '<span class="text-[8px] bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded font-black ml-1">MercadoLibre</span>' : ''}</p>
                     <p class="text-[9px] font-bold text-gray-400">${o.shippingData?.city || 'Ciudad no definida'}</p>
                 </div>
-                <input type="text" id="bulk-track-${o.id}" placeholder="Escanear/Escribir Guía" class="w-full md:w-48 bg-white border border-gray-200 text-xs font-mono font-bold p-2 rounded-lg outline-none focus:border-blue-500">
+                <input type="text" id="bulk-track-${o.id}" value="${trackingVal}" placeholder="Escanear/Escribir Guía" class="w-full md:w-48 bg-white border border-gray-200 text-xs font-mono font-bold p-2 rounded-lg outline-none focus:border-blue-500">
             </div>
             `;
         }
@@ -2333,3 +2462,238 @@ window.openBulkPackingModal = openBulkPackingModal;
 window.processBulkPacking = processBulkPacking;
 window.openPaymentModal = openPaymentModal;
 window.generateLabels = generateLabels;
+
+// --- MODAL DE VINCULACIÓN DE PRODUCTOS DE MERCADOLIBRE A INVENTARIO ---
+let currentLinkingItemIndex = null;
+let selectedLinkingProduct = null;
+
+function injectLinkProductModalHtml() {
+    if (getEl('link-product-modal')) return;
+    const html = `
+    <div id="link-product-modal" class="fixed inset-0 z-[120] hidden flex items-center justify-center p-4 sm:p-6 bg-slate-900/90 backdrop-blur-sm">
+        <div class="relative bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
+            <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-amber-500 shrink-0">
+                <div class="flex items-center gap-3 text-white">
+                    <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-link"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-black uppercase text-white leading-none">Vincular Producto a Inventario</h3>
+                        <p class="text-[10px] text-amber-100 font-bold mt-1">Asocia el pedido de MercadoLibre con un producto real de tu catálogo</p>
+                    </div>
+                </div>
+                <button onclick="document.getElementById('link-product-modal').classList.add('hidden')" class="w-8 h-8 rounded-full bg-black/10 hover:bg-black/20 text-white transition flex items-center justify-center cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="p-6 flex-1 overflow-y-auto custom-scroll space-y-5">
+                <!-- Info de la Orden -->
+                <div id="lp-item-banner" class="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+                    <p class="text-[9px] font-black text-amber-800 uppercase tracking-widest mb-1">Producto de MercadoLibre sin SKU Vincular:</p>
+                    <p id="lp-item-title" class="font-black text-xs text-brand-black uppercase"></p>
+                </div>
+
+                <!-- Buscador de Productos -->
+                <div class="relative">
+                    <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Buscar Producto en Catálogo</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-gray-400 text-xs"></i>
+                        <input type="text" id="lp-search-prod" placeholder="Escribe el nombre, marca o SKU del producto..." class="w-full bg-slate-50 border border-gray-200 rounded-xl py-3 pl-9 pr-3 text-xs font-bold outline-none focus:border-amber-500 focus:bg-white transition-all">
+                    </div>
+                    <div id="lp-search-results" class="absolute top-full left-0 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-xl hidden max-h-56 overflow-y-auto z-50 p-2"></div>
+                </div>
+
+                <!-- Vista Previa del Producto Seleccionado -->
+                <div id="lp-selected-container" class="hidden border border-emerald-200 bg-emerald-50/50 rounded-2xl p-4 space-y-4">
+                    <div class="flex items-center gap-4">
+                        <div class="w-14 h-14 rounded-xl bg-white border border-emerald-100 p-1 shrink-0 flex items-center justify-center">
+                            <img id="lp-selected-img" src="" class="max-w-full max-h-full object-contain">
+                        </div>
+                        <div class="flex-grow">
+                            <p class="text-[8px] font-black text-emerald-600 uppercase tracking-widest">Producto Seleccionado</p>
+                            <h4 id="lp-selected-name" class="font-black text-xs text-brand-black uppercase"></h4>
+                            <p id="lp-selected-stock" class="text-[10px] font-bold text-gray-500 mt-0.5"></p>
+                        </div>
+                    </div>
+
+                    <!-- Selectores de Variantes si aplica -->
+                    <div id="lp-variants-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-emerald-100 hidden">
+                        <div id="lp-color-wrapper">
+                            <label class="text-[9px] font-black text-gray-500 uppercase tracking-wider block mb-1">Color</label>
+                            <select id="lp-select-color" class="w-full bg-white border border-gray-200 rounded-lg p-2 text-xs font-bold outline-none focus:border-amber-500"></select>
+                        </div>
+                        <div id="lp-capacity-wrapper">
+                            <label class="text-[9px] font-black text-gray-500 uppercase tracking-wider block mb-1">Capacidad / Tamaño</label>
+                            <select id="lp-select-capacity" class="w-full bg-white border border-gray-200 rounded-lg p-2 text-xs font-bold outline-none focus:border-amber-500"></select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-5 bg-slate-50 border-t border-gray-100 flex justify-end gap-3 shrink-0">
+                <button onclick="document.getElementById('link-product-modal').classList.add('hidden')" class="px-5 py-2.5 text-[10px] font-black text-gray-500 uppercase tracking-widest hover:text-brand-black transition">Cancelar</button>
+                <button id="btn-confirm-link-product" disabled class="px-6 py-2.5 bg-amber-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:shadow-lg hover:bg-amber-700 transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fa-solid fa-check"></i> Confirmar y Vincular
+                </button>
+            </div>
+        </div>
+    </div>`;
+    document.body.insertAdjacentHTML('beforeend', html);
+
+    const sInp = getEl('lp-search-prod');
+    const sRes = getEl('lp-search-results');
+    sInp.addEventListener('input', (e) => {
+        const term = normalizeText(e.target.value);
+        sRes.innerHTML = "";
+        if(term.length < 2) { sRes.classList.add('hidden'); return; }
+        const filtered = editProductsCache.filter(p => 
+            (p.searchStr || normalizeText(p.name || '')).includes(term) || 
+            (p.sku && normalizeText(p.sku).includes(term))
+        );
+        if(filtered.length === 0) sRes.innerHTML = `<p class="p-3 text-[10px] font-bold text-gray-400 text-center uppercase">No se encontraron productos coincidentes</p>`;
+        else {
+            filtered.slice(0,10).forEach(p => {
+                const stockVal = p.stock || 0;
+                const d = document.createElement('div');
+                d.className = `p-2.5 flex items-center justify-between border-b border-gray-50 last:border-0 hover:bg-amber-50 cursor-pointer rounded-lg transition-colors`;
+                d.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <img src="${p.mainImage || p.image || '/img/placeholder-tech.webp'}" class="w-8 h-8 object-contain rounded bg-white p-0.5 border border-gray-100">
+                        <div>
+                            <p class="text-[10px] font-black uppercase text-brand-black leading-tight">${p.name}</p>
+                            <p class="text-[9px] text-gray-400 font-bold">SKU: ${p.sku || 'N/A'} | Stock: ${stockVal}</p>
+                        </div>
+                    </div>
+                    <div class="text-[10px] font-black text-brand-black">${formatCurrency(p.price || 0)}</div>`;
+                d.onmousedown = () => {
+                    selectProductForLinking(p);
+                    sInp.value = p.name;
+                    sRes.classList.add('hidden');
+                };
+                sRes.appendChild(d);
+            });
+        }
+        sRes.classList.remove('hidden');
+    });
+    document.addEventListener('click', (e) => { if (!sInp.contains(e.target) && !sRes.contains(e.target)) sRes.classList.add('hidden'); });
+
+    getEl('btn-confirm-link-product').onclick = confirmLinkProduct;
+}
+
+function selectProductForLinking(product) {
+    selectedLinkingProduct = product;
+    const container = getEl('lp-selected-container');
+    getEl('lp-selected-img').src = product.mainImage || product.image || '/img/placeholder-tech.webp';
+    safeSetText('lp-selected-name', product.name);
+    safeSetText('lp-selected-stock', `Stock Disponible: ${product.stock || 0} unidades | SKU: ${product.sku || 'N/A'}`);
+
+    const variantsContainer = getEl('lp-variants-container');
+    const colorWrapper = getEl('lp-color-wrapper');
+    const capWrapper = getEl('lp-capacity-wrapper');
+    const colorSelect = getEl('lp-select-color');
+    const capSelect = getEl('lp-select-capacity');
+
+    let colors = product.definedColors || [];
+    let capacities = product.definedCapacities || [];
+    if (product.combinations && product.combinations.length > 0) {
+        if (colors.length === 0) colors = [...new Set(product.combinations.map(c => c.color).filter(Boolean))];
+        if (capacities.length === 0) capacities = [...new Set(product.combinations.map(c => c.capacity).filter(Boolean))];
+    }
+
+    let hasVariants = false;
+    if (colors.length > 0) {
+        hasVariants = true;
+        colorWrapper.classList.remove('hidden');
+        colorSelect.innerHTML = colors.map(c => `<option value="${c}">${c}</option>`).join('');
+    } else {
+        colorWrapper.classList.add('hidden');
+    }
+
+    if (capacities.length > 0) {
+        hasVariants = true;
+        capWrapper.classList.remove('hidden');
+        capSelect.innerHTML = capacities.map(c => `<option value="${c}">${c}</option>`).join('');
+    } else {
+        capWrapper.classList.add('hidden');
+    }
+
+    if (hasVariants) variantsContainer.classList.remove('hidden');
+    else variantsContainer.classList.add('hidden');
+
+    container.classList.remove('hidden');
+    getEl('btn-confirm-link-product').disabled = false;
+}
+
+async function confirmLinkProduct() {
+    if (!currentOrderId || currentLinkingItemIndex === null || !selectedLinkingProduct) return;
+    const btn = getEl('btn-confirm-link-product');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Vinculando...';
+
+    try {
+        const snap = await getDoc(doc(db, "orders", currentOrderId));
+        if (!snap.exists()) throw new Error("La orden no existe");
+
+        const orderData = snap.data();
+        const items = orderData.items || [];
+        if (!items[currentLinkingItemIndex]) throw new Error("Ítem no encontrado en la orden");
+
+        const colorSelect = getEl('lp-select-color');
+        const capSelect = getEl('lp-select-capacity');
+        const chosenColor = colorSelect && !getEl('lp-color-wrapper').classList.contains('hidden') ? colorSelect.value : null;
+        const chosenCapacity = capSelect && !getEl('lp-capacity-wrapper').classList.contains('hidden') ? capSelect.value : null;
+
+        items[currentLinkingItemIndex] = {
+            ...items[currentLinkingItemIndex],
+            id: selectedLinkingProduct.id,
+            sku: selectedLinkingProduct.sku || selectedLinkingProduct.id,
+            name: selectedLinkingProduct.name,
+            title: selectedLinkingProduct.name,
+            mainImage: selectedLinkingProduct.mainImage || selectedLinkingProduct.image || items[currentLinkingItemIndex].mainImage || '',
+            image: selectedLinkingProduct.mainImage || selectedLinkingProduct.image || items[currentLinkingItemIndex].image || '',
+            color: chosenColor || items[currentLinkingItemIndex].color || null,
+            capacity: chosenCapacity || items[currentLinkingItemIndex].capacity || null,
+            originalMlTitle: items[currentLinkingItemIndex].originalMlTitle || items[currentLinkingItemIndex].title || items[currentLinkingItemIndex].name,
+            isLinked: true
+        };
+
+        await updateDoc(doc(db, "orders", currentOrderId), {
+            items: items,
+            updatedAt: new Date()
+        });
+
+        alert(`✅ Producto "${selectedLinkingProduct.name}" vinculado exitosamente a la orden. Ya puedes proceder a alistar el pedido.`);
+        getEl('link-product-modal').classList.add('hidden');
+        
+        viewOrderDetail(currentOrderId);
+    } catch(e) {
+        console.error("Error al vincular producto:", e);
+        alert("⚠️ Error al vincular el producto: " + (e.message || e));
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> Confirmar y Vincular';
+    }
+}
+
+export function openLinkProductModal(itemIndex) {
+    if (!isProductsSubscribed) {
+        AdminStore.subscribeToProducts(p => editProductsCache = p);
+        isProductsSubscribed = true;
+    }
+    injectLinkProductModalHtml();
+    
+    currentLinkingItemIndex = itemIndex;
+    selectedLinkingProduct = null;
+    
+    const items = currentOrderData?.items || [];
+    const item = items[itemIndex];
+
+    safeSetText('lp-item-title', item ? (item.name || item.title || 'Producto MercadoLibre') : 'Producto Seleccionado');
+    getEl('lp-search-prod').value = '';
+    getEl('lp-search-results').classList.add('hidden');
+    getEl('lp-selected-container').classList.add('hidden');
+    getEl('btn-confirm-link-product').disabled = true;
+
+    getEl('link-product-modal').classList.remove('hidden');
+}
+
+window.openLinkProductModal = openLinkProductModal;

@@ -98,7 +98,7 @@
             </div>
 
             <div class="bg-white rounded-[2.5rem] p-10 border border-gray-100 shadow-sm">
-                <div class="flex justify-between items-center mb-8">
+                <div class="flex justify-between items-center mb-6">
                     <div>
                         <h2 class="text-xs font-black uppercase tracking-[0.3em] text-brand-orange">Zonas de Tarifa Especial</h2>
                         <p class="text-[9px] text-gray-400 font-bold uppercase mt-1">Define precios específicos por grupos de municipios</p>
@@ -112,6 +112,55 @@
                     <div class="p-12 text-center border-2 border-dashed border-gray-100 rounded-[2rem]">
                         <i class="fa-solid fa-truck-dot text-3xl text-gray-100 mb-4"></i>
                         <p class="text-gray-300 font-black uppercase text-[10px] tracking-widest">Cargando reglas de envío...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN: PRODUCTOS EXCLUIDOS DE ENVÍO GRATIS -->
+            <div class="bg-white rounded-[2.5rem] p-10 border border-gray-100 shadow-sm">
+                <div class="mb-6">
+                    <h2 class="text-xs font-black uppercase tracking-[0.3em] text-brand-orange">Productos Excluidos de Envío Gratis</h2>
+                    <p class="text-[9px] text-gray-400 font-bold uppercase mt-1">Productos de gran volumen o dimensiones especiales donde no aplica envío gratis</p>
+                </div>
+
+                <!-- Modalidad de cobro para productos voluminosos -->
+                <div class="mb-6 p-6 bg-slate-50 border border-gray-100 rounded-2xl">
+                    <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-3">Modalidad de Envío para estos Productos</label>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <label class="flex items-center gap-3 p-4 bg-white rounded-xl border-2 border-gray-100 cursor-pointer transition shadow-sm bulky-mode-card" id="card-mode-cobro">
+                            <input type="radio" name="bulky-shipping-mode" value="flete_al_cobro" id="mode-flete-al-cobro" checked class="accent-brand-orange w-4 h-4">
+                            <div>
+                                <p class="text-xs font-black uppercase text-brand-black flex items-center gap-1.5"><i class="fa-solid fa-truck-ramp-box text-brand-orange"></i> Flete al Cobro (Recomendado)</p>
+                                <p class="text-[9px] text-gray-400 font-bold mt-0.5">El cliente cancela el valor del flete a la transportadora al recibir</p>
+                            </div>
+                        </label>
+                        <label class="flex items-center gap-3 p-4 bg-white rounded-xl border-2 border-gray-100 cursor-pointer transition shadow-sm bulky-mode-card" id="card-mode-fija">
+                            <input type="radio" name="bulky-shipping-mode" value="tarifa_fija" id="mode-tarifa-fija" class="accent-brand-orange w-4 h-4">
+                            <div>
+                                <p class="text-xs font-black uppercase text-brand-black flex items-center gap-1.5"><i class="fa-solid fa-receipt text-gray-400"></i> Tarifa Fija Estándar</p>
+                                <p class="text-[9px] text-gray-400 font-bold mt-0.5">Cobrar la tarifa estándar nacional configurada arriba</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Buscador de productos -->
+                <div class="relative">
+                    <div class="admin-input-group">
+                        <label>Buscar y Añadir Producto Excluido</label>
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-magnifying-glass text-gray-400 text-sm"></i>
+                            <input type="text" id="search-excluded-input" placeholder="Escribe el nombre o SKU del producto..." autocomplete="off">
+                        </div>
+                    </div>
+                    <!-- Dropdown de resultados -->
+                    <div id="search-excluded-results" class="hidden absolute top-full left-0 right-0 z-50 bg-white border border-gray-200 rounded-2xl shadow-2xl max-h-64 overflow-y-auto mt-2 p-2"></div>
+                </div>
+
+                <!-- Grid de Productos Excluidos -->
+                <div id="excluded-products-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6">
+                    <div class="col-span-full p-8 text-center border-2 border-dashed border-gray-100 rounded-[2rem]">
+                        <p class="text-gray-300 font-black uppercase text-[10px] tracking-widest">No hay productos excluidos configurados</p>
                     </div>
                 </div>
             </div>

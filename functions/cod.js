@@ -106,7 +106,7 @@ exports.createCODOrder = async (data, context) => {
                 updatedAt: admin.firestore.FieldValue.serverTimestamp(),
                 userId: uid, userEmail: email, userName: extraData.userName || "Cliente",
                 phone: extraData.phone || shippingData.phone || "", clientDoc: extraData.clientDoc || "",
-                shippingData, billingData: extraData.billingData || null, requiresInvoice: extraData.needsInvoice || false,
+                shippingData, shippingType: shippingData.shippingType || 'ESTANDAR', billingData: extraData.billingData || null, requiresInvoice: extraData.needsInvoice || false,
                 items: result.dbItems, subtotal: result.subtotal, shippingCost: result.finalShippingCost, total: result.totalAmount,
                 discountAmount: result.totalDiscounts, appliedPromos: result.appliedPromos,
                 appliedPromoCodes: promoCodes.map(c => c.trim().toUpperCase()),

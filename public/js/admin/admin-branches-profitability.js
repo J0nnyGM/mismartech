@@ -27,6 +27,7 @@ let allPurchases = [];
 let allOrders = [];
 let allExpenses = [];
 let allBranches = [];
+let accountsList = [];
 
 let salesBySedeMonth = {};   // { branchId: { monthKey: { sales, cogs }, GLOBAL: { sales, cogs } } }
 let expensesBySedeMonth = {};// { branchId: { monthKey: val, GLOBAL: val } }
@@ -64,18 +65,20 @@ async function initAnalysis() {
             productIndex = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         }
 
-        // Descargas paralelas de compras, órdenes, gastos y sedes
-        const [purchasesSnap, ordersSnap, expensesSnap, branchesSnap] = await Promise.all([
+        // Descargas paralelas de compras, órdenes, gastos, sedes y cuentas bancarias
+        const [purchasesSnap, ordersSnap, expensesSnap, branchesSnap, accountsSnap] = await Promise.all([
             getDocs(query(collection(db, "purchases"), orderBy("createdAt", "asc"))),
             getDocs(query(collection(db, "orders"), orderBy("createdAt", "asc"))),
             getDocs(query(collection(db, "expenses"), orderBy("date", "asc"))),
-            getDocs(collection(db, "branches"))
+            getDocs(collection(db, "branches")),
+            getDocs(collection(db, "accounts"))
         ]);
 
         purchasesSnap.forEach(doc => allPurchases.push({ id: doc.id, ...doc.data() }));
         ordersSnap.forEach(doc => allOrders.push({ id: doc.id, ...doc.data() }));
         expensesSnap.forEach(doc => allExpenses.push({ id: doc.id, ...doc.data() }));
         branchesSnap.forEach(doc => allBranches.push({ id: doc.id, ...doc.data() }));
+        if (accountsSnap) accountsSnap.forEach(doc => accountsList.push({ id: doc.id, ...doc.data() }));
 
         // Asegurar que exista la Sede Principal (bodega)
         const principalExists = allBranches.find(b => b.id === 'bodega');
@@ -110,7 +113,7 @@ async function initAnalysis() {
         // Añadir opción de Gastos Corporativos Generales a Histórico
         const generalExpensesOpt = document.createElement('option');
         generalExpensesOpt.value = 'ALL';
-        generalExpensesOpt.textContent = 'Gastos Generales / Corporativos';
+        generalExpensesOpt.textContent = 'Gastos Generales (Todas las Sedes)';
         trendBranchSelector.appendChild(generalExpensesOpt);
 
         // Event Listeners
@@ -140,11 +143,13 @@ async function initAnalysis() {
 // 2. ALGORITMO FIFO POR PUNTOS DE VENTA (SEDES)
 // ============================================================================
 function calculateGlobalFIFO() {
+    salesBySedeMonth = {};
     productIndex.forEach(product => {
         let timeline = [];
 
         // Compras de lotes (IN)
         allPurchases.forEach(p => {
+            if (p.supplierName === "Ajuste de Inventario (Sistema)") return;
             if (p.items) {
                 p.items.forEach(item => {
                     if (item.id === product.id) {
@@ -177,41 +182,6 @@ function calculateGlobalFIFO() {
             }
         });
 
-        // Calcular discrepancia entre stock real e historial transaccional de compras/ventas
-        let totalQtyPurchased = 0;
-        let totalQtySoldFromHistory = 0;
-        timeline.forEach(event => {
-            if (event.type === 'IN') {
-                totalQtyPurchased += event.qty;
-            } else if (event.type === 'OUT') {
-                totalQtySoldFromHistory += event.qty;
-            }
-        });
-
-        const realStock = parseInt(product.stock) || 0;
-        const initialStockDiff = realStock + totalQtySoldFromHistory - totalQtyPurchased;
-
-        if (initialStockDiff > 0) {
-            // Inyectar stock inicial al principio
-            timeline.unshift({
-                type: 'IN',
-                date: new Date(0),
-                qty: initialStockDiff,
-                unitCost: parseFloat(product.lastPurchaseCost) || 0,
-                refId: 'INITIAL_STOCK_OR_ADJUSTMENT'
-            });
-        } else if (initialStockDiff < 0) {
-            // Inyectar ajuste de reducción manual al principio
-            timeline.unshift({
-                type: 'OUT',
-                date: new Date(0),
-                qty: Math.abs(initialStockDiff),
-                unitPrice: 0,
-                refId: 'MANUAL_STOCK_REDUCTION',
-                status: 'ADJUSTMENT'
-            });
-        }
-
         timeline.sort((a, b) => a.date - b.date);
 
         let inventoryQueue = []; 
@@ -242,9 +212,6 @@ function calculateGlobalFIFO() {
                 if (qtyToFulfill > 0) {
                     costForThisSale += (qtyToFulfill * lastKnownCost);
                 }
-
-                // Omitir agregación de métricas de ventas si es una reducción de ajuste de stock
-                if (event.status === 'ADJUSTMENT') return;
 
                 const monthKey = getMonthYearKey(event.date);
                 const brId = event.branchId || 'bodega';
@@ -277,11 +244,64 @@ function calculateGlobalFIFO() {
 // 3. PROCESAMIENTO DE GASTOS POR SEDE
 // ============================================================================
 function processExpenses() {
+    expensesBySedeMonth = {};
     allExpenses.forEach(exp => {
+        // 1. Omitir registros eliminados o con estado no válido
+        if (exp.isDeleted || exp.deleted || exp.status === 'deleted') return;
+
+        // 2. Omitir ingresos de caja (pago clientes, abonos)
+        if (exp.type === 'INCOME') return;
+
+        // 3. Omitir traslados entre cuentas/cajas y ajustes internos
+        if (exp.category === 'Traslado de Caja' || exp.category === 'Ajuste de Caja' || exp.isTransfer || exp.type === 'TRANSFER') return;
+
+        // 4. Omitir reversos por anulación de ventas
+        if (exp.category === 'Anulación de Venta' || exp.isRefund) return;
+
+        // 5. 🔥 EXCLUIR PAGOS DE MERCANCÍA / PRODUCTO / INVENTARIO / PROVEEDORES
+        // El costo de los productos ya se contabiliza como COGS (Costo de Ventas) mediante el algoritmo FIFO.
+        const catLower = (exp.category || '').toLowerCase().trim();
+        const descLower = (exp.description || '').toLowerCase().trim();
+        
+        const isProductOrSupplierCost = 
+            exp.payableId || 
+            exp.purchaseId || 
+            exp.isPurchase ||
+            catLower.includes('pago proveedor') || 
+            catLower.includes('pago a proveedor') || 
+            catLower.includes('proveedores') || 
+            catLower.includes('proveedor') || 
+            catLower.includes('inventario') || 
+            catLower.includes('compra') || 
+            catLower.includes('mercancia') || 
+            catLower.includes('mercancía') ||
+            descLower.startsWith('pago factura compra') ||
+            descLower.startsWith('pago a proveedor');
+
+        if (isProductOrSupplierCost) return;
+
         const date = exp.date?.toDate ? exp.date.toDate() : (exp.createdAt?.toDate ? exp.createdAt.toDate() : new Date(exp.date || exp.createdAt));
         const monthKey = getMonthYearKey(date);
-        const brId = exp.branchId || 'ALL';
+        
+        let brId = exp.branchId;
+
+        // Si el gasto no tiene sede asignada explícitamente o es 'ALL', intentar deducir de la cuenta de pago
+        if (!brId || brId === 'ALL') {
+            if (exp.paymentMethod || exp.paymentAccountId) {
+                const acc = accountsList.find(a => 
+                    (a.id && a.id === exp.paymentAccountId) || 
+                    (a.name && exp.paymentMethod && a.name.trim().toLowerCase() === exp.paymentMethod.trim().toLowerCase())
+                );
+                if (acc && acc.branchId && acc.branchId !== 'ALL') {
+                    brId = acc.branchId;
+                }
+            }
+        }
+
+        if (!brId) brId = 'ALL';
+
         const amount = parseFloat(exp.amount) || 0;
+        if (amount <= 0) return;
 
         if (!expensesBySedeMonth[brId]) {
             expensesBySedeMonth[brId] = {};
@@ -371,9 +391,9 @@ function updateDashboard(period) {
     kpiNetMargin.textContent = `Margen: ${grandTotalMargin.toFixed(1)}%`;
 
     if (grandTotalNetProfit >= 0) {
-        kpiNetProfitCard.className = "bg-gradient-to-br from-emerald-500 to-teal-600 p-6 rounded-3xl shadow-lg text-white flex items-center gap-4 transition-all duration-300";
+        kpiNetProfitCard.className = "bg-gradient-to-br from-emerald-500 to-teal-600 p-5 sm:p-6 rounded-3xl shadow-lg text-white flex items-center gap-4 transition-all duration-300 min-w-0";
     } else {
-        kpiNetProfitCard.className = "bg-gradient-to-br from-red-500 to-rose-600 p-6 rounded-3xl shadow-lg text-white flex items-center gap-4 transition-all duration-300";
+        kpiNetProfitCard.className = "bg-gradient-to-br from-red-500 to-rose-600 p-5 sm:p-6 rounded-3xl shadow-lg text-white flex items-center gap-4 transition-all duration-300 min-w-0";
     }
 
     // Renderizar Cards de Sedes
@@ -417,7 +437,7 @@ function updateDashboard(period) {
         <div class="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-sm text-white transition-all duration-300 hover:-translate-y-1">
             <h4 class="font-black text-white text-sm uppercase mb-4 pb-2 border-b border-slate-800 flex justify-between items-center">
                 <span>Gastos Generales</span>
-                <span class="text-[9px] font-black uppercase bg-slate-800 px-2.5 py-0.5 rounded text-gray-400">Sin Sede</span>
+                <span class="text-[9px] font-black uppercase bg-brand-orange/20 text-brand-orange border border-brand-orange/30 px-2.5 py-0.5 rounded">Todas las Sedes</span>
             </h4>
             <div class="space-y-3">
                 <div class="flex justify-between text-xs">
@@ -458,7 +478,7 @@ function updateDashboard(period) {
     if (generalExpenses > 0) {
         tableHTML += `
         <tr class="hover:bg-slate-50 transition-colors bg-slate-50/50">
-            <td class="px-6 py-4 font-bold text-gray-500 uppercase italic">Gastos Generales / Corporativos</td>
+            <td class="px-6 py-4 font-bold text-gray-500 uppercase italic">Gastos Generales (Todas las Sedes)</td>
             <td class="px-6 py-4 text-right font-bold text-gray-300">$0</td>
             <td class="px-6 py-4 text-right font-bold text-gray-300">$0</td>
             <td class="px-6 py-4 text-right font-black text-gray-300">$0</td>

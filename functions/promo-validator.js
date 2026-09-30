@@ -330,12 +330,52 @@ async function validateAndApplyDiscounts(items, promoCodes, shippingCost, userId
         currentTotal -= discount;
     }
     
-    // D. Apply shipping discounts
+    // D. Apply shipping discounts & validate free shipping rules and exclusions
     let finalShippingCost = shippingCost;
-    if (shippingPromos.length > 0) {
-        finalShippingCost = 0;
+
+    try {
+        const shipDoc = await db.collection('config').doc('shipping').get();
+        if (shipDoc.exists) {
+            const sData = shipDoc.data();
+            const freeThreshold = Number(sData.freeThreshold) || 0;
+            const defaultPrice = Number(sData.defaultPrice) || 0;
+            const excludedIds = sData.excludedProductIds || (sData.excludedProducts ? sData.excludedProducts.map(p => p.id) : []);
+            const hasExcluded = dbItems.some(i => excludedIds.includes(i.id));
+
+            if (hasExcluded) {
+                const bulkyMode = sData.bulkyShippingMode || 'flete_al_cobro';
+                if (bulkyMode === 'flete_al_cobro') {
+                    // Modalidad Flete al Cobro: el flete se paga a la transportadora en destino ($0 en tienda online)
+                    finalShippingCost = 0;
+                } else {
+                    // Modalidad Tarifa Fija: se cobra la tarifa estándar
+                    if (finalShippingCost === 0) {
+                        finalShippingCost = defaultPrice;
+                    }
+                }
+            } else {
+                // Si NO tiene productos excluidos
+                if (shippingPromos.length > 0) {
+                    finalShippingCost = 0;
+                } else if (freeThreshold > 0 && subtotal >= freeThreshold) {
+                    finalShippingCost = 0;
+                } else if (finalShippingCost === 0 && (freeThreshold === 0 || subtotal < freeThreshold)) {
+                    // Evitar manipulación indebida en el cliente si el subtotal no alcanza el umbral
+                    finalShippingCost = defaultPrice;
+                }
+            }
+        } else {
+            if (shippingPromos.length > 0) {
+                finalShippingCost = 0;
+            }
+        }
+    } catch (e) {
+        console.error("Error al validar reglas y exclusión de envíos en backend:", e);
+        if (shippingPromos.length > 0) {
+            finalShippingCost = 0;
+        }
     }
-    
+
     currentTotal = Math.max(0, currentTotal);
     const totalAmount = currentTotal + finalShippingCost;
     

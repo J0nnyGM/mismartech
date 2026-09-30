@@ -60,13 +60,13 @@ function renderStaffTable(staffList) {
 
     staffList.forEach((u) => {
         const date = u.createdAt?.toDate ? u.createdAt.toDate().toLocaleDateString('es-CO') : '---';
-        const isSuperAdmin = u.role === 'admin';
+        const isSuperAdmin = u.role === 'admin' || u.role === 'developer';
         
         // Sede asignada por defecto
         const defaultBranch = isSuperAdmin ? 'ALL' : 'bodega';
         const currentBranch = u.assignedBranchId || defaultBranch;
 
-        const hasAllOption = u.role === 'admin';
+        const hasAllOption = isSuperAdmin;
         const branchOptions = branchesCache.map(b => `<option value="${b.id}" ${currentBranch === b.id ? 'selected' : ''}>${b.name}</option>`).join('');
         const allOptionHtml = hasAllOption ? `<option value="ALL" ${currentBranch === 'ALL' ? 'selected' : ''}>Todas (Acceso Total)</option>` : '';
 
@@ -92,11 +92,12 @@ function renderStaffTable(staffList) {
             </td>
             <td class="px-6 py-4">
                 <div class="relative">
-                    <select onchange="window.updateUserRole('${u.id}', this.value)" class="w-full bg-slate-100 border-none rounded-xl text-xs font-black p-3 outline-none focus:ring-2 focus:ring-brand-orange/30 appearance-none cursor-pointer ${isSuperAdmin ? 'text-brand-orange bg-orange-50' : 'text-gray-600'}">
+                    <select onchange="window.updateUserRole('${u.id}', this.value)" class="w-full bg-slate-100 border-none rounded-xl text-xs font-black p-3 outline-none focus:ring-2 focus:ring-brand-orange/30 appearance-none cursor-pointer ${u.role === 'developer' ? 'text-red-600 bg-red-50' : (u.role === 'admin' ? 'text-brand-orange bg-orange-50' : 'text-gray-600')}">
                         <option value="ventas" ${u.role === 'ventas' ? 'selected' : ''}>Ventas / Comercial</option>
                         <option value="contabilidad" ${u.role === 'contabilidad' ? 'selected' : ''}>Contabilidad</option>
                         <option value="logistica" ${u.role === 'logistica' ? 'selected' : ''}>Logística / Despachos</option>
                         <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Super Admin</option>
+                        <option value="developer" ${u.role === 'developer' ? 'selected' : ''}>Desarrollador (Developer)</option>
                     </select>
                     <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-[10px]"></i>
                 </div>

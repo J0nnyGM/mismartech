@@ -9,8 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Pedidos - Mi Smartech</title>
     <link rel="stylesheet" href="../css/styles.css">
-    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .hidden {
             display: none !important;
@@ -22,12 +21,16 @@
         }
 
         .custom-scroll::-webkit-scrollbar-track {
-            background: #f1f1f1;
+            background: transparent;
         }
 
         .custom-scroll::-webkit-scrollbar-thumb {
-            background: #F05A28;
+            background: #cbd5e1;
             border-radius: 10px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
 
         .fade-in {
@@ -46,7 +49,7 @@
         .tab-btn.active {
             background-color: #F05A28;
             color: white;
-            box-shadow: 0 4px 12px rgba(0, 174, 199, 0.3);
+            box-shadow: 0 4px 12px rgba(240, 90, 40, 0.3);
             border-color: transparent;
         }
 
@@ -56,6 +59,27 @@
             border: 1px solid #e5e7eb;
             font-weight: 900;
         }
+
+        .tab-btn .tab-badge {
+            background-color: #f1f5f9;
+            color: #475569;
+        }
+
+        .tab-btn.active .tab-badge {
+            background-color: rgba(255, 255, 255, 0.25);
+            color: white;
+        }
+
+        /* Fallbacks utilitarios de color */
+        :root {
+            --brand-orange: #F05A28;
+            --brand-cyan: #F05A28;
+        }
+        .text-brand-cyan { color: #F05A28 !important; }
+        .bg-brand-cyan { background-color: #F05A28 !important; }
+        .border-brand-cyan { border-color: #F05A28 !important; }
+        .focus\:border-brand-cyan:focus { border-color: #F05A28 !important; }
+        .selection\:bg-brand-cyan::selection { background-color: #F05A28 !important; color: white !important; }
     </style>
 </head>
 
@@ -68,7 +92,7 @@
     <main class="flex-grow overflow-y-auto relative custom-scroll overflow-x-hidden">
         
         <header
-            class="bg-white/90 backdrop-blur-xl border-b border-gray-100 px-4 md:px-8 py-4 flex flex-col xl:flex-row justify-between items-start xl:items-center sticky top-0 z-20 shadow-sm gap-4 xl:gap-0">
+            class="bg-white border-b border-gray-100 px-4 md:px-8 py-4 flex flex-col xl:flex-row justify-between items-start xl:items-center sticky top-0 z-20 shadow-sm gap-4 xl:gap-0">
             <h2 class="font-black text-brand-black text-[9px] uppercase tracking-[0.3em]">Centro Logístico</h2>
             
             <div class="flex flex-wrap items-center gap-3 w-full xl:w-auto justify-start xl:justify-end">
@@ -103,35 +127,94 @@
                 <div>
                     <h1 class="text-3xl md:text-4xl font-black tracking-tighter text-brand-black uppercase leading-none mb-2">
                         Pedidos & <span class="text-brand-orange">Envíos</span></h1>
-                    <p class="text-sm text-brand-black font-bold tracking-wide">Administra el flujo de ventas y
-                        despachos.</p>
+                    <p class="text-sm text-brand-black font-bold tracking-wide">Administra el flujo de ventas y despachos.</p>
                 </div>
-                <div class="relative w-full md:w-auto">
-                    <i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-brand-black text-xs"></i>
-                    <input type="text" id="search-input" placeholder="Buscar por # Orden o Cliente..."
-                        class="w-full md:w-64 pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-xs font-bold outline-none focus:border-brand-orange transition bg-white shadow-sm text-brand-black">
+                <div class="flex flex-col sm:flex-row items-center gap-2.5 w-full md:w-auto">
+                    <div class="relative w-full sm:w-auto">
+                        <i class="fa-regular fa-calendar absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-black text-xs pointer-events-none"></i>
+                        <select id="date-filter-select" onchange="window.setDateFilter(this.value)" 
+                            class="w-full sm:w-auto pl-9 pr-8 py-3 rounded-xl border border-gray-200 text-xs font-bold outline-none focus:border-brand-orange transition bg-white shadow-sm text-brand-black cursor-pointer appearance-none">
+                            <option value="ALL">📅 Todas las Fechas</option>
+                            <option value="TODAY">Hoy</option>
+                            <option value="YESTERDAY">Ayer</option>
+                            <option value="WEEK">Últimos 7 días</option>
+                            <option value="MONTH">Este Mes</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] pointer-events-none"></i>
+                    </div>
+                    <div class="relative w-full sm:w-auto" id="channel-filter-wrapper">
+                        <i class="fa-solid fa-store absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-black text-xs pointer-events-none"></i>
+                        <select id="channel-filter-select" onchange="window.setChannelFilter(this.value)" 
+                            class="w-full sm:w-auto pl-9 pr-8 py-3 rounded-xl border border-gray-200 text-xs font-bold outline-none focus:border-brand-orange transition bg-white shadow-sm text-brand-black cursor-pointer appearance-none">
+                            <option value="ALL">🛒 Todos los Canales</option>
+                            <option value="WEB">🌐 Tienda Web / Directa</option>
+                            <option value="ML_ALL" id="opt-filter-ml-all" class="hidden">🤝 Todo MercadoLibre</option>
+                            <option value="ML_1" id="opt-filter-ml1" class="hidden">🤝 MercadoLibre 1</option>
+                            <option value="ML_2" id="opt-filter-ml2" class="hidden">🤝 MercadoLibre 2</option>
+                            <option value="ML_3" id="opt-filter-ml3" class="hidden">🤝 MercadoLibre 3</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] pointer-events-none"></i>
+                    </div>
+                    <div class="relative w-full sm:w-auto">
+                        <i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-brand-black text-xs"></i>
+                        <input type="text" id="search-input" placeholder="Buscar por # Orden o Cliente..."
+                            class="w-full md:w-64 pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-xs font-bold outline-none focus:border-brand-orange transition bg-white shadow-sm text-brand-black">
+                    </div>
                 </div>
             </div>
 
             <div class="flex flex-wrap gap-2 md:gap-3 mb-6 md:mb-8">
                 <button onclick="window.switchTab('ACTIONABLE')" id="tab-actionable"
-                    class="tab-btn active px-4 md:px-6 py-2.5 md:py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 grow sm:grow-0 justify-center"><i
-                        class="fa-solid fa-bell"></i> Por Atender</button>
+                    class="tab-btn active px-4 md:px-5 py-2.5 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 grow sm:grow-0 justify-center shadow-sm">
+                    <i class="fa-solid fa-bell"></i> Por Atender
+                    <span id="badge-tab-actionable" class="tab-badge px-2 py-0.5 rounded-full text-[9px] font-black">0</span>
+                </button>
                 <button onclick="window.switchTab('WAITING')" id="tab-waiting"
-                    class="tab-btn px-4 md:px-6 py-2.5 md:py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 grow sm:grow-0 justify-center"><i
-                        class="fa-solid fa-clock"></i> En Espera</button>
+                    class="tab-btn px-4 md:px-5 py-2.5 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 grow sm:grow-0 justify-center shadow-sm">
+                    <i class="fa-solid fa-clock"></i> En Espera
+                    <span id="badge-tab-waiting" class="tab-badge px-2 py-0.5 rounded-full text-[9px] font-black">0</span>
+                </button>
                 <button onclick="window.switchTab('DISPATCHED')" id="tab-dispatched"
-                    class="tab-btn px-4 md:px-6 py-2.5 md:py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 grow sm:grow-0 justify-center"><i
-                        class="fa-solid fa-truck-fast"></i> Enviados</button>
+                    class="tab-btn px-4 md:px-5 py-2.5 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 grow sm:grow-0 justify-center shadow-sm">
+                    <i class="fa-solid fa-truck-fast"></i> Enviados
+                    <span id="badge-tab-dispatched" class="tab-badge px-2 py-0.5 rounded-full text-[9px] font-black">0</span>
+                </button>
                 <button onclick="window.switchTab('REFUNDS')" id="tab-refunds"
-                    class="tab-btn px-4 md:px-6 py-2.5 md:py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 grow sm:grow-0 justify-center"><i
-                        class="fa-solid fa-rotate-left"></i> Devoluciones</button>
+                    class="tab-btn px-4 md:px-5 py-2.5 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 grow sm:grow-0 justify-center shadow-sm">
+                    <i class="fa-solid fa-rotate-left"></i> Devoluciones
+                    <span id="badge-tab-refunds" class="tab-badge px-2 py-0.5 rounded-full text-[9px] font-black">0</span>
+                </button>
                 <button onclick="window.switchTab('FAILED')" id="tab-failed"
-                    class="tab-btn px-4 md:px-6 py-2.5 md:py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 grow sm:grow-0 justify-center"><i
-                        class="fa-solid fa-ban"></i> Cancelados</button>
+                    class="tab-btn px-4 md:px-5 py-2.5 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 grow sm:grow-0 justify-center shadow-sm">
+                    <i class="fa-solid fa-ban"></i> Cancelados
+                    <span id="badge-tab-failed" class="tab-badge px-2 py-0.5 rounded-full text-[9px] font-black">0</span>
+                </button>
                 <button onclick="window.switchTab('ALL')" id="tab-all"
-                    class="tab-btn px-4 md:px-6 py-2.5 md:py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 grow sm:grow-0 justify-center"><i
-                        class="fa-solid fa-list"></i> Todo</button>
+                    class="tab-btn px-4 md:px-5 py-2.5 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 grow sm:grow-0 justify-center shadow-sm">
+                    <i class="fa-solid fa-list"></i> Todo
+                    <span id="badge-tab-all" class="tab-badge px-2 py-0.5 rounded-full text-[9px] font-black">0</span>
+                </button>
+
+                <div id="ml-filter-tab-separator" class="hidden sm:block h-6 w-px bg-gray-200 self-center mx-1"></div>
+                
+                <button onclick="window.toggleQuickMLFilter()" id="btn-quick-filter-ml"
+                    class="tab-btn px-4 md:px-5 py-2.5 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 grow sm:grow-0 justify-center shadow-sm bg-white hover:bg-yellow-50 text-gray-700 border border-gray-200 hover:border-yellow-400 hidden"
+                    title="Filtrar pedidos de MercadoLibre">
+                    <i class="fa-solid fa-handshake text-[#FFE600] text-xs drop-shadow-xs"></i> 
+                    <span id="quick-ml-label">MercadoLibre</span>
+                    <span id="badge-quick-ml-count" class="px-2 py-0.5 rounded-full text-[9px] font-black bg-yellow-100 text-yellow-800">0</span>
+                </button>
+            </div>
+
+            <!-- Indicador activo de filtro por canal -->
+            <div id="active-filter-indicator" class="hidden mb-4 p-3 bg-amber-50/90 border border-amber-200 rounded-2xl flex items-center justify-between text-xs text-amber-900 shadow-xs animate-fadeIn">
+                <div class="flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-lg bg-[#FFE600] text-gray-900 flex items-center justify-center text-[10px] shadow-2xs font-black"><i class="fa-solid fa-handshake"></i></span>
+                    <span>Filtrando por canal: <strong id="active-filter-label" class="font-black text-amber-950">MercadoLibre</strong></span>
+                </div>
+                <button onclick="window.setChannelFilter('ALL')" class="px-3 py-1 bg-white hover:bg-amber-100 text-amber-900 rounded-xl font-bold border border-amber-300 transition text-[10px] flex items-center gap-1.5 shadow-2xs cursor-pointer">
+                    <i class="fa-solid fa-xmark"></i> Mostrar Todos los Canales
+                </button>
             </div>
 
             <div class="bg-white rounded-[2.5rem] shadow-xl border border-gray-100 overflow-hidden fade-in">
@@ -139,97 +222,116 @@
                     <table class="w-full text-left text-sm min-w-[900px]">
                         <thead class="bg-slate-50 text-[9px] uppercase font-black text-brand-black tracking-widest border-b border-gray-100">
                             <tr>
-                                <th class="px-4 py-6 w-12 text-center">
+                                <th class="px-4 py-3.5 w-12 text-center">
                                     <input type="checkbox" id="select-all-orders" onclick="window.toggleAllOrders(this)" class="cursor-pointer w-4 h-4 rounded text-brand-orange focus:ring-brand-orange border-gray-300">
                                 </th>
-                                <th class="px-8 py-6 w-36"># Orden / Fecha</th>
-                                <th class="px-8 py-6">Cliente</th>
-                                <th class="px-8 py-6 text-center">Canal</th>
-                                <th class="px-8 py-6 text-center">Estado Pago</th>
-                                <th class="px-8 py-6 text-center">Logística</th>
-                                <th class="px-8 py-6 text-right">Total</th>
-                                <th class="px-8 py-6 text-center w-40">Acciones</th>
+                                <th class="px-4 md:px-6 py-3.5 w-36"># Orden / Fecha</th>
+                                <th class="px-4 md:px-6 py-3.5">Cliente & Productos</th>
+                                <th class="px-4 md:px-6 py-3.5 text-center">Canal</th>
+                                <th class="px-4 md:px-6 py-3.5 text-center">Estado Pago</th>
+                                <th class="px-4 md:px-6 py-3.5 text-center">Logística</th>
+                                <th class="px-4 md:px-6 py-3.5 text-right">Total</th>
+                                <th class="px-4 md:px-6 py-3.5 text-center w-36">Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="orders-table-body" class="divide-y divide-gray-50"></tbody>
                     </table>
                 </div>
 
-                <!-- Bar de Paginación Premium Híbrida -->
-                <div id="pagination-container" class="px-8 py-5 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/50">
-                    <div class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]" id="pagination-info">
-                        Mostrando <span class="text-brand-black font-black" id="page-start">--</span> - <span class="text-brand-black font-black" id="page-end">--</span> de <span class="text-brand-black font-black" id="page-total">--</span> pedidos
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <button id="btn-page-prev" onclick="window.prevPage()" class="px-4 py-2.5 bg-white border border-gray-200 text-brand-black hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-sm transform active:scale-95">
+                <div id="load-more-container" class="p-6 flex flex-col sm:flex-row justify-between items-center gap-4 border-t border-gray-100 bg-slate-50/50">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                        Mostrando <span id="pagination-range" class="text-brand-black font-black">0-0</span> de <span id="pagination-total" class="text-brand-black font-black">0</span> pedidos filtrados
+                    </p>
+                    <div class="flex gap-2">
+                        <button id="btn-prev-page" onclick="window.changeOrdersPage(-1)" disabled 
+                            class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-400 text-xs font-bold uppercase disabled:opacity-40 disabled:cursor-not-allowed hover:border-brand-orange hover:text-brand-orange transition shadow-sm flex items-center gap-1">
                             <i class="fa-solid fa-chevron-left"></i> Anterior
                         </button>
-                        <button id="btn-page-next" onclick="window.nextPage()" class="px-4 py-2.5 bg-white border border-gray-200 text-brand-black hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-sm transform active:scale-95">
+                        <button id="btn-next-page" onclick="window.changeOrdersPage(1)" disabled
+                            class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-400 text-xs font-bold uppercase disabled:opacity-40 disabled:cursor-not-allowed hover:border-brand-orange hover:text-brand-orange transition shadow-sm flex items-center gap-1">
                             Siguiente <i class="fa-solid fa-chevron-right"></i>
                         </button>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- --- BARRA FLOTANTE DE ACCIONES EN LOTE (BULK ACTIONS) --- -->
+        <div id="floating-bulk-bar" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] bg-slate-950/95 backdrop-blur-md text-white border border-slate-700/60 shadow-2xl rounded-2xl px-4 md:px-5 py-3 flex items-center gap-3 md:gap-4 transition-all duration-300 transform translate-y-28 opacity-0 pointer-events-none">
+            <div class="flex items-center gap-2 pr-3 border-r border-slate-700/80">
+                <span id="floating-selected-count" class="bg-brand-orange text-white text-xs font-black px-2.5 py-1 rounded-lg">0</span>
+                <span class="text-[11px] font-black text-slate-300 uppercase tracking-wider hidden sm:inline">Seleccionados</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="window.printSelectedLabels()" title="Imprimir Rótulos de Envío" class="px-3 py-2 bg-white/10 hover:bg-white hover:text-brand-black text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition flex items-center gap-1.5 active:scale-95">
+                    <i class="fa-solid fa-tags text-brand-orange"></i> <span class="hidden md:inline">Rótulos</span>
+                </button>
+                <button onclick="window.openBulkPackingModal()" title="Alistar Pedidos Seleccionados" class="px-3 py-2 bg-purple-500/20 hover:bg-purple-600 text-purple-300 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition flex items-center gap-1.5 border border-purple-500/30 active:scale-95">
+                    <i class="fa-solid fa-boxes-packing"></i> <span class="hidden md:inline">Alistar</span>
+                </button>
+                <button onclick="window.openBulkDispatchModal()" title="Despachar Pedidos Seleccionados" class="px-3 py-2 bg-blue-500/20 hover:bg-blue-600 text-blue-300 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition flex items-center gap-1.5 border border-blue-500/30 active:scale-95">
+                    <i class="fa-solid fa-truck-ramp-box"></i> <span class="hidden md:inline">Despachar</span>
+                </button>
+                <button onclick="window.openBulkPaymentModal()" title="Cobrar Pedidos Seleccionados" class="px-3 py-2 bg-emerald-500/20 hover:bg-emerald-600 text-emerald-300 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition flex items-center gap-1.5 border border-emerald-500/30 active:scale-95">
+                    <i class="fa-solid fa-hand-holding-dollar"></i> <span class="hidden md:inline">Cobrar</span>
+                </button>
+                <button onclick="window.clearOrderSelections()" title="Deseleccionar todo" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-rose-600 text-slate-400 hover:text-white transition flex items-center justify-center ml-1">
+                    <i class="fa-solid fa-xmark text-xs"></i>
+                </button>
+            </div>
+        </div>
     </main>
 
     <div id="order-modal" class="fixed inset-0 z-[70] hidden flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity"
-            onclick="document.getElementById('order-modal').classList.add('hidden')"></div>
-        <div
-            class="relative bg-white w-full max-w-5xl rounded-[2.5rem] shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-fadeIn">
-            <div class="p-8 border-b border-gray-50 flex justify-between items-center bg-slate-50/50">
-                <div class="flex items-center gap-6">
+        <div class="absolute inset-0 bg-slate-900/80 transition-opacity"
+            onclick="window.closeOrderModal()"></div>
+        <div class="relative bg-white w-full max-w-6xl rounded-[2.5rem] shadow-2xl flex flex-col max-h-[92vh] overflow-hidden animate-fadeIn">
+            <div class="px-6 md:px-8 py-5 border-b border-gray-100 flex justify-between items-center bg-slate-50/50 shrink-0">
+                <div class="flex items-center gap-4 md:gap-6">
                     <div id="modal-source-icon"></div>
                     <div>
                         <div class="flex items-center gap-3">
-                            <h3 class="text-3xl font-black tracking-tighter uppercase text-brand-black"
-                                id="modal-order-id">#ORDEN</h3>
+                            <h3 class="text-2xl md:text-3xl font-black tracking-tighter uppercase text-brand-black" id="modal-order-id">#ORDEN</h3>
                             <span id="modal-order-status-badge">...</span>
                         </div>
-                        <p id="modal-order-date"
-                            class="text-[10px] font-bold text-brand-black uppercase tracking-widest mt-1">...</p>
+                        <p id="modal-order-date" class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">...</p>
                     </div>
                 </div>
-                <button
-                    class="w-10 h-10 rounded-full bg-white border border-gray-200 text-brand-black hover:bg-brand-red hover:text-white transition flex items-center justify-center"
-                    onclick="document.getElementById('order-modal').classList.add('hidden')"><i
-                        class="fa-solid fa-xmark"></i></button>
+                <div class="flex items-center gap-2">
+                    <button id="modal-btn-view-receipt" onclick="window.viewReceipt()" title="Ver Recibo" class="h-9 px-3.5 rounded-xl bg-white border border-rose-200 text-rose-600 hover:bg-rose-500 hover:text-white transition flex items-center gap-1.5 text-xs font-black uppercase tracking-wider shadow-2xs shrink-0 active:scale-95">
+                        <i class="fa-solid fa-receipt text-xs"></i> <span class="hidden sm:inline">Ver Recibo</span>
+                    </button>
+                    <button class="w-10 h-10 rounded-full bg-white border border-gray-200 text-brand-black hover:bg-brand-red hover:text-white transition flex items-center justify-center shadow-xs shrink-0" onclick="window.closeOrderModal()"><i class="fa-solid fa-xmark"></i></button>
+                </div>
             </div>
-            <div class="p-8 overflow-y-auto custom-scroll space-y-8 bg-white">
+            <div class="p-6 md:p-8 overflow-y-auto custom-scroll space-y-6 md:space-y-8 bg-white flex-1">
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="lg:col-span-1 space-y-6">
-                        <div id="modal-payment-info"
-                            class="hidden bg-white border border-gray-100 p-6 rounded-[2rem] shadow-sm animate-fadeIn">
-                        </div>
-
+                        <div id="modal-payment-info" class="hidden bg-white border border-gray-100 p-6 rounded-[2rem] shadow-sm animate-fadeIn"></div>
                         <div class="bg-white border border-gray-100 p-6 rounded-[2rem] shadow-sm">
-                            <h4
-                                class="text-[9px] font-black uppercase tracking-[0.2em] text-brand-black mb-4 flex items-center gap-2">
-                                <i class="fa-solid fa-user-tag text-brand-orange"></i> Cliente</h4>
+                            <h4 class="text-[9px] font-black uppercase tracking-[0.2em] text-brand-black mb-4 flex items-center gap-2"><i class="fa-solid fa-user-tag text-brand-orange"></i> Cliente</h4>
                             <p id="modal-client-name" class="font-black text-brand-black uppercase text-sm mb-1">...</p>
-                            <p id="modal-client-doc" class="text-[10px] font-bold text-brand-black uppercase mb-1">...
-                            </p>
+                            <p id="modal-client-doc" class="text-[10px] font-bold text-brand-black uppercase mb-1">...</p>
                             <p id="modal-client-contact" class="text-xs text-brand-black font-bold break-all">...</p>
                         </div>
                         <div class="bg-white border border-gray-100 p-6 rounded-[2rem] shadow-sm">
                             <h4 class="text-[9px] font-black uppercase tracking-[0.2em] text-brand-black mb-4 flex items-center gap-2"><i class="fa-solid fa-map-location-dot text-brand-orange"></i> Envío</h4>
                             <p id="modal-delivery-address" class="text-xs font-bold text-brand-black mb-1">...</p>
                             <p id="modal-delivery-city" class="text-[10px] text-gray-500 font-black uppercase">...</p>
-                            
                             <div id="modal-tracking-info" class="mt-4 p-4 bg-brand-orange/5 rounded-xl border border-brand-orange/20 hidden animate-fadeIn">
                                 <p class="text-[9px] font-black text-brand-orange uppercase tracking-widest mb-1">Datos de Despacho</p>
                                 <p class="text-xs font-bold text-brand-black uppercase"><i class="fa-solid fa-truck-fast mr-1 text-gray-400"></i> <span id="modal-carrier"></span></p>
                                 <p class="text-[10px] font-mono font-bold text-gray-500 mt-1">Guía: <span id="modal-tracking-number" class="select-all text-brand-black"></span></p>
                             </div>
-
                             <div id="modal-order-notes" class="mt-4 p-4 bg-yellow-50 rounded-xl text-[10px] text-yellow-900 font-bold border border-yellow-100 hidden"><i class="fa-regular fa-note-sticky mr-1"></i> <span id="note-text"></span></div>
+                            <div id="modal-ml-label-container" class="mt-4 hidden animate-fadeIn">
+                                <a id="btn-print-ml-label" href="#" target="_blank" class="w-full bg-blue-500 hover:bg-blue-600 text-white text-[10px] font-black py-3 px-4 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 uppercase tracking-widest">
+                                    <i class="fa-solid fa-print"></i> Imprimir Rótulo ML
+                                </a>
+                            </div>
                         </div>
-                        <div id="modal-billing-section"
-                            class="hidden bg-brand-orange/5 border border-brand-orange/10 p-6 rounded-[2rem]">
-                            <h4
-                                class="text-[9px] font-black uppercase tracking-[0.2em] text-brand-orange mb-4 flex items-center gap-2">
-                                <i class="fa-solid fa-file-invoice-dollar"></i> Facturación</h4>
+                        <div id="modal-billing-section" class="hidden bg-brand-orange/5 border border-brand-orange/10 p-6 rounded-[2rem]">
+                            <h4 class="text-[9px] font-black uppercase tracking-[0.2em] text-brand-orange mb-4 flex items-center gap-2"><i class="fa-solid fa-file-invoice-dollar"></i> Facturación</h4>
                             <div class="space-y-2 text-xs font-bold text-brand-black">
                                 <p id="bill-modal-name">--</p>
                                 <p id="bill-modal-id">--</p>
@@ -238,46 +340,36 @@
                         </div>
                     </div>
                     <div class="lg:col-span-2">
-                        <h4
-                            class="text-[9px] font-black uppercase tracking-[0.2em] text-brand-black mb-4 flex items-center gap-2">
-                            <i class="fa-solid fa-boxes-packing text-brand-orange"></i> Picking List & Seriales</h4>
-                        <div class="bg-slate-50 rounded-[2rem] border border-gray-100 overflow-hidden"
-                            id="modal-items-list-responsive"></div>
+                        <h4 class="text-[9px] font-black uppercase tracking-[0.2em] text-brand-black mb-4 flex items-center gap-2"><i class="fa-solid fa-boxes-packing text-brand-orange"></i> Picking List & Seriales</h4>
+                        <div class="bg-slate-50 rounded-[2rem] border border-gray-100 overflow-hidden" id="modal-items-list-responsive"></div>
                     </div>
                 </div>
             </div>
-            <div
-                class="p-8 bg-slate-50 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-6">
-                <div class="w-full md:w-auto grid grid-cols-2 md:flex md:items-end gap-4 md:gap-8">
-                    <div class="text-left">
-                        <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Subtotal</p>
-                        <p id="modal-order-subtotal" class="text-base font-bold text-brand-black">---</p>
+            <div class="px-6 md:px-8 py-4 bg-slate-50 border-t border-gray-100 flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-4 shrink-0">
+                <div class="flex items-center gap-6 md:gap-8 flex-wrap">
+                    <div>
+                        <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Subtotal</p>
+                        <p id="modal-order-subtotal" class="text-sm md:text-base font-bold text-brand-black">---</p>
                     </div>
-                    <div class="text-right md:text-left border-l border-gray-200 pl-4 md:pl-0 md:border-none">
-                        <p class="text-[9px] font-black text-brand-orange uppercase tracking-widest mb-1">Envío</p>
-                        <p id="modal-order-shipping" class="text-base font-bold text-brand-orange">---</p>
+                    <div class="border-l border-gray-200 pl-6 md:pl-8">
+                        <p class="text-[9px] font-black text-brand-orange uppercase tracking-widest mb-0.5">Envío</p>
+                        <p id="modal-order-shipping" class="text-sm md:text-base font-bold text-brand-orange">---</p>
                     </div>
-                    <div id="modal-discount-container" class="hidden text-right md:text-left border-l border-gray-200 pl-4 md:pl-4 md:border-none">
-                        <p class="text-[9px] font-black text-green-600 uppercase tracking-widest mb-1">Descuento</p>
-                        <p id="modal-order-discount" class="text-base font-bold text-green-600">---</p>
-                        <div id="modal-order-promos" class="flex flex-wrap gap-1 mt-1 justify-end md:justify-start"></div>
+                    <div id="modal-discount-container" class="hidden border-l border-gray-200 pl-6 md:pl-8">
+                        <p class="text-[9px] font-black text-green-600 uppercase tracking-widest mb-0.5">Descuento</p>
+                        <p id="modal-order-discount" class="text-sm md:text-base font-bold text-green-600">---</p>
+                        <div id="modal-order-promos" class="flex flex-wrap gap-1 mt-1"></div>
                     </div>
-                    <div id="modal-total-container" class="col-span-2 text-right md:text-left border-t md:border-t-0 md:border-l border-gray-200 pt-4 md:pt-0 md:pl-8 mt-1 md:mt-0 min-w-[150px]">
-                        <p class="text-[9px] font-black text-brand-black uppercase tracking-widest mb-1">Total Neto</p>
-                        <h4 id="modal-order-total" class="text-3xl font-black text-brand-black leading-none">---</h4>
+                    <div id="modal-total-container" class="border-l border-gray-200 pl-6 md:pl-8 min-w-[140px]">
+                        <p class="text-[9px] font-black text-brand-black uppercase tracking-widest mb-0.5">Total Neto</p>
+                        <h4 id="modal-order-total" class="text-2xl md:text-3xl font-black text-brand-black leading-none">---</h4>
                     </div>
                 </div>
-
-                <div class="flex items-center gap-4 w-full md:w-auto justify-end">
+                <div class="flex items-center gap-3 w-full lg:w-auto justify-end flex-wrap">
                     <div id="modal-footer-msg" class="text-xs font-bold uppercase tracking-widest hidden"></div>
-                    <div id="modal-footer-actions" class="flex gap-3 w-full md:w-auto hidden">
-                        <button id="btn-save-alistado"
-                            onclick="window.saveAlistamiento(() => window.switchTab('ACTIONABLE'))"
-                            class="flex-1 md:flex-none bg-brand-black text-white px-8 py-4 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-brand-orange hover:text-brand-black transition-all shadow-xl">Guardar
-                            Alistamiento</button>
-                        <button id="btn-set-despachado" onclick="window.openDispatchModal()"
-                            class="flex-1 md:flex-none bg-green-500 text-white px-8 py-4 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-green-600 transition-all shadow-xl"><i
-                                class="fa-solid fa-truck-fast mr-2"></i> Marcar Despachado</button>
+                    <div id="modal-footer-actions" class="flex items-center gap-2.5 flex-wrap justify-end">
+                        <button id="btn-save-alistado" onclick="window.saveAlistamiento(() => window.switchTab('ACTIONABLE'))" class="w-11 h-11 bg-brand-black text-white hover:bg-slate-800 rounded-xl transition-all flex items-center justify-center shadow-sm shrink-0 hidden" title="Guardar Alistamiento"><i class="fa-solid fa-floppy-disk text-base"></i></button>
+                        <button id="btn-set-despachado" onclick="window.openDispatchModal()" class="h-11 px-5 bg-emerald-500 text-white hover:bg-emerald-600 rounded-xl font-black uppercase text-[10px] tracking-wider transition-all flex items-center justify-center gap-2 shadow-sm shrink-0 hidden"><i class="fa-solid fa-truck-fast mr-1.5"></i> Marcar Despachado</button>
                     </div>
                 </div>
             </div>
@@ -285,180 +377,114 @@
     </div>
 
     <div id="dispatch-modal" class="fixed inset-0 z-[80] hidden flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-slate-900/70 backdrop-blur-sm"
-            onclick="document.getElementById('dispatch-modal').classList.add('hidden')"></div>
+        <div class="absolute inset-0 bg-slate-900/80" onclick="document.getElementById('dispatch-modal').classList.add('hidden')"></div>
         <div class="relative bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl text-center">
             <h3 class="text-xl font-black text-brand-black uppercase mb-6">Confirmar Envío</h3>
             <div class="space-y-4 mb-8 text-left">
-                <select id="dispatch-carrier"
-                    class="w-full bg-slate-50 border border-gray-200 rounded-xl p-3 text-sm font-bold outline-none text-brand-black">
+                <select id="dispatch-carrier" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-3 text-sm font-bold outline-none text-brand-black">
                     <option value="">Transportadora...</option>
                     <option value="Servientrega">Servientrega</option>
                     <option value="Interrapidisimo">Interrapidísimo</option>
                     <option value="Envía">Envía</option>
                     <option value="Coordinadora">Coordinadora</option>
-                    <option value="DESPACHO">DESPACHO</option>
+                    <option value="DespachoBogota">Despacho Bogotá (Mensajería)</option>
                 </select>
-                <input type="text" id="dispatch-tracking" placeholder="Número de Guía"
-                    class="w-full bg-slate-50 border border-gray-200 rounded-xl p-3 text-sm font-mono font-bold outline-none text-brand-black">
+                <input type="text" id="dispatch-tracking" placeholder="Número de Guía" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-3 text-sm font-mono font-bold outline-none text-brand-black">
             </div>
-            <button id="btn-confirm-dispatch" onclick="window.confirmDispatch(() => window.switchTab('ACTIONABLE'))"
-                class="w-full bg-green-500 text-white font-black py-4 rounded-xl shadow-lg uppercase text-xs tracking-widest hover:bg-green-600 transition">Confirmar
-                y Enviar</button>
+            <button id="btn-confirm-dispatch" onclick="window.confirmDispatch(() => window.switchTab('ACTIONABLE'))" class="w-full bg-green-500 text-white font-black py-4 rounded-xl shadow-lg uppercase text-xs tracking-widest hover:bg-green-600 transition">Confirmar y Enviar</button>
         </div>
     </div>
 
     <div id="payment-modal" class="fixed inset-0 z-[90] hidden flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-brand-black/80 backdrop-blur-sm transition-opacity"
-            onclick="document.getElementById('payment-modal').classList.add('hidden')"></div>
-        <div
-            class="relative bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95">
+        <div class="absolute inset-0 bg-slate-900/80 transition-opacity" onclick="document.getElementById('payment-modal').classList.add('hidden')"></div>
+        <div class="relative bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95">
             <div class="p-8 border-b border-gray-100 flex justify-between items-center bg-slate-50">
                 <div>
-                    <h3 class="text-xl font-black uppercase tracking-tighter text-brand-black">Registrar <span
-                            class="text-green-500">Ingreso</span></h3>
-                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest" id="pay-modal-order-id">
-                        #ORDEN</p>
+                    <h3 class="text-xl font-black uppercase tracking-tighter text-brand-black">Registrar <span class="text-green-500">Ingreso</span></h3>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest" id="pay-modal-order-id">#ORDEN</p>
                 </div>
-                <button onclick="document.getElementById('payment-modal').classList.add('hidden')"
-                    class="w-8 h-8 rounded-full bg-white text-gray-400 hover:text-brand-red flex items-center justify-center transition border border-gray-200"><i
-                        class="fa-solid fa-xmark"></i></button>
+                <button onclick="document.getElementById('payment-modal').classList.add('hidden')" class="w-8 h-8 rounded-full bg-white text-gray-400 hover:text-brand-red flex items-center justify-center transition border border-gray-200"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <form id="payment-form" class="p-8 space-y-6">
                 <input type="hidden" id="pay-target-id">
                 <div class="bg-green-50 p-6 rounded-2xl text-center border border-green-100">
-                    <p class="text-[9px] font-black text-green-600 uppercase tracking-widest mb-1">Monto a Recibir
-                        (Saldo Pendiente)</p>
-                    <p id="pay-pending-display" class="w-full text-4xl font-black text-green-700 text-center outline-none">$0</p>
-                    <input type="hidden" id="pay-amount" data-max="0">
+                    <p class="text-[9px] font-black text-green-600 uppercase tracking-widest mb-1">Monto a Recibir (Saldo Pendiente)</p>
+                    <input type="text" id="pay-amount" class="w-full bg-transparent text-4xl font-black text-green-700 text-center outline-none placeholder-green-300" placeholder="$0">
                 </div>
-                
-                <div class="space-y-4">
-                    <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Cuentas de Destino y Montos</label>
-                    <div id="pay-splits-container" class="space-y-3 max-h-[250px] overflow-y-auto custom-scroll pr-1">
-                        <!-- Se insertan dinámicamente -->
+                <div>
+                    <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Cuenta de Destino (Tesorería)</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-building-columns absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        <select id="pay-account-select" required class="w-full bg-slate-50 border border-gray-200 pl-10 pr-4 py-4 rounded-xl font-bold text-xs outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange/20 appearance-none text-brand-black cursor-pointer shadow-sm transition-all">
+                            <option value="">Cargando cuentas...</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none"></i>
                     </div>
-                    
-                    <button type="button" id="btn-add-pay-split" class="w-full py-3 border-2 border-dashed border-gray-200 rounded-xl font-black text-[9px] uppercase tracking-widest text-gray-400 hover:border-brand-orange hover:text-brand-orange hover:bg-orange-50/20 transition flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-circle-plus"></i> Agregar Cuenta (Dividir Pago)
-                    </button>
                 </div>
-
-                <div class="flex justify-between items-center px-4 py-4 bg-slate-50 rounded-xl border border-gray-100 text-[10px] font-bold text-gray-500 uppercase">
-                    <span>Total a registrar:</span>
-                    <span id="pay-total-selected" class="font-black text-brand-black text-sm">$0</span>
-                </div>
-
-                <button type="submit" id="btn-confirm-payment"
-                    class="w-full bg-brand-black text-white py-5 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-green-500 hover:text-white transition-all shadow-xl hover:shadow-green-500/30 flex items-center justify-center gap-3 group">
-                    Confirmar Pago <div
-                        class="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-green-500 transition">
-                        <i class="fa-solid fa-check"></i></div>
-                </button>
+                <button type="submit" class="w-full bg-brand-black text-white py-5 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-green-500 hover:text-white transition-all shadow-xl hover:shadow-green-500/30 flex items-center justify-center gap-3 group">Confirmar Pago <div class="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-green-500 transition"><i class="fa-solid fa-check"></i></div></button>
             </form>
         </div>
     </div>
 
     <div id="refund-modal" class="fixed inset-0 z-[95] hidden flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-red-900/40 backdrop-blur-sm transition-opacity"
-            onclick="document.getElementById('refund-modal').classList.add('hidden')"></div>
-        <div
-            class="relative bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-fadeIn flex flex-col max-h-[90vh]">
+        <div class="absolute inset-0 bg-slate-900/80 transition-opacity" onclick="document.getElementById('refund-modal').classList.add('hidden')"></div>
+        <div class="relative bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-fadeIn flex flex-col max-h-[90vh]">
             <div class="p-8 border-b border-gray-100 flex justify-between items-center bg-red-50">
                 <div>
-                    <h3 class="text-xl font-black uppercase tracking-tighter text-brand-black">Gestionar <span
-                            class="text-red-500">Devolución</span></h3>
-                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest" id="refund-modal-order-id">
-                        #ORDEN</p>
+                    <h3 class="text-xl font-black uppercase tracking-tighter text-brand-black">Gestionar <span class="text-red-500">Devolución</span></h3>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest" id="refund-modal-order-id">#ORDEN</p>
                 </div>
-                <button onclick="document.getElementById('refund-modal').classList.add('hidden')"
-                    class="w-8 h-8 rounded-full bg-white text-gray-400 hover:text-brand-black flex items-center justify-center transition border border-gray-200"><i
-                        class="fa-solid fa-xmark"></i></button>
+                <button onclick="document.getElementById('refund-modal').classList.add('hidden')" class="w-8 h-8 rounded-full bg-white text-gray-400 hover:text-brand-black flex items-center justify-center transition border border-gray-200"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <form id="refund-form" class="flex flex-col flex-grow overflow-hidden">
                 <input type="hidden" id="refund-target-id">
                 <input type="hidden" id="refund-was-paid">
                 <div class="p-8 overflow-y-auto custom-scroll flex-grow">
-                    <h4 class="text-[9px] font-black uppercase tracking-widest text-brand-black mb-3">1. Artículos a
-                        Reingresar al Inventario</h4>
+                    <h4 class="text-[9px] font-black uppercase tracking-widest text-brand-black mb-3">1. Artículos a Reingresar al Inventario</h4>
                     <div id="refund-items-container" class="space-y-3 mb-8"></div>
                     <div id="refund-financial-section">
-                        <h4
-                            class="text-[9px] font-black uppercase tracking-widest text-brand-black mb-3 border-t border-gray-100 pt-4">
-                            2. Devolución de Dinero</h4>
+                        <h4 class="text-[9px] font-black uppercase tracking-widest text-brand-black mb-3 border-t border-gray-100 pt-4">2. Devolución de Dinero</h4>
                         <div class="bg-red-50 p-4 rounded-xl border border-red-100 mb-4">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label
-                                        class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Cuenta
-                                        de Egreso</label>
+                                    <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Cuenta de Egreso</label>
                                     <div class="relative">
-                                        <select id="refund-account-select"
-                                            class="w-full bg-white border border-gray-200 p-3 rounded-xl font-bold text-xs outline-none focus:border-red-500 appearance-none cursor-pointer text-brand-black">
-                                            <option value="">Seleccione Cuenta...</option>
-                                        </select>
-                                        <i
-                                            class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none"></i>
+                                        <select id="refund-account-select" class="w-full bg-white border border-gray-200 p-3 rounded-xl font-bold text-xs outline-none focus:border-red-500 appearance-none cursor-pointer text-brand-black"><option value="">Seleccione Cuenta...</option></select>
+                                        <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none"></i>
                                     </div>
                                 </div>
                                 <div>
-                                    <label
-                                        class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Monto
-                                        a Devolver</label>
-                                    <input type="text" id="refund-amount"
-                                        class="w-full bg-white border border-gray-200 p-3 rounded-xl text-lg font-black outline-none focus:border-red-500 text-brand-black text-right"
-                                        placeholder="$0">
+                                    <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Monto a Devolver</label>
+                                    <input type="text" id="refund-amount" class="w-full bg-white border border-gray-200 p-3 rounded-xl text-lg font-black outline-none focus:border-red-500 text-brand-black text-right" placeholder="$0">
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div id="refund-no-payment-msg"
-                        class="hidden bg-gray-50 p-4 rounded-xl border border-gray-200 text-center mb-4">
-                        <p class="text-xs font-bold text-gray-500"><i class="fa-solid fa-money-bill-wave-slash"></i>
-                            Esta orden no fue pagada. Solo se restaurará el stock.</p>
-                    </div>
+                    <div id="refund-no-payment-msg" class="hidden bg-gray-50 p-4 rounded-xl border border-gray-200 text-center mb-4"><p class="text-xs font-bold text-gray-500"><i class="fa-solid fa-money-bill-wave-slash"></i> Esta orden no fue pagada. Solo se restaurará el stock.</p></div>
                     <div>
-                        <label
-                            class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Motivo
-                            / Nota</label>
-                        <input type="text" id="refund-reason"
-                            class="w-full bg-white border border-gray-200 p-3 rounded-xl text-xs font-bold outline-none focus:border-red-500 text-brand-black"
-                            placeholder="Ej: Garantía, Cambio de opinión...">
+                        <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Motivo / Nota</label>
+                        <input type="text" id="refund-reason" class="w-full bg-white border border-gray-200 p-3 rounded-xl text-xs font-bold outline-none focus:border-red-500 text-brand-black" placeholder="Ej: Garantía, Cambio de opinión...">
                     </div>
                 </div>
-                <div class="p-8 bg-slate-50 border-t border-gray-100">
-                    <button type="submit"
-                        class="w-full bg-red-500 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-red-600 transition-all shadow-xl hover:shadow-red-500/30">
-                        Confirmar Devolución
-                    </button>
-                </div>
+                <div class="p-8 bg-slate-50 border-t border-gray-100"><button type="submit" class="w-full bg-red-500 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-red-600 transition-all shadow-xl hover:shadow-red-500/30">Confirmar Devolución</button></div>
             </form>
         </div>
     </div>
 
-<div id="bulk-packing-modal" class="fixed inset-0 z-[85] hidden flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-slate-900/70 backdrop-blur-sm" onclick="document.getElementById('bulk-packing-modal').classList.add('hidden')"></div>
+    <div id="bulk-packing-modal" class="fixed inset-0 z-[85] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/80" onclick="document.getElementById('bulk-packing-modal').classList.add('hidden')"></div>
         <div class="relative bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl flex flex-col text-center">
-            <div class="w-16 h-16 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-3xl mx-auto mb-4">
-                <i class="fa-solid fa-box-open"></i>
-            </div>
+            <div class="w-16 h-16 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-3xl mx-auto mb-4"><i class="fa-solid fa-box-open"></i></div>
             <h3 class="text-xl font-black text-brand-black uppercase">Alistamiento <span class="text-purple-500">Masivo</span></h3>
             <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1 mb-6"><span id="bulk-pack-valid" class="text-brand-black font-black text-base">0</span> Pedidos Válidos para procesar</p>
-            
-            <div id="bulk-pack-warning" class="hidden bg-yellow-50 text-yellow-700 text-[9px] font-black uppercase tracking-widest p-3 rounded-xl border border-yellow-200 mb-6">
-                </div>
-
-            <button id="btn-confirm-bulk-pack" onclick="window.processBulkPacking()" class="w-full bg-brand-black text-white font-black py-4 rounded-xl shadow-lg uppercase text-[10px] tracking-[0.2em] hover:bg-purple-600 transition flex items-center justify-center gap-2">
-                Confirmar Alistamiento Masivo
-            </button>
-            <button onclick="document.getElementById('bulk-packing-modal').classList.add('hidden')" class="w-full mt-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest hover:text-brand-black transition">
-                Cancelar
-            </button>
+            <div id="bulk-pack-warning" class="hidden bg-yellow-50 text-yellow-700 text-[9px] font-black uppercase tracking-widest p-3 rounded-xl border border-yellow-200 mb-6"></div>
+            <button id="btn-confirm-bulk-pack" onclick="window.processBulkPacking()" class="w-full bg-brand-black text-white font-black py-4 rounded-xl shadow-lg uppercase text-[10px] tracking-[0.2em] hover:bg-purple-600 transition flex items-center justify-center gap-2">Confirmar Alistamiento Masivo</button>
+            <button onclick="document.getElementById('bulk-packing-modal').classList.add('hidden')" class="w-full mt-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest hover:text-brand-black transition">Cancelar</button>
         </div>
     </div>
 
     <div id="bulk-dispatch-modal" class="fixed inset-0 z-[85] hidden flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-slate-900/70 backdrop-blur-sm" onclick="document.getElementById('bulk-dispatch-modal').classList.add('hidden')"></div>
+        <div class="absolute inset-0 bg-slate-900/80" onclick="document.getElementById('bulk-dispatch-modal').classList.add('hidden')"></div>
         <div class="relative bg-white w-full max-w-2xl rounded-[2.5rem] p-8 shadow-2xl flex flex-col max-h-[90vh]">
             <div class="flex justify-between items-center mb-4">
                 <div>
@@ -467,10 +493,7 @@
                 </div>
                 <button onclick="document.getElementById('bulk-dispatch-modal').classList.add('hidden')" class="w-8 h-8 rounded-full bg-slate-50 text-gray-400 hover:text-brand-red flex items-center justify-center transition border border-gray-100"><i class="fa-solid fa-xmark"></i></button>
             </div>
-
-            <div id="bulk-disp-warning" class="hidden bg-yellow-50 text-yellow-700 text-[9px] font-black uppercase tracking-widest p-3 rounded-xl border border-yellow-200 mb-4">
-                </div>
-            
+            <div id="bulk-disp-warning" class="hidden bg-yellow-50 text-yellow-700 text-[9px] font-black uppercase tracking-widest p-3 rounded-xl border border-yellow-200 mb-4"></div>
             <div class="mb-4">
                 <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2">Transportadora Global</label>
                 <select id="bulk-dispatch-carrier" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-3 text-sm font-bold outline-none text-brand-black">
@@ -479,21 +502,16 @@
                     <option value="Interrapidisimo">Interrapidísimo</option>
                     <option value="Envía">Envía</option>
                     <option value="Coordinadora">Coordinadora</option>
-                    <option value="DESPACHO">DESPACHO</option>
+                    <option value="DespachoBogota">Despacho Bogotá (Mensajería)</option>
                 </select>
             </div>
-
-            <div class="overflow-y-auto custom-scroll pr-2 mb-6 flex-grow border-t border-b border-gray-100 py-4" id="bulk-dispatch-list">
-                </div>
-
-            <button id="btn-confirm-bulk-dispatch" onclick="window.processBulkDispatch()" class="w-full bg-blue-500 text-white font-black py-4 rounded-xl shadow-lg uppercase text-[10px] tracking-[0.2em] hover:bg-blue-600 transition flex items-center justify-center gap-2">
-                <i class="fa-solid fa-truck-ramp-box"></i> Confirmar Envíos Masivos
-            </button>
+            <div class="overflow-y-auto custom-scroll pr-2 mb-6 flex-grow border-t border-b border-gray-100 py-4" id="bulk-dispatch-list"></div>
+            <button id="btn-confirm-bulk-dispatch" onclick="window.processBulkDispatch()" class="w-full bg-blue-500 text-white font-black py-4 rounded-xl shadow-lg uppercase text-[10px] tracking-[0.2em] hover:bg-blue-600 transition flex items-center justify-center gap-2"><i class="fa-solid fa-truck-ramp-box"></i> Confirmar Envíos Masivos</button>
         </div>
     </div>
 
     <div id="bulk-payment-modal" class="fixed inset-0 z-[90] hidden flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-brand-black/80 backdrop-blur-sm" onclick="document.getElementById('bulk-payment-modal').classList.add('hidden')"></div>
+        <div class="absolute inset-0 bg-slate-900/80" onclick="document.getElementById('bulk-payment-modal').classList.add('hidden')"></div>
         <div class="relative bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95">
             <div class="p-8 border-b border-gray-100 flex justify-between items-center bg-slate-50">
                 <div>
@@ -504,9 +522,7 @@
             </div>
             
             <div class="p-8 space-y-6">
-                <div id="bulk-pay-warning" class="hidden bg-yellow-50 text-yellow-700 text-[9px] font-black uppercase tracking-widest p-3 rounded-xl border border-yellow-200 text-center">
-                    </div>
-
+                <div id="bulk-pay-warning" class="hidden bg-yellow-50 text-yellow-700 text-[9px] font-black uppercase tracking-widest p-3 rounded-xl border border-yellow-200 text-center"></div>
                 <div class="bg-green-50 p-6 rounded-2xl text-center border border-green-100">
                     <p class="text-[9px] font-black text-green-600 uppercase tracking-widest mb-1">Monto Total a Recibir</p>
                     <p id="bulk-pay-total" class="text-4xl font-black text-green-700 tracking-tight">$0</p>
@@ -515,14 +531,10 @@
                     <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Cuenta de Destino (Tesorería)</label>
                     <div class="relative">
                         <i class="fa-solid fa-building-columns absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                        <select id="bulk-pay-account-select" class="w-full bg-slate-50 border border-gray-200 pl-10 pr-4 py-4 rounded-xl font-bold text-xs outline-none focus:border-brand-orange appearance-none text-brand-black cursor-pointer shadow-sm transition-all">
-                            <option value="">Cargando cuentas...</option>
-                        </select>
+                        <select id="bulk-pay-account-select" class="w-full bg-slate-50 border border-gray-200 pl-10 pr-4 py-4 rounded-xl font-bold text-xs outline-none focus:border-brand-orange appearance-none text-brand-black cursor-pointer shadow-sm transition-all"><option value="">Cargando cuentas...</option></select>
                     </div>
                 </div>
-                <button id="btn-confirm-bulk-pay" onclick="window.processBulkPayment()" class="w-full bg-brand-black text-white py-5 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-green-500 transition-all shadow-xl hover:shadow-green-500/30 flex items-center justify-center gap-3">
-                    <i class="fa-solid fa-check-double"></i> Confirmar Pagos
-                </button>
+                <button id="btn-confirm-bulk-pay" onclick="window.processBulkPayment()" class="w-full bg-brand-black text-white py-5 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-green-500 transition-all shadow-xl hover:shadow-green-500/30 flex items-center justify-center gap-3"><i class="fa-solid fa-check-double"></i> Confirmar Pagos</button>
             </div>
         </div>
     </div>
@@ -532,67 +544,575 @@
         import { db, collection, getDocs, orderBy, query, limit, auth, doc, getDoc, where, onSnapshot, startAfter } from '../js/firebase-init.js';
         import { loadAdminSidebar } from '../js/admin/admin-ui.js';
         import { initManualSale, openManualSaleModal } from '../js/admin/manual-sale.js';
-        import { AdminStore } from '../js/admin/admin-store.js';
         import '../js/admin/order-actions.js';
 
         loadAdminSidebar();
 
+        // --- SISTEMA DE TOASTS FLOTANTES PARA FEEDBACK RÁPIDO ---
+        window.showActionToast = function(msg, type = 'info', duration = 2500) {
+            let container = document.getElementById('toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toast-container';
+                container.className = 'fixed bottom-5 right-5 z-[9999] flex flex-col gap-2 pointer-events-none';
+                document.body.appendChild(container);
+            }
+            const toast = document.createElement('div');
+            toast.className = 'px-4 py-2.5 rounded-xl shadow-xl text-xs font-bold text-white bg-slate-900 border border-slate-700 pointer-events-auto transform translate-y-4 opacity-0 transition-all duration-300 flex items-center gap-2';
+            toast.innerHTML = msg;
+            container.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-4', 'opacity-0');
+            });
+            setTimeout(() => {
+                toast.classList.add('translate-y-4', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        };
+
+        // --- ACCIONES GENERALES DEL MODAL DE DETALLE ---
+        window.closeOrderModal = function() {
+            const m = document.getElementById('order-modal');
+            if (m) m.classList.add('hidden');
+        };
+
+        window.viewReceipt = function(orderId) {
+            const targetId = orderId || document.getElementById('modal-order-id')?.textContent.replace('#', '') || (window.currentOrderId || null);
+            if (typeof window.printRemission === 'function') {
+                window.printRemission(targetId);
+            } else {
+                window.showActionToast('📄 Preparando vista de recibo...', 'info');
+            }
+        };
+
+        window.hasDraftSerials = function(orderId) {
+            try {
+                return !!(localStorage.getItem(`order_serials_draft_${orderId}`) || localStorage.getItem(`draft_serials_${orderId}`));
+            } catch (e) {
+                return false;
+            }
+        };
+
         // --- ESTADO GLOBAL ---
         let currentFilter = 'ACTIONABLE';
+        let currentDateFilter = 'ALL';
+        let currentChannelFilter = 'ALL';
         let globalConfig = { cutoffTime: "14:00" };
-        let adminOrdersCache = []; // Array en RAM para filtrar rápido
-        let branchesMap = {}; // Caché de sedes para resolver nombres de canal
+        let adminOrdersCache = []; 
+        
+        // TIENDAS MERCADOLIBRE (ESTADO ACTIVO Y NOMBRES COMERCIALES)
+        let mlStoreNames = { 1: 'MercadoLibre 1', 2: 'MercadoLibre 2', 3: 'MercadoLibre 3' };
+        window.mlStoreNames = mlStoreNames;
+        let mlStoreStatus = { 1: false, 2: false, 3: false };
 
-        // --- ESTADO DE PAGINACIÓN HÍBRIDA ---
-        let currentPage = 1;
-        const ORDERS_PAGE_SIZE = 100;
-        const OVERFILL_MARGIN = 50;
-        let isHistoricalLoading = false;
-        let noMoreHistoricalData = {
-            ACTIONABLE: false,
-            WAITING: false,
-            DISPATCHED: false,
-            REFUNDS: false,
-            FAILED: false,
-            ALL: false
+        function getOrderMLStore(o) {
+            if (!o) return null;
+            const isML = (o.source && o.source.startsWith('MERCADOLIBRE')) ||
+                         o.channel === 'MERCADOLIBRE' ||
+                         (o.paymentMethod && o.paymentMethod.startsWith('MERCADOLIBRE')) ||
+                         String(o.id || '').startsWith('ML-') ||
+                         String(o.id || '').startsWith('ML2-') ||
+                         String(o.id || '').startsWith('ML3-') ||
+                         Boolean(o.mlOrderId);
+            if (!isML) return null;
+
+            if (o.source === 'MERCADOLIBRE_STORE2' || o.source === 'MERCADOLIBRE_2' || o.mlStore === 2 || String(o.id || '').startsWith('ML2-')) {
+                return 2;
+            }
+            if (o.source === 'MERCADOLIBRE_STORE3' || o.source === 'MERCADOLIBRE_3' || o.mlStore === 3 || String(o.id || '').startsWith('ML3-')) {
+                return 3;
+            }
+            return 1;
+        }
+
+        function matchesChannelFilter(order, channelKey) {
+            if (!channelKey || channelKey === 'ALL') return true;
+            const mlStore = getOrderMLStore(order);
+            if (channelKey === 'WEB') return mlStore === null;
+            if (channelKey === 'ML_ALL') return mlStore !== null;
+            if (channelKey === 'ML_1') return mlStore === 1;
+            if (channelKey === 'ML_2') return mlStore === 2;
+            if (channelKey === 'ML_3') return mlStore === 3;
+            return true;
+        }
+
+        function updateChannelFilterUI() {
+            const optAll = document.getElementById('opt-filter-ml-all');
+            const opt1 = document.getElementById('opt-filter-ml1');
+            const opt2 = document.getElementById('opt-filter-ml2');
+            const opt3 = document.getElementById('opt-filter-ml3');
+            const selectEl = document.getElementById('channel-filter-select');
+            const quickBtn = document.getElementById('btn-quick-filter-ml');
+            const quickSeparator = document.getElementById('ml-filter-tab-separator');
+            const quickLabel = document.getElementById('quick-ml-label');
+            const activeIndicator = document.getElementById('active-filter-indicator');
+            const activeLabel = document.getElementById('active-filter-label');
+
+            // Detectar si hay órdenes en caché de ML para forzar estado activo
+            const allOrders = window.adminOrdersCache || adminOrdersCache || [];
+            for (const o of allOrders) {
+                const s = getOrderMLStore(o);
+                if (s && !mlStoreStatus[s]) {
+                    mlStoreStatus[s] = true;
+                }
+            }
+
+            const hasAnyML = mlStoreStatus[1] || mlStoreStatus[2] || mlStoreStatus[3];
+            const activeStoreIds = [1, 2, 3].filter(s => mlStoreStatus[s]);
+
+            if (optAll) {
+                if (hasAnyML) {
+                    optAll.classList.remove('hidden');
+                    if (activeStoreIds.length === 1) {
+                        const sId = activeStoreIds[0];
+                        optAll.textContent = `🤝 MercadoLibre (${mlStoreNames[sId] || 'Activo'})`;
+                    } else {
+                        optAll.textContent = `🤝 Todo MercadoLibre`;
+                    }
+                } else {
+                    optAll.classList.add('hidden');
+                }
+            }
+
+            if (opt1) {
+                if (mlStoreStatus[1] && activeStoreIds.length > 1) {
+                    opt1.classList.remove('hidden');
+                    opt1.textContent = `🤝 ${mlStoreNames[1] || 'MercadoLibre 1'}`;
+                } else {
+                    opt1.classList.add('hidden');
+                }
+            }
+
+            if (opt2) {
+                if (mlStoreStatus[2]) {
+                    opt2.classList.remove('hidden');
+                    opt2.textContent = `🤝 ${mlStoreNames[2] || 'MercadoLibre 2'}`;
+                } else {
+                    opt2.classList.add('hidden');
+                }
+            }
+
+            if (opt3) {
+                if (mlStoreStatus[3]) {
+                    opt3.classList.remove('hidden');
+                    opt3.textContent = `🤝 ${mlStoreNames[3] || 'MercadoLibre 3'}`;
+                } else {
+                    opt3.classList.add('hidden');
+                }
+            }
+
+            // Si el filtro activo pertenecía a una tienda que ya no está activa, resetear a ALL
+            if (currentChannelFilter === 'ML_1' && !mlStoreStatus[1]) currentChannelFilter = 'ALL';
+            if (currentChannelFilter === 'ML_2' && !mlStoreStatus[2]) currentChannelFilter = 'ALL';
+            if (currentChannelFilter === 'ML_3' && !mlStoreStatus[3]) currentChannelFilter = 'ALL';
+            if (currentChannelFilter === 'ML_ALL' && !hasAnyML) currentChannelFilter = 'ALL';
+
+            if (selectEl && selectEl.value !== currentChannelFilter) {
+                selectEl.value = currentChannelFilter;
+            }
+
+            const isMLFilterActive = ['ML_ALL', 'ML_1', 'ML_2', 'ML_3'].includes(currentChannelFilter);
+
+            // Resaltado visual en el dropdown select
+            if (selectEl) {
+                if (isMLFilterActive) {
+                    selectEl.classList.add('border-yellow-400', 'bg-amber-50/70', 'text-amber-950', 'ring-1', 'ring-yellow-400');
+                    selectEl.classList.remove('border-gray-200', 'bg-white', 'text-brand-black');
+                } else {
+                    selectEl.classList.remove('border-yellow-400', 'bg-amber-50/70', 'text-amber-950', 'ring-1', 'ring-yellow-400');
+                    selectEl.classList.add('border-gray-200', 'bg-white', 'text-brand-black');
+                }
+            }
+
+            // Botón de filtro rápido de MercadoLibre junto a las pestañas
+            if (quickBtn) {
+                if (hasAnyML) {
+                    quickBtn.classList.remove('hidden');
+                    if (quickSeparator) quickSeparator.classList.remove('hidden');
+                    if (quickLabel) {
+                        quickLabel.textContent = activeStoreIds.length === 1 
+                            ? (mlStoreNames[activeStoreIds[0]] || 'MercadoLibre') 
+                            : 'MercadoLibre';
+                    }
+                    if (isMLFilterActive) {
+                        quickBtn.classList.add('bg-[#FFE600]', 'text-gray-900', 'border-yellow-400', 'shadow-md', 'ring-2', 'ring-yellow-400/50');
+                        quickBtn.classList.remove('bg-white', 'hover:bg-yellow-50', 'text-gray-700', 'border-gray-200');
+                    } else {
+                        quickBtn.classList.remove('bg-[#FFE600]', 'text-gray-900', 'border-yellow-400', 'shadow-md', 'ring-2', 'ring-yellow-400/50');
+                        quickBtn.classList.add('bg-white', 'hover:bg-yellow-50', 'text-gray-700', 'border-gray-200');
+                    }
+                } else {
+                    quickBtn.classList.add('hidden');
+                    if (quickSeparator) quickSeparator.classList.add('hidden');
+                }
+            }
+
+            // Banner indicador de filtro activo
+            if (activeIndicator) {
+                if (currentChannelFilter !== 'ALL') {
+                    activeIndicator.classList.remove('hidden');
+                    if (activeLabel) {
+                        if (currentChannelFilter === 'WEB') {
+                            activeLabel.textContent = 'Tienda Web / Directa';
+                        } else if (currentChannelFilter === 'ML_ALL') {
+                            activeLabel.textContent = activeStoreIds.length === 1 
+                                ? `MercadoLibre (${mlStoreNames[activeStoreIds[0]] || 'Tienda Oficial'})` 
+                                : 'Todo MercadoLibre';
+                        } else if (currentChannelFilter === 'ML_1') {
+                            activeLabel.textContent = mlStoreNames[1] || 'MercadoLibre 1';
+                        } else if (currentChannelFilter === 'ML_2') {
+                            activeLabel.textContent = mlStoreNames[2] || 'MercadoLibre 2';
+                        } else if (currentChannelFilter === 'ML_3') {
+                            activeLabel.textContent = mlStoreNames[3] || 'MercadoLibre 3';
+                        }
+                    }
+                } else {
+                    activeIndicator.classList.add('hidden');
+                }
+            }
+        }
+
+        window.toggleQuickMLFilter = function() {
+            if (['ML_ALL', 'ML_1', 'ML_2', 'ML_3'].includes(currentChannelFilter)) {
+                window.setChannelFilter('ALL');
+            } else {
+                window.setChannelFilter('ML_ALL');
+            }
         };
+
+        window.setChannelFilter = function(val) {
+            currentChannelFilter = val || 'ALL';
+            currentOrdersPage = 1;
+            updateChannelFilterUI();
+            const searchVal = document.getElementById('search-input')?.value.trim() || '';
+            if (searchVal.length > 0) {
+                document.getElementById('search-input').dispatchEvent(new Event('input'));
+            } else {
+                reCalcularFiltroLocal();
+                renderOrdersFromMemory();
+            }
+        };
+
+        function initMLStoresTracking() {
+            // 1. Escuchar nombres comerciales en config/system (legible por Admin y Dev)
+            onSnapshot(doc(db, "config", "system"), (snap) => {
+                if (snap.exists()) {
+                    const data = snap.data();
+                    if (data.mlStoreName1 || data.mlStoreNames?.[1]) mlStoreNames[1] = data.mlStoreName1 || data.mlStoreNames[1];
+                    if (data.mlStoreName2 || data.mlStoreNames?.[2]) mlStoreNames[2] = data.mlStoreName2 || data.mlStoreNames[2];
+                    if (data.mlStoreName3 || data.mlStoreNames?.[3]) mlStoreNames[3] = data.mlStoreName3 || data.mlStoreNames[3];
+                    window.mlStoreNames = mlStoreNames;
+                    updateChannelFilterUI();
+                    renderOrdersFromMemory();
+                }
+            }, (err) => {
+                console.warn("No se pudieron cargar nombres de tiendas ML desde config/system:", err);
+            });
+
+            // 2. Escuchar config/services_status (accesible a staff: admin, developer, ventas, logistica)
+            onSnapshot(doc(db, "config", "services_status"), (snap) => {
+                if (snap.exists()) {
+                    const data = snap.data();
+                    mlStoreStatus[1] = !!data.ml1;
+                    mlStoreStatus[2] = !!data.ml2;
+                    mlStoreStatus[3] = !!data.ml3;
+
+                    if (data.ml1_nickname && !mlStoreNames[1]) mlStoreNames[1] = data.ml1_nickname;
+                    if (data.ml2_nickname && !mlStoreNames[2]) mlStoreNames[2] = data.ml2_nickname;
+                    if (data.ml3_nickname && !mlStoreNames[3]) mlStoreNames[3] = data.ml3_nickname;
+
+                    window.mlStoreNames = mlStoreNames;
+                    updateChannelFilterUI();
+                    reCalcularFiltroLocal();
+                    renderOrdersFromMemory();
+                }
+            }, (err) => {
+                console.warn("No se pudo cargar estado activo desde config/services_status:", err);
+            });
+
+            // 3. Fallback directo a config/developer (si el usuario tiene rol developer)
+            onSnapshot(doc(db, "config", "developer"), (snap) => {
+                if (snap.exists()) {
+                    const data = snap.data();
+                    if (data.ML_ACCESS_TOKEN || data.ML_REFRESH_TOKEN) mlStoreStatus[1] = true;
+                    if (data.ML_ACCESS_TOKEN_2 || data.ML_REFRESH_TOKEN_2) mlStoreStatus[2] = true;
+                    if (data.ML_ACCESS_TOKEN_3 || data.ML_REFRESH_TOKEN_3) mlStoreStatus[3] = true;
+                    if (data.ML_NICKNAME && !mlStoreNames[1]) mlStoreNames[1] = data.ML_NICKNAME;
+                    window.mlStoreNames = mlStoreNames;
+                    updateChannelFilterUI();
+                    reCalcularFiltroLocal();
+                    renderOrdersFromMemory();
+                }
+            }, () => {
+                // Silencioso para roles sin permiso en config/developer
+            });
+        }
+
+        // VARIABLES DE PAGINACIÓN INTEGRADAS
+        const ORDERS_PAGE_SIZE = 100;
+        let currentOrdersPage = 1;
+        let filteredOrdersMemory = []; 
+        let lastVisibleServerDoc = null; 
+        let isFetchingOlderServerDocs = false;
+
+        // --- HELPERS UNIVERSALES DE FECHAS Y ORDENAMIENTO CRONOLÓGICO DE REMISIONES ---
+        function getOrderDate(o) {
+            if (!o) return null;
+            if (typeof window.parseOrderDate === 'function') {
+                const d = window.parseOrderDate(o, false);
+                if (d && !isNaN(d.getTime())) return d;
+            }
+            const candidates = [
+                o.createdAt,
+                o.dateCreated,
+                o.date_created,
+                o.created_at,
+                o.timestamp,
+                o.updatedAt,
+                o.dispatchedAt,
+                o.shippedAt
+            ];
+            for (const c of candidates) {
+                if (!c) continue;
+                if (typeof c.toDate === 'function') {
+                    const d = c.toDate();
+                    if (!isNaN(d.getTime())) return d;
+                }
+                if (c instanceof Date && !isNaN(c.getTime())) return c;
+                if (typeof c === 'object') {
+                    const secs = c.seconds ?? c._seconds;
+                    if (typeof secs === 'number') {
+                        const d = new Date(secs * 1000);
+                        if (!isNaN(d.getTime())) return d;
+                    }
+                }
+                if (typeof c === 'number' && !isNaN(c) && c > 0) {
+                    const ms = c < 1e11 ? c * 1000 : c;
+                    const d = new Date(ms);
+                    if (!isNaN(d.getTime())) return d;
+                }
+                if (typeof c === 'string' && c.trim()) {
+                    const d = new Date(c.trim());
+                    if (!isNaN(d.getTime())) return d;
+                }
+            }
+            return null;
+        }
+
+        function getOrderTimestamp(o) {
+            if (typeof window.getOrderTimestamp === 'function') {
+                return window.getOrderTimestamp(o);
+            }
+            const d = getOrderDate(o);
+            return d ? d.getTime() : 0;
+        }
+
+        function compareOrdersDescending(a, b) {
+            if (typeof window.compareOrdersDescending === 'function') {
+                return window.compareOrdersDescending(a, b);
+            }
+            if (!a && !b) return 0;
+            if (!a) return 1;
+            if (!b) return -1;
+            const numA = Number(a.internalOrderNumber) || 0;
+            const numB = Number(b.internalOrderNumber) || 0;
+            if (numA > 0 && numB > 0 && numA !== numB) {
+                return numB - numA;
+            }
+            const timeA = getOrderTimestamp(a);
+            const timeB = getOrderTimestamp(b);
+            if (timeB !== timeA) {
+                return timeB - timeA;
+            }
+            if (numB !== numA) {
+                return numB - numA;
+            }
+            return String(b.id || '').localeCompare(String(a.id || ''));
+        }
+
+        // --- 🗄️ INDEXEDDB NATIVO PARA ÓRDENES (CAPACIDAD ILIMITADA Y PERSISTENCIA REAL) ---
+        class IDBOrdersStorage {
+            constructor(dbName = 'miSmartechAdminOrdersDB', storeName = 'orders_cache') {
+                this.dbName = dbName;
+                this.storeName = storeName;
+                this.dbPromise = null;
+            }
+            getDB() {
+                if (!this.dbPromise) {
+                    this.dbPromise = new Promise((resolve, reject) => {
+                        const request = indexedDB.open(this.dbName, 1);
+                        request.onupgradeneeded = (e) => {
+                            const db = e.target.result;
+                            if (!db.objectStoreNames.contains(this.storeName)) {
+                                db.createObjectStore(this.storeName);
+                            }
+                        };
+                        request.onsuccess = (e) => resolve(e.target.result);
+                        request.onerror = (e) => reject(e.target.error);
+                    });
+                }
+                return this.dbPromise;
+            }
+            async get(key) {
+                try {
+                    const db = await this.getDB();
+                    return new Promise((resolve) => {
+                        const tx = db.transaction(this.storeName, 'readonly');
+                        const store = tx.objectStore(this.storeName);
+                        const req = store.get(key);
+                        req.onsuccess = () => resolve(req.result || null);
+                        req.onerror = () => resolve(null);
+                    });
+                } catch (e) { return null; }
+            }
+            async set(key, value) {
+                try {
+                    const db = await this.getDB();
+                    return new Promise((resolve) => {
+                        const tx = db.transaction(this.storeName, 'readwrite');
+                        const store = tx.objectStore(this.storeName);
+                        const req = store.put(value, key);
+                        req.onsuccess = () => resolve(true);
+                        req.onerror = (e) => reject(e.target.error);
+                    });
+                } catch (e) { return false; }
+            }
+        }
+        const ordersIdb = new IDBOrdersStorage();
+
+        // --- HELPER UNIFICADO DE BÚSQUEDA EXHAUSTIVA DE ÓRDENES ---
+        function stripAccents(str) {
+            return String(str || '')
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .toLowerCase();
+        }
+
+        function buildOrderSearchCorpus(o) {
+            if (!o) return '';
+            const parts = [
+                o.id,
+                o.buyerInfo?.name,
+                o.userName,
+                o.shippingData?.name,
+                o.buyerInfo?.phone,
+                o.phone,
+                o.shippingData?.phone,
+                o.buyerInfo?.document,
+                o.clientDoc,
+                o.shippingData?.clientDoc,
+                o.billingInfo?.document,
+                o.internalOrderNumber ? `#${o.internalOrderNumber}` : null,
+                o.internalOrderNumber ? String(o.internalOrderNumber) : null,
+                o.orderNumber ? `#${o.orderNumber}` : null,
+                o.orderNumber ? String(o.orderNumber) : null,
+                o.shippingData?.city,
+                o.buyerInfo?.city,
+                o.city,
+                o.mlOrderId ? String(o.mlOrderId) : null,
+                o.pack_id ? String(o.pack_id) : null,
+                o.shippingId ? String(o.shippingId) : null,
+                o.source ? String(o.source) : null,
+                o.channel,
+                o.status,
+                o.notes,
+                o.observations
+            ];
+
+            const isML = (o.source && o.source.startsWith('MERCADOLIBRE')) || 
+                         o.channel === 'MERCADOLIBRE' || 
+                         (o.paymentMethod && o.paymentMethod.startsWith('MERCADOLIBRE')) || 
+                         String(o.id).startsWith('ML-') || 
+                         String(o.id).startsWith('ML2-') || 
+                         String(o.id).startsWith('ML3-') || 
+                         Boolean(o.mlOrderId);
+            const mlStore = getOrderMLStore(o);
+            if (mlStore !== null) {
+                parts.push('mercadolibre meli');
+                const customName = mlStoreNames[mlStore] || `Tienda ${mlStore}`;
+                parts.push(customName);
+                if (mlStore === 2) {
+                    parts.push('meli2 tienda2 meli 2 tienda 2');
+                } else if (mlStore === 3) {
+                    parts.push('meli3 tienda3 meli 3 tienda 3');
+                } else {
+                    parts.push('meli1 tienda1 meli 1 tienda 1 principal');
+                }
+            }
+
+            const docDigits = String(o.buyerInfo?.document || o.clientDoc || o.billingInfo?.document || '').replace(/\D/g, '');
+            if (docDigits && docDigits.length >= 5) parts.push(docDigits);
+            const phoneDigits = String(o.buyerInfo?.phone || o.phone || o.shippingData?.phone || '').replace(/\D/g, '');
+            if (phoneDigits && phoneDigits.length >= 7) parts.push(phoneDigits);
+
+            if (Array.isArray(o.items)) {
+                o.items.forEach(it => {
+                    if (it.name) parts.push(it.name);
+                    if (it.title) parts.push(it.title);
+                    if (it.sku) parts.push(it.sku);
+                    if (Array.isArray(it.sns)) {
+                        it.sns.forEach(sn => parts.push(String(sn)));
+                    }
+                });
+            }
+
+            return stripAccents(parts.filter(Boolean).join(' '));
+        }
+
+        function matchesSearchTerm(o, searchTermRaw) {
+            if (!o || !searchTermRaw) return false;
+            const term = stripAccents(searchTermRaw).trim();
+            if (!term) return false;
+
+            const corpus = buildOrderSearchCorpus(o);
+            if (!corpus) return false;
+
+            // 1. Coincidencia directa de la frase completa
+            if (corpus.includes(term)) return true;
+
+            // 2. Si el término es numérico directo o remisión con # (ej: #2675 o 2675)
+            const cleanNum = term.replace(/^[#\s]+/, '').trim();
+            if (cleanNum && !isNaN(cleanNum)) {
+                const orderNum = String(o.internalOrderNumber || o.orderNumber || '');
+                if (orderNum === cleanNum) return true;
+            }
+
+            // 3. Búsqueda multi-palabra con lógica AND estricta:
+            const tokens = term.split(/\s+/).filter(t => t.length > 0);
+            if (tokens.length > 1) {
+                return tokens.every(token => {
+                    const cleanToken = token.replace(/^[#\s]+/, '').trim();
+                    return corpus.includes(token) || (cleanToken && corpus.includes(cleanToken));
+                });
+            }
+
+            return false;
+        }
 
         initManualSale(() => { window.switchTab('ACTIONABLE'); });
         document.getElementById('btn-open-manual').onclick = openManualSaleModal;
 
         async function loadInitialData() {
             try {
+                initMLStoresTracking();
                 const configSnap = await getDoc(doc(db, "config", "shipping"));
                 if (configSnap.exists()) globalConfig = configSnap.data();
 
-                const accSelect = document.getElementById('pay-account-select');
-                if (accSelect) {
-                    const activeBranchId = sessionStorage.getItem('activeBranchId') || 'bodega';
-                    AdminStore.subscribeToAccounts((accs) => {
-                        let ops = '<option value="">Seleccione Cuenta...</option>';
-                        accs.forEach(acc => {
-                            const accBranchId = acc.branchId || 'ALL';
-                            if (accBranchId === 'ALL' || accBranchId === activeBranchId) {
-                                const label = acc.accountNumber ? `${acc.name} - ${acc.accountNumber}` : acc.name;
-                                ops += `<option value="${acc.id}">${label}</option>`;
-                            }
-                        });
-                        accSelect.innerHTML = ops;
-                    });
-                }
+                const accSnap = await getDocs(collection(db, "accounts"));
+                let ops = '<option value="">Seleccione Cuenta...</option>';
+                accSnap.forEach(d => {
+                    const acc = d.data();
+                    const label = acc.accountNumber ? `${acc.name} - ${acc.accountNumber}` : acc.name;
+                    ops += `<option value="${d.id}">${label}</option>`;
+                });
+                
+                ['pay-account-select', 'refund-account-select', 'bulk-pay-account-select'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.innerHTML = ops;
+                });
 
-                // Cargar sedes para resolver nombres de venta manual
-                try {
-                    const branchesSnap = await getDocs(collection(db, "branches"));
-                    branchesSnap.forEach(d => {
-                        branchesMap[d.id] = d.data().name;
-                    });
-                } catch (err) {
-                    console.error("Error cargando sedes para canales:", err);
-                }
-
-                // Iniciamos el motor inteligente
-                SmartAdminOrdersSync.init();
+                await SmartAdminOrdersSync.init();
+                updateTabBadgesAndKPIs();
 
             } catch (e) { console.error("Error init data:", e); }
         }
@@ -601,213 +1121,244 @@
 
         window.switchTab = (tabName) => {
             currentFilter = tabName;
-            currentPage = 1; // Reset to page 1
             document.getElementById('search-input').value = "";
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             const activeBtn = document.getElementById(`tab-${tabName.toLowerCase()}`);
             if (activeBtn) activeBtn.classList.add('active');
 
-            // Como los datos están en RAM, el renderizado es instantáneo (0 lecturas)
+            currentOrdersPage = 1;
             renderOrdersFromMemory();
         };
 
         // ==========================================================================
-        // 🧠 SMART REAL-TIME CACHE: MOTOR CENTRAL DE ÓRDENES
+        // 🧠 SMART REAL-TIME CACHE: MOTOR CENTRAL DE ÓRDENES (DUAL STREAM + INDEXEDDB)
         // ==========================================================================
         const SmartAdminOrdersSync = {
-            STORAGE_KEY: 'mismartech_admin_orders_cache',
+            STORAGE_KEY: 'mismartech_orders_v2',
+            LEGACY_KEY: 'mismartech_admin_orders_cache',
             runtimeMap: {},
+            actionableMap: {},
+            recentMap: {},
+            olderMap: {},
             lastSyncTime: 0,
-            unsubscribe: null,
+            unsubActionable: null,
+            unsubRecent: null,
 
-            init() {
-                // 1. CARGA INICIAL DESDE CACHÉ (Instantáneo, 0 lecturas)
-                const cachedRaw = localStorage.getItem(this.STORAGE_KEY);
-                if (cachedRaw) {
+            async init() {
+                // 1. Cargar desde IndexedDB nativo (sin límites de 5MB)
+                let cached = await ordersIdb.get(this.STORAGE_KEY);
+                
+                // 2. Migración si existe caché legacy en localStorage
+                if (!cached) {
                     try {
-                        const parsed = JSON.parse(cachedRaw);
-                        if (parsed.map && parsed.lastSync) {
-                            this.runtimeMap = parsed.map;
-                            this.lastSyncTime = parsed.lastSync;
-
-                            this.updateGlobalArray();
-                            if (adminOrdersCache.length > 0) {
-                                console.log(`⚡ [Orders] Cargados ${adminOrdersCache.length} pedidos de caché local.`);
-                                renderOrdersFromMemory();
+                        const legacyRaw = localStorage.getItem(this.LEGACY_KEY) || localStorage.getItem('pixeltech_admin_orders_cache');
+                        if (legacyRaw) {
+                            const parsed = JSON.parse(legacyRaw);
+                            if (parsed.map) {
+                                cached = { map: parsed.map, lastSync: parsed.lastSync || Date.now() };
+                                await ordersIdb.set(this.STORAGE_KEY, cached);
                             }
                         }
-                    } catch (e) {
-                        console.warn("Caché corrupto, limpiando...");
-                        localStorage.removeItem(this.STORAGE_KEY);
+                    } catch (e) {}
+                }
+
+                if (cached && cached.map) {
+                    this.runtimeMap = cached.map;
+                    this.olderMap = { ...cached.map };
+                    this.lastSyncTime = cached.lastSync || 0;
+                    this.updateGlobalArray();
+                    if (adminOrdersCache.length > 0) {
+                        renderOrdersFromMemory();
                     }
                 }
 
-                // 2. CONEXIÓN EN TIEMPO REAL (Deltas)
                 this.listenForUpdates();
             },
 
             updateGlobalArray() {
-                // Convertimos el mapa a Array y ordenamos por fecha descendente
-                adminOrdersCache = Object.values(this.runtimeMap).sort((a, b) => {
-                    const dateA = a.createdAt?.seconds || new Date(a.createdAt).getTime();
-                    const dateB = b.createdAt?.seconds || new Date(b.createdAt).getTime();
-                    return dateB - dateA;
-                });
-                
-                // 🔥 NUEVA LÍNEA: Compartimos esta memoria viva con admin/order-actions.js
+                adminOrdersCache = Object.values(this.runtimeMap).sort(compareOrdersDescending);
                 window.adminOrdersCache = adminOrdersCache; 
             },
 
+            async saveToStorage() {
+                try {
+                    await ordersIdb.set(this.STORAGE_KEY, {
+                        map: this.runtimeMap,
+                        lastSync: Date.now()
+                    });
+                } catch (e) {
+                    console.warn("Error guardando órdenes en IndexedDB:", e);
+                }
+            },
+
+            syncAndRender() {
+                Object.keys(this.runtimeMap).forEach(id => {
+                    if (!this.actionableMap[id] && !this.recentMap[id] && !this.olderMap[id]) {
+                        this.olderMap[id] = this.runtimeMap[id];
+                    }
+                });
+
+                this.runtimeMap = { ...this.olderMap, ...this.recentMap, ...this.actionableMap };
+
+                if (Object.keys(this.runtimeMap).length === 0) {
+                    adminOrdersCache = [];
+                    const tableBody = document.getElementById('orders-table-body');
+                    if (tableBody) tableBody.innerHTML = `<tr><td colspan="8" class="p-10 text-center text-xs text-brand-black font-bold uppercase">No se encontraron pedidos.</td></tr>`;
+                    updatePaginationControls(0, 0, 0);
+                    updateTabBadgesAndKPIs();
+                    return;
+                }
+
+                this.updateGlobalArray();
+                this.saveToStorage();
+                this.lastSyncTime = Date.now();
+
+                updateTabBadgesAndKPIs();
+                scheduleRenderOrders();
+            },
+
             listenForUpdates() {
-                if (this.unsubscribe) this.unsubscribe();
+                if (this.unsubActionable) { this.unsubActionable(); this.unsubActionable = null; }
+                if (this.unsubRecent) { this.unsubRecent(); this.unsubRecent = null; }
 
                 const ordersRef = collection(db, "orders");
                 
-                console.log("☁️ [Orders] Estableciendo conexión en vivo (Fuente de Verdad)...");
-                const q = query(ordersRef, orderBy("createdAt", "desc"), limit(150));
+                // 1. FLUJO VITAL: Todas las órdenes Por Atender
+                const qActionable = query(
+                    ordersRef, 
+                    where("status", "in", ["PAGADO", "PENDIENTE", "ALISTADO"]), 
+                    orderBy("createdAt", "desc")
+                );
 
-                this.unsubscribe = onSnapshot(q, (snapshot) => {
-                    // 1. Si no hay nada en Firebase, limpiamos TODO
-                    if (snapshot.empty) {
-                        this.runtimeMap = {};
-                        adminOrdersCache = [];
-                        localStorage.removeItem(this.STORAGE_KEY);
-                        document.getElementById('orders-table-body').innerHTML = `<tr><td colspan="7" class="p-10 text-center text-xs text-brand-black font-bold uppercase">No se encontraron pedidos.</td></tr>`;
-                        return;
-                    }
-
-                    // 🚨 MAGIA ANTI-FANTASMAS: En lugar de buscar "cambios", 
-                    // reconstruimos el mapa desde cero con la foto EXACTA del servidor.
-                    const freshMap = {};
-                    
+                this.unsubActionable = onSnapshot(qActionable, (snapshot) => {
+                    const freshActionable = {};
                     snapshot.docs.forEach(docSnap => {
                         const data = docSnap.data();
                         const id = docSnap.id;
-
-                        // Normalizar fechas para evitar errores de guardado
                         if (!data.updatedAt) data.updatedAt = data.createdAt;
                         if (data.createdAt?.toDate) data.createdAt = data.createdAt.toDate().toISOString();
                         if (data.updatedAt?.toDate) data.updatedAt = data.updatedAt.toDate().toISOString();
-
-                        freshMap[id] = { id, ...data };
+                        freshActionable[id] = { id, ...data };
                     });
 
-                    // 2. Reemplazamos la memoria RAM local con los datos frescos
-                    this.runtimeMap = freshMap;
-                    this.updateGlobalArray();
+                    Object.keys(this.olderMap).forEach(id => {
+                        const o = this.olderMap[id];
+                        if (o && ["PAGADO", "PENDIENTE", "ALISTADO"].includes(o.status) && !freshActionable[id]) {
+                            delete this.olderMap[id];
+                        }
+                    });
 
-                    // 3. Sobreescribimos el caché para que el próximo inicio sea rápido y sin basura
-                    localStorage.setItem(this.STORAGE_KEY, JSON.stringify({
-                        map: this.runtimeMap,
-                        lastSync: Date.now()
-                    }));
-                    this.lastSyncTime = Date.now();
+                    this.actionableMap = freshActionable;
+                    this.syncAndRender();
+                }, (error) => {
+                    console.error("Error Live Actionable Orders:", error);
+                });
 
-                    console.log(`🔥 [Orders] Sincronización perfecta: ${adminOrdersCache.length} pedidos al día.`);
+                // 2. FLUJO HISTÓRICO: Órdenes generales recientes
+                const qRecent = query(ordersRef, orderBy("createdAt", "desc"), limit(150));
 
-                    // 4. Forzamos el repintado de la tabla al instante
-                    const searchVal = document.getElementById('search-input').value.trim();
-                    if (searchVal.length === 0) {
-                        renderOrdersFromMemory(); 
-                    } else {
-                        // Si estaba buscando algo, re-filtramos usando la data nueva
-                        document.getElementById('search-input').dispatchEvent(new Event('input'));
+                this.unsubRecent = onSnapshot(qRecent, (snapshot) => {
+                    const freshRecent = {};
+                    snapshot.docs.forEach(docSnap => {
+                        const data = docSnap.data();
+                        const id = docSnap.id;
+                        if (!data.updatedAt) data.updatedAt = data.createdAt;
+                        if (data.createdAt?.toDate) data.createdAt = data.createdAt.toDate().toISOString();
+                        if (data.updatedAt?.toDate) data.updatedAt = data.updatedAt.toDate().toISOString();
+                        freshRecent[id] = { id, ...data };
+                    });
+
+                    if (!lastVisibleServerDoc && snapshot.docs.length > 0) {
+                        lastVisibleServerDoc = snapshot.docs[snapshot.docs.length - 1];
                     }
 
+                    this.recentMap = freshRecent;
+                    this.syncAndRender();
                 }, (error) => {
-                    console.error("Error Live Orders:", error);
+                    console.error("Error Live Recent Orders:", error);
                 });
             }
         };
 
-        // --- FUNCIÓN DE PARTICIÓN DINÁMICA (SMART OVERFILL / RELLENO INTELIGENTE) ---
-        function getPaginatedChunks(items) {
-            const chunks = [];
-            let i = 0;
-            while (i < items.length) {
-                const remaining = items.length - i;
-                if (remaining <= ORDERS_PAGE_SIZE + OVERFILL_MARGIN) {
-                    chunks.push(items.slice(i));
-                    break;
-                } else {
-                    chunks.push(items.slice(i, i + ORDERS_PAGE_SIZE));
-                    i += ORDERS_PAGE_SIZE;
+        async function fetchOlderOrdersFromServer() {
+            if (isFetchingOlderServerDocs || !lastVisibleServerDoc) return false;
+            isFetchingOlderServerDocs = true;
+            
+            try {
+                const ordersRef = collection(db, "orders");
+                const q = query(ordersRef, orderBy("createdAt", "desc"), startAfter(lastVisibleServerDoc), limit(ORDERS_PAGE_SIZE));
+                const snapshot = await getDocs(q);
+                
+                if (snapshot.empty) {
+                    lastVisibleServerDoc = null; 
+                    isFetchingOlderServerDocs = false;
+                    return false;
                 }
+                
+                lastVisibleServerDoc = snapshot.docs[snapshot.docs.length - 1];
+                
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const id = docSnap.id;
+                    if (!data.updatedAt) data.updatedAt = data.createdAt;
+                    if (data.createdAt?.toDate) data.createdAt = data.createdAt.toDate().toISOString();
+                    if (data.updatedAt?.toDate) data.updatedAt = data.updatedAt.toDate().toISOString();
+                    
+                    SmartAdminOrdersSync.olderMap[id] = { id, ...data };
+                });
+                
+                SmartAdminOrdersSync.syncAndRender();
+
+                isFetchingOlderServerDocs = false;
+                return true;
+                
+            } catch (e) {
+                console.error("Error cargando historial del servidor:", e);
+                isFetchingOlderServerDocs = false;
+                return false;
             }
-            return chunks;
         }
 
-        // --- FILTRADO Y RENDERIZADO EN MEMORIA RAM (CERO LECTURAS) ---
+        // --- PLANIFICADOR DE RENDERIZADO CON REQUESTANIMATIONFRAME ---
+        let renderRafId = null;
+        function scheduleRenderOrders() {
+            if (renderRafId) cancelAnimationFrame(renderRafId);
+            renderRafId = requestAnimationFrame(() => {
+                const searchInput = document.getElementById('search-input');
+                const searchVal = searchInput ? searchInput.value.trim() : '';
+                if (searchVal.length === 0) {
+                    renderOrdersFromMemory(); 
+                } else {
+                    searchInput.dispatchEvent(new Event('input'));
+                }
+                renderRafId = null;
+            });
+        }
+
+        // --- FILTRADO Y RENDERIZADO EN MEMORIA RAM CON PAGINACIÓN LIMPIA ---
         function renderOrdersFromMemory() {
             const tableBody = document.getElementById('orders-table-body');
             if (!tableBody) return;
             
-            // 🚨 LIMPIEZA OBLIGATORIA AQUÍ ANTES DEL RENDER
-            tableBody.innerHTML = "";
+            reCalcularFiltroLocal();
+            updateTabBadgesAndKPIs();
 
-            let filtered = [];
+            const totalFiltered = filteredOrdersMemory.length;
 
-            if (currentFilter === 'ACTIONABLE') {
-                filtered = adminOrdersCache.filter(o => ["PAGADO", "PENDIENTE", "ALISTADO"].includes(o.status));
-            } else if (currentFilter === 'WAITING') {
-                filtered = adminOrdersCache.filter(o => o.status === "PENDIENTE_PAGO");
-            } else if (currentFilter === 'DISPATCHED') {
-                filtered = adminOrdersCache.filter(o => o.status === "DESPACHADO");
-            } else if (currentFilter === 'REFUNDS') {
-                filtered = adminOrdersCache.filter(o => ["DEVUELTO", "DEVOLUCION_PARCIAL"].includes(o.status));
-            } else if (currentFilter === 'FAILED') {
-                filtered = adminOrdersCache.filter(o => ["CANCELADO", "RECHAZADO"].includes(o.status));
-            } else if (currentFilter === 'ALL') {
-                filtered = [...adminOrdersCache];
-            }
-
-            const pageStartEl = document.getElementById('page-start');
-            const pageEndEl = document.getElementById('page-end');
-            const pageTotalEl = document.getElementById('page-total');
-            const btnPrev = document.getElementById('btn-page-prev');
-            const btnNext = document.getElementById('btn-page-next');
-
-            if (filtered.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="7" class="p-10 text-center text-xs text-brand-black font-bold uppercase">No hay pedidos en esta sección.</td></tr>`;
-                
-                if (pageStartEl) pageStartEl.textContent = "0";
-                if (pageEndEl) pageEndEl.textContent = "0";
-                if (pageTotalEl) pageTotalEl.textContent = "0";
-                if (btnPrev) btnPrev.disabled = true;
-                if (btnNext) {
-                    btnNext.disabled = noMoreHistoricalData[currentFilter];
-                    btnNext.innerHTML = isHistoricalLoading 
-                        ? `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Cargando`
-                        : `Siguiente <i class="fa-solid fa-chevron-right"></i>`;
-                }
+            if (totalFiltered === 0) {
+                tableBody.innerHTML = `<tr><td colspan="8" class="p-10 text-center text-xs text-brand-black font-bold uppercase">No hay pedidos en esta sección.</td></tr>`;
+                updatePaginationControls(0, 0, 0);
+                if (typeof window.updateBulkActionBar === 'function') window.updateBulkActionBar();
                 return;
             }
 
-            const chunks = getPaginatedChunks(filtered);
-            if (currentPage > chunks.length) currentPage = chunks.length;
-            if (currentPage < 1) currentPage = 1;
+            const startIndex = (currentOrdersPage - 1) * ORDERS_PAGE_SIZE;
+            const endIndex = Math.min(startIndex + ORDERS_PAGE_SIZE, totalFiltered);
 
-            const currentChunk = chunks[currentPage - 1];
+            const pageItems = filteredOrdersMemory.slice(startIndex, endIndex);
+            let htmlBuffer = '';
 
-            // Rango de índices visibles basados en la posición real en la lista filtrada
-            const startIndex = filtered.indexOf(currentChunk[0]) + 1;
-            const endIndex = filtered.indexOf(currentChunk[currentChunk.length - 1]) + 1;
-
-            if (pageStartEl) pageStartEl.textContent = startIndex;
-            if (pageEndEl) pageEndEl.textContent = endIndex;
-            if (pageTotalEl) pageTotalEl.textContent = filtered.length;
-
-            // Actualizar botones de navegación
-            if (btnPrev) btnPrev.disabled = (currentPage === 1);
-            if (btnNext) {
-                const isLastPage = (currentPage === chunks.length);
-                btnNext.disabled = isLastPage && noMoreHistoricalData[currentFilter];
-                btnNext.innerHTML = isHistoricalLoading 
-                    ? `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Cargando`
-                    : `Siguiente <i class="fa-solid fa-chevron-right"></i>`;
-            }
-
-            // Lógica de separación de prioridades en el chunk de la página actual
+            // Separación por Prioridades Logísticas (Solo en 'ACTIONABLE')
             if (currentFilter === 'ACTIONABLE') {
                 const cutoffTimeStr = globalConfig.cutoffTime || "14:00";
                 const now = new Date();
@@ -818,265 +1369,541 @@
                 const todayOrders = [];
                 const tomorrowOrders = [];
 
-                currentChunk.forEach(o => {
-                    const orderDate = new Date(o.createdAt);
+                pageItems.forEach(o => {
+                    const orderDate = getOrderDate(o) || new Date();
                     const isToday = orderDate.toDateString() === now.toDateString();
                     if (isToday && orderDate > cutoffDateToday) tomorrowOrders.push(o);
                     else todayOrders.push(o);
                 });
 
                 if (todayOrders.length > 0) {
-                    tableBody.innerHTML += `<tr class="bg-green-50/50 border-b border-green-100 fade-in"><td colspan="7" class="py-4 px-8"><div class="flex items-center gap-3 text-green-700"><div class="p-1.5 bg-green-100 rounded-lg"><i class="fa-solid fa-truck-fast text-xs"></i></div><span class="text-[10px] font-black uppercase tracking-widest">Prioridad: Despachar Hoy (Antes de ${cutoffTimeStr})</span></div></td></tr>`;
-                    todayOrders.forEach(o => renderRow(o));
+                    htmlBuffer += `<tr class="bg-emerald-50/70 border-b border-emerald-100 fade-in"><td colspan="8" class="py-2.5 px-4 md:px-6"><div class="flex items-center gap-2.5 text-emerald-800"><div class="p-1 bg-emerald-100 rounded-lg"><i class="fa-solid fa-truck-fast text-xs"></i></div><span class="text-[10px] font-black uppercase tracking-widest">Prioridad: Despachar Hoy (Antes de ${cutoffTimeStr})</span></div></td></tr>`;
+                    todayOrders.forEach(o => { htmlBuffer += renderRow(o); });
                 }
                 if (tomorrowOrders.length > 0) {
-                    tableBody.innerHTML += `<tr class="bg-blue-50/50 border-b border-blue-100 fade-in"><td colspan="7" class="py-4 px-8"><div class="flex items-center gap-3 text-blue-700"><div class="p-1.5 bg-blue-100 rounded-lg"><i class="fa-solid fa-clock text-xs"></i></div><span class="text-[10px] font-black uppercase tracking-widest">Despachar Mañana (Después de ${cutoffTimeStr})</span></div></td></tr>`;
-                    tomorrowOrders.forEach(o => renderRow(o));
+                    htmlBuffer += `<tr class="bg-blue-50/70 border-b border-blue-100 fade-in"><td colspan="8" class="py-2.5 px-4 md:px-6"><div class="flex items-center gap-2.5 text-blue-800"><div class="p-1 bg-blue-100 rounded-lg"><i class="fa-solid fa-clock text-xs"></i></div><span class="text-[10px] font-black uppercase tracking-widest">Despachar Mañana (Después de ${cutoffTimeStr})</span></div></td></tr>`;
+                    tomorrowOrders.forEach(o => { htmlBuffer += renderRow(o); });
                 }
             } else {
-                currentChunk.forEach(o => renderRow(o));
+                pageItems.forEach(o => { htmlBuffer += renderRow(o); });
+            }
+
+            tableBody.innerHTML = htmlBuffer;
+
+            updatePaginationControls(startIndex + 1, endIndex, totalFiltered);
+            if (typeof window.updateBulkActionBar === 'function') {
+                window.updateBulkActionBar();
             }
         }
 
-        // --- CONTROLES DE PAGINACIÓN NAVEGACIÓN LOCAL Y BÚSQUEDA HÍBRIDA ---
-        window.prevPage = () => {
-            if (currentPage > 1) {
-                currentPage--;
-                renderOrdersFromMemory();
-                const mainEl = document.querySelector('main');
-                if (mainEl) mainEl.scrollTop = 0;
-            }
-        };
+        // --- CONTROLADORES DE INTERFAZ DE PAGINACIÓN ADAPTATIVA ---
+        function updatePaginationControls(start, end, total) {
+            const rangeEl = document.getElementById('pagination-range');
+            const totalEl = document.getElementById('pagination-total');
+            const btnPrev = document.getElementById('btn-prev-page');
+            const btnNext = document.getElementById('btn-next-page');
 
-        window.nextPage = async () => {
-            let filtered = [];
-            if (currentFilter === 'ACTIONABLE') {
-                filtered = adminOrdersCache.filter(o => ["PAGADO", "PENDIENTE", "ALISTADO"].includes(o.status));
-            } else if (currentFilter === 'WAITING') {
-                filtered = adminOrdersCache.filter(o => o.status === "PENDIENTE_PAGO");
-            } else if (currentFilter === 'DISPATCHED') {
-                filtered = adminOrdersCache.filter(o => o.status === "DESPACHADO");
-            } else if (currentFilter === 'REFUNDS') {
-                filtered = adminOrdersCache.filter(o => ["DEVUELTO", "DEVOLUCION_PARCIAL"].includes(o.status));
-            } else if (currentFilter === 'FAILED') {
-                filtered = adminOrdersCache.filter(o => ["CANCELADO", "RECHAZADO"].includes(o.status));
-            } else if (currentFilter === 'ALL') {
-                filtered = [...adminOrdersCache];
-            }
-
-            const chunks = getPaginatedChunks(filtered);
-            if (currentPage < chunks.length) {
-                currentPage++;
-                renderOrdersFromMemory();
-                const mainEl = document.querySelector('main');
-                if (mainEl) mainEl.scrollTop = 0;
-            } else {
-                // Estamos en la última página local. Consultamos el servidor para historial antiguo
-                if (noMoreHistoricalData[currentFilter] || isHistoricalLoading) return;
-
-                const currentChunk = chunks[currentPage - 1];
-                if (!currentChunk || currentChunk.length === 0) return;
-
-                const lastOrder = currentChunk[currentChunk.length - 1];
-                await fetchHistoricalOrdersFromFirebase(lastOrder.id);
-            }
-        };
-
-        async function fetchHistoricalOrdersFromFirebase(lastOrderId) {
-            isHistoricalLoading = true;
-            renderOrdersFromMemory(); // Forzar render para mostrar estado de carga (spinner)
-
-            try {
-                console.log(`☁️ [Orders] Buscando historial más antiguo en servidor después de la orden ID: ${lastOrderId}`);
-                const ordersRef = collection(db, "orders");
-                const lastDocSnap = await getDoc(doc(db, "orders", lastOrderId));
-
-                if (!lastDocSnap.exists()) {
-                    console.warn(`No se pudo encontrar la orden puntero ${lastOrderId} en Firestore.`);
-                    noMoreHistoricalData[currentFilter] = true;
-                    return;
-                }
-
-                let qStatus = null;
-                if (currentFilter === 'ACTIONABLE') qStatus = ["PAGADO", "PENDIENTE", "ALISTADO"];
-                else if (currentFilter === 'WAITING') qStatus = ["PENDIENTE_PAGO"];
-                else if (currentFilter === 'DISPATCHED') qStatus = ["DESPACHADO"];
-                else if (currentFilter === 'REFUNDS') qStatus = ["DEVUELTO", "DEVOLUCION_PARCIAL"];
-                else if (currentFilter === 'FAILED') qStatus = ["CANCELADO", "RECHAZADO"];
-
-                let q;
-                if (qStatus) {
-                    q = query(
-                        ordersRef,
-                        where("status", "in", qStatus),
-                        orderBy("createdAt", "desc"),
-                        startAfter(lastDocSnap),
-                        limit(100)
-                    );
-                } else {
-                    q = query(
-                        ordersRef,
-                        orderBy("createdAt", "desc"),
-                        startAfter(lastDocSnap),
-                        limit(100)
-                    );
-                }
-
-                let querySnap;
-                try {
-                    querySnap = await getDocs(q);
-                } catch (err) {
-                    console.warn("⚠️ Error en consulta segmentada. Intentando consulta fallback sin filtro de estado:", err);
-                    const fallbackQ = query(
-                        ordersRef,
-                        orderBy("createdAt", "desc"),
-                        startAfter(lastDocSnap),
-                        limit(100)
-                    );
-                    querySnap = await getDocs(fallbackQ);
-                }
-
-                if (querySnap.empty) {
-                    noMoreHistoricalData[currentFilter] = true;
-                    console.log(`📭 No hay más registros antiguos en el servidor para la sección: ${currentFilter}`);
-                } else {
-                    console.log(`📥 Recibidos ${querySnap.size} registros antiguos desde Firestore.`);
-                    
-                    querySnap.forEach(docSnap => {
-                        const data = docSnap.data();
-                        const id = docSnap.id;
-
-                        // Normalización obligatoria
-                        if (!data.updatedAt) data.updatedAt = data.createdAt;
-                        if (data.createdAt?.toDate) data.createdAt = data.createdAt.toDate().toISOString();
-                        if (data.updatedAt?.toDate) data.updatedAt = data.updatedAt.toDate().toISOString();
-
-                        // Guardar en el mapa local
-                        SmartAdminOrdersSync.runtimeMap[id] = { id, ...data };
-                    });
-
-                    // Actualizar el caché global y persistir en localStorage
-                    SmartAdminOrdersSync.updateGlobalArray();
-                    localStorage.setItem(SmartAdminOrdersSync.STORAGE_KEY, JSON.stringify({
-                        map: SmartAdminOrdersSync.runtimeMap,
-                        lastSync: SmartAdminOrdersSync.lastSyncTime
-                    }));
-
-                    currentPage++; // Avanzamos al nuevo chunk cargado
-                }
-            } catch (e) {
-                console.error("Error cargando pedidos históricos:", e);
-                alert("⚠️ Ocurrió un error al cargar pedidos antiguos del servidor.");
-            } finally {
-                isHistoricalLoading = false;
-                renderOrdersFromMemory();
-                const mainEl = document.querySelector('main');
-                if (mainEl) mainEl.scrollTop = 0;
+            if (rangeEl) rangeEl.textContent = total === 0 ? "0-0" : `${start}-${end}`;
+            if (totalEl) totalEl.textContent = total;
+            
+            if (btnPrev) btnPrev.disabled = (currentOrdersPage <= 1);
+            if (btnNext) {
+                const hasMoreLocally = total > end;
+                btnNext.disabled = (!hasMoreLocally && !lastVisibleServerDoc);
             }
         }
 
-        // --- BUSCADOR INSTANTÁNEO EN RAM ---
-        const searchInput = document.getElementById('search-input');
-
-        searchInput.addEventListener('input', function (e) {
-            const val = this.value.trim().toLowerCase();
-            const tableBody = document.getElementById('orders-table-body');
-
-            if (val.length === 0) {
-                renderOrdersFromMemory(); // Restaurar vista original
+        // --- CAMBIO DE PÁGINA INTELIGENTE Y CONTINUO ---
+        window.changeOrdersPage = async (direction) => {
+            if (direction === -1) {
+                if (currentOrdersPage > 1) {
+                    currentOrdersPage--;
+                    renderOrdersFromMemory();
+                    document.querySelector('main')?.scrollTo({ top: 0, behavior: 'smooth' });
+                }
                 return;
             }
 
-            // 🔥 NUEVO: Filtrar incluyendo el número de orden interno (internalOrderNumber)
-            const results = adminOrdersCache.filter(o => {
-                const idMatch = o.id.toLowerCase().includes(val);
-                const phoneMatch = (o.buyerInfo?.phone || o.phone || "").toLowerCase().includes(val);
-                const nameMatch = (o.buyerInfo?.name || o.userName || "").toLowerCase().includes(val);
-                const docMatch = (o.buyerInfo?.document || o.clientDoc || "").toLowerCase().includes(val);
-                const internalNumMatch = (o.internalOrderNumber || "").toString().includes(val);
+            if (direction === 1) {
+                const targetPage = currentOrdersPage + 1;
+                const targetStartIndex = (targetPage - 1) * ORDERS_PAGE_SIZE;
 
-                return idMatch || phoneMatch || nameMatch || docMatch || internalNumMatch;
-            });
+                const btnNext = document.getElementById('btn-next-page');
+                const originalBtnHtml = btnNext ? btnNext.innerHTML : '';
 
-            tableBody.innerHTML = "";
+                while (filteredOrdersMemory.length <= targetStartIndex && lastVisibleServerDoc) {
+                    if (btnNext) {
+                        btnNext.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Cargando...';
+                        btnNext.disabled = true;
+                    }
+                    
+                    const success = await fetchOlderOrdersFromServer();
+                    reCalcularFiltroLocal();
 
-            if (results.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="7" class="p-10 text-center text-xs text-red-500 font-bold uppercase">No se encontró coincidencia en caché local. Presiona ENTER para buscar a fondo.</td></tr>`;
+                    if (btnNext) btnNext.innerHTML = originalBtnHtml;
+
+                    if (!success) break;
+                }
+
+                const maxPages = Math.ceil(filteredOrdersMemory.length / ORDERS_PAGE_SIZE) || 1;
+                if (targetPage <= maxPages && filteredOrdersMemory.length > targetStartIndex) {
+                    currentOrdersPage = targetPage;
+                    renderOrdersFromMemory();
+                    document.querySelector('main')?.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                    if (btnNext) btnNext.disabled = (!lastVisibleServerDoc && (currentOrdersPage * ORDERS_PAGE_SIZE) >= filteredOrdersMemory.length);
+                }
+            }
+        };
+
+        // --- HELPER COMPLEMENTARIO: RE-CALCULA EL FILTRO LOCAL EN RAM ---
+        function reCalcularFiltroLocal() {
+            let baseList = [];
+            if (currentFilter === 'ACTIONABLE') {
+                baseList = adminOrdersCache.filter(o => ["PAGADO", "PENDIENTE", "ALISTADO"].includes(o.status));
+            } else if (currentFilter === 'WAITING') {
+                baseList = adminOrdersCache.filter(o => o.status === "PENDIENTE_PAGO");
+            } else if (currentFilter === 'DISPATCHED') {
+                baseList = adminOrdersCache.filter(o => ["DESPACHADO", "ENTREGADO"].includes(o.status));
+            } else if (currentFilter === 'REFUNDS') {
+                baseList = adminOrdersCache.filter(o => ["DEVUELTO", "DEVOLUCION_PARCIAL"].includes(o.status));
+            } else if (currentFilter === 'FAILED') {
+                baseList = adminOrdersCache.filter(o => ["CANCELADO", "RECHAZADO"].includes(o.status));
             } else {
-                tableBody.innerHTML += `<tr class="bg-brand-orange/10 border-b border-brand-orange/20"><td colspan="7" class="py-3 px-8 text-[10px] font-black uppercase text-brand-black tracking-widest"><i class="fa-solid fa-search text-brand-orange mr-2"></i> Resultados de Búsqueda</td></tr>`;
-                results.forEach(o => renderRow(o));
+                baseList = [...adminOrdersCache];
+            }
+
+            if (currentDateFilter !== 'ALL') {
+                baseList = baseList.filter(o => matchesDateFilter(o, currentDateFilter));
+            }
+
+            if (currentChannelFilter !== 'ALL') {
+                baseList = baseList.filter(o => matchesChannelFilter(o, currentChannelFilter));
+            }
+
+            filteredOrdersMemory = baseList;
+        }
+
+        function matchesDateFilter(order, filterKey) {
+            if (!filterKey || filterKey === 'ALL') return true;
+            const rawDate = getOrderTimestamp(order);
+            if (!rawDate) return false;
+
+            const now = new Date();
+            const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+            const startOfTomorrow = startOfToday + 86400000;
+            const startOfYesterday = startOfToday - 86400000;
+            const sevenDaysAgo = now.getTime() - (7 * 86400000);
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+
+            if (filterKey === 'TODAY') return rawDate >= startOfToday && rawDate < startOfTomorrow;
+            if (filterKey === 'YESTERDAY') return rawDate >= startOfYesterday && rawDate < startOfToday;
+            if (filterKey === 'WEEK') return rawDate >= sevenDaysAgo;
+            if (filterKey === 'MONTH') return rawDate >= startOfMonth;
+            return true;
+        }
+
+        window.setDateFilter = function(val) {
+            currentDateFilter = val || 'ALL';
+            currentOrdersPage = 1;
+            const searchVal = document.getElementById('search-input')?.value.trim() || '';
+            if (searchVal.length > 0) {
+                document.getElementById('search-input').dispatchEvent(new Event('input'));
+            } else {
+                renderOrdersFromMemory();
+            }
+        };
+
+        // --- BUSCADOR INSTANTÁNEO E INTELIGENTE EN SERVIDOR Y MEMORIA ---
+        const searchInput = document.getElementById('search-input');
+        let searchDebounceTimer = null;
+
+        async function performServerSearch(valRaw, showLoading = true) {
+            const val = valRaw.trim();
+            if (val.length < 2) return;
+            const valLower = val.toLowerCase();
+
+            const tableBody = document.getElementById('orders-table-body');
+            if (showLoading && tableBody) {
+                tableBody.innerHTML = `<tr><td colspan="8" class="p-8 text-center"><i class="fa-solid fa-cloud-arrow-down fa-bounce text-brand-orange"></i> Buscando "${val}" en toda la base de datos...</td></tr>`;
+            }
+
+            try {
+                const ordersRef = collection(db, "orders");
+                let finalDocs = [];
+                const addedIds = new Set();
+
+                // 0. Incluir las órdenes que ya tenemos en memoria local que coincidan
+                adminOrdersCache.filter(o => matchesSearchTerm(o, valLower)).forEach(o => {
+                    if (!addedIds.has(o.id)) {
+                        addedIds.add(o.id);
+                        finalDocs.push(o);
+                    }
+                });
+
+                const normalizeOrderDoc = (id, data) => {
+                    const item = { id, ...data };
+                    if (!item.updatedAt) item.updatedAt = item.createdAt;
+                    if (item.createdAt?.toDate) {
+                        item.createdAt = item.createdAt.toDate().toISOString();
+                    } else if (item.createdAt?.seconds) {
+                        item.createdAt = new Date(item.createdAt.seconds * 1000).toISOString();
+                    }
+                    if (item.updatedAt?.toDate) {
+                        item.updatedAt = item.updatedAt.toDate().toISOString();
+                    } else if (item.updatedAt?.seconds) {
+                        item.updatedAt = new Date(item.updatedAt.seconds * 1000).toISOString();
+                    }
+                    return item;
+                };
+
+                const addResultsFromSnapshot = (snap) => {
+                    snap.forEach(d => {
+                        const item = normalizeOrderDoc(d.id, d.data());
+                        SmartAdminOrdersSync.runtimeMap[d.id] = item;
+                        SmartAdminOrdersSync.olderMap[d.id] = item;
+                        if (matchesSearchTerm(item, val) && !addedIds.has(d.id)) {
+                            addedIds.add(d.id);
+                            finalDocs.push(item);
+                        }
+                    });
+                };
+
+                // 1. Probar como Document ID exacto, minúscula, mayúscula y prefijos de MercadoLibre
+                const candidateIds = [
+                    val,
+                    val.toLowerCase(),
+                    val.toUpperCase(),
+                    `ML-${val}`,
+                    `ML2-${val}`,
+                    `ML3-${val}`
+                ];
+                for (const cId of candidateIds) {
+                    if (addedIds.has(cId)) continue;
+                    try {
+                        const docSnap = await getDoc(doc(db, "orders", cId));
+                        if (docSnap.exists()) {
+                            const item = normalizeOrderDoc(docSnap.id, docSnap.data());
+                            SmartAdminOrdersSync.runtimeMap[docSnap.id] = item;
+                            SmartAdminOrdersSync.olderMap[docSnap.id] = item;
+                            if (matchesSearchTerm(item, val) && !addedIds.has(docSnap.id)) {
+                                addedIds.add(docSnap.id);
+                                finalDocs.push(item);
+                            }
+                        }
+                    } catch (err) {}
+                }
+
+                // 2. Si es numérico (o remisión con prefijo #), buscar por internalOrderNumber
+                const cleanNum = val.replace(/^[#\s]+/, '').trim();
+                if (!isNaN(cleanNum) && cleanNum.length > 0) {
+                    const parsedNum = parseInt(cleanNum);
+                    try {
+                        const [snapNum, snapOrdNum] = await Promise.all([
+                            getDocs(query(ordersRef, where("internalOrderNumber", "==", parsedNum), limit(50))),
+                            getDocs(query(ordersRef, where("orderNumber", "==", parsedNum), limit(50)))
+                        ]);
+                        addResultsFromSnapshot(snapNum);
+                        addResultsFromSnapshot(snapOrdNum);
+                    } catch (err) {}
+                }
+
+                // 3. Buscar directamente por Cédula / NIT / Documento en Firestore
+                const cleanDoc = val.replace(/[\.\s\-]/g, '');
+                const docCandidates = Array.from(new Set([val, cleanDoc])).filter(Boolean);
+                for (const dVal of docCandidates) {
+                    const docQueries = [
+                        query(ordersRef, where("buyerInfo.document", "==", dVal), limit(100)),
+                        query(ordersRef, where("clientDoc", "==", dVal), limit(100)),
+                        query(ordersRef, where("shippingData.clientDoc", "==", dVal), limit(100)),
+                        query(ordersRef, where("billingInfo.document", "==", dVal), limit(100))
+                    ];
+                    for (const qDoc of docQueries) {
+                        try {
+                            const snapDoc = await getDocs(qDoc);
+                            addResultsFromSnapshot(snapDoc);
+                        } catch (e) {}
+                    }
+                }
+
+                // 4. Buscar directamente por Teléfono en Firestore
+                const digits = val.replace(/\D/g, '');
+                if (digits.length >= 7) {
+                    const phoneCandidates = Array.from(new Set([
+                        val,
+                        digits,
+                        digits.startsWith('57') ? digits.slice(2) : '57' + digits
+                    ])).filter(Boolean);
+                    for (const pVal of phoneCandidates) {
+                        const phoneQueries = [
+                            query(ordersRef, where("buyerInfo.phone", "==", pVal), limit(100)),
+                            query(ordersRef, where("phone", "==", pVal), limit(100)),
+                            query(ordersRef, where("shippingData.phone", "==", pVal), limit(100))
+                        ];
+                        for (const qPhone of phoneQueries) {
+                            try {
+                                const snapPhone = await getDocs(qPhone);
+                                addResultsFromSnapshot(snapPhone);
+                            } catch (e) {}
+                        }
+                    }
+                }
+
+                // 5. Buscar directamente por IDs de MercadoLibre
+                const mlQueries = [
+                    query(ordersRef, where("mlOrderId", "==", val), limit(50)),
+                    query(ordersRef, where("pack_id", "==", val), limit(50)),
+                    query(ordersRef, where("shippingId", "==", val), limit(50))
+                ];
+                for (const qMl of mlQueries) {
+                    try {
+                        const snapMl = await getDocs(qMl);
+                        addResultsFromSnapshot(snapMl);
+                    } catch (e) {}
+                }
+
+                // 6. Cruce con colección USERS
+                try {
+                    const usersRef = collection(db, "users");
+                    const userQueries = [
+                        query(usersRef, where("name", ">=", val.toUpperCase()), where("name", "<=", val.toUpperCase() + "\uf8ff"), limit(20)),
+                        query(usersRef, where("name", ">=", val), where("name", "<=", val + "\uf8ff"), limit(20)),
+                        query(usersRef, where("userName", ">=", val.toUpperCase()), where("userName", "<=", val.toUpperCase() + "\uf8ff"), limit(20)),
+                        query(usersRef, where("email", "==", val.toLowerCase()), limit(10))
+                    ];
+                    const relatedDocs = new Set();
+                    const relatedPhones = new Set();
+                    const relatedUserIds = new Set();
+
+                    for (const uq of userQueries) {
+                        try {
+                            const uSnap = await getDocs(uq);
+                            uSnap.forEach(ud => {
+                                const u = ud.data();
+                                if (ud.id) relatedUserIds.add(ud.id);
+                                if (u.document) relatedDocs.add(u.document);
+                                if (u.phone) relatedPhones.add(u.phone);
+                            });
+                        } catch (err) {}
+                    }
+
+                    for (const uDoc of relatedDocs) {
+                        try {
+                            const sDoc = await getDocs(query(ordersRef, where("buyerInfo.document", "==", uDoc), limit(100)));
+                            addResultsFromSnapshot(sDoc);
+                            const sDoc2 = await getDocs(query(ordersRef, where("clientDoc", "==", uDoc), limit(100)));
+                            addResultsFromSnapshot(sDoc2);
+                        } catch (err) {}
+                    }
+                    for (const uPh of relatedPhones) {
+                        try {
+                            const sPh = await getDocs(query(ordersRef, where("buyerInfo.phone", "==", uPh), limit(100)));
+                            addResultsFromSnapshot(sPh);
+                        } catch (err) {}
+                    }
+                    for (const uId of relatedUserIds) {
+                        try {
+                            const sUid = await getDocs(query(ordersRef, where("userId", "==", uId), limit(100)));
+                            addResultsFromSnapshot(sUid);
+                        } catch (err) {}
+                    }
+                } catch (e) {
+                    console.warn("User cross-reference search error:", e);
+                }
+
+                // 7. Búsqueda por Nombre / Prefijo en orders
+                const nameWords = val.split(/\s+/).filter(w => w.length >= 2);
+                const prefixCandidates = new Set();
+                prefixCandidates.add(val);
+                prefixCandidates.add(val.toUpperCase());
+                prefixCandidates.add(val.toLowerCase());
+                nameWords.forEach(w => {
+                    prefixCandidates.add(w.toUpperCase());
+                    prefixCandidates.add(w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+                });
+
+                for (const pfx of prefixCandidates) {
+                    const nameQueries = [
+                        query(ordersRef, where("buyerInfo.name", ">=", pfx), where("buyerInfo.name", "<=", pfx + "\uf8ff"), limit(100)),
+                        query(ordersRef, where("userName", ">=", pfx), where("userName", "<=", pfx + "\uf8ff"), limit(100)),
+                        query(ordersRef, where("shippingData.name", ">=", pfx), where("shippingData.name", "<=", pfx + "\uf8ff"), limit(100)),
+                        query(ordersRef, where("buyerInfo.name", "==", pfx), limit(100)),
+                        query(ordersRef, where("userName", "==", pfx), limit(100))
+                    ];
+                    for (const qn of nameQueries) {
+                        try {
+                            const snap = await getDocs(qn);
+                            addResultsFromSnapshot(snap);
+                        } catch (e) {}
+                    }
+                }
+
+                // 8. Escaneo histórico en bloques si aún hay pocos resultados
+                if (finalDocs.length < 50 && lastVisibleServerDoc) {
+                    let fetches = 0;
+                    while (lastVisibleServerDoc && fetches < 12) {
+                        fetches++;
+                        const fetchedMore = await fetchOlderOrdersFromServer();
+                        const matches = adminOrdersCache.filter(o => matchesSearchTerm(o, valLower));
+                        matches.forEach(m => {
+                            if (!addedIds.has(m.id)) {
+                                addedIds.add(m.id);
+                                finalDocs.push(m);
+                            }
+                        });
+                        if (!fetchedMore) break;
+                    }
+                }
+
+                SmartAdminOrdersSync.updateGlobalArray();
+                SmartAdminOrdersSync.saveToStorage();
+
+                tableBody.innerHTML = "";
+
+                if (currentDateFilter !== 'ALL') {
+                    finalDocs = finalDocs.filter(o => matchesDateFilter(o, currentDateFilter));
+                }
+
+                if (currentChannelFilter !== 'ALL') {
+                    finalDocs = finalDocs.filter(o => matchesChannelFilter(o, currentChannelFilter));
+                }
+
+                if (finalDocs.length > 0) {
+                    finalDocs.sort(compareOrdersDescending);
+                    let serverHtml = `<tr class="bg-gray-800 text-white"><td colspan="8" class="py-3 px-4 md:px-6"><div class="flex items-center justify-between w-full text-[10px] font-black uppercase tracking-widest"><span><i class="fa-solid fa-cloud text-brand-orange mr-2"></i> ${finalDocs.length} Resultado(s) Encontrado(s)</span><span class="text-[9px] text-gray-400 font-bold lowercase">Orden cronológico de remisión garantizado</span></div></td></tr>`;
+                    finalDocs.forEach(o => { serverHtml += renderRow(o); });
+
+                    if (lastVisibleServerDoc) {
+                        serverHtml += `<tr class="bg-slate-100 border-t border-slate-200"><td colspan="8" class="py-3 px-4 text-center"><button type="button" onclick="window.searchDeeperServer('${encodeURIComponent(val)}')" class="inline-flex items-center gap-2 text-xs font-bold text-brand-orange hover:text-brand-black transition cursor-pointer px-4 py-1.5 rounded-lg hover:bg-slate-200"><i class="fa-solid fa-cloud-arrow-down"></i> Buscar en más órdenes antiguas del servidor...</button></td></tr>`;
+                    }
+
+                    tableBody.innerHTML = serverHtml;
+                    updatePaginationControls(1, finalDocs.length, finalDocs.length);
+                    const btnNext = document.getElementById('btn-next-page');
+                    const btnPrev = document.getElementById('btn-prev-page');
+                    if (btnNext) btnNext.disabled = true;
+                    if (btnPrev) btnPrev.disabled = true;
+                } else {
+                    tableBody.innerHTML = `<tr><td colspan="8" class="p-10 text-center text-xs text-red-500 font-bold uppercase">No se encontró la orden con ID, Código, Cliente o Producto: "${val}".</td></tr>`;
+                    updatePaginationControls(0, 0, 0);
+                }
+
+            } catch (e) {
+                console.error("Error buscando en servidor:", e);
+                renderOrdersFromMemory();
+            }
+        }
+        window.performServerSearch = performServerSearch;
+
+        window.searchDeeperServer = async (encodedVal) => {
+            const val = decodeURIComponent(encodedVal);
+            const btn = event?.currentTarget;
+            if (btn) btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Buscando en historial antiguo...';
+
+            let fetches = 0;
+            while (lastVisibleServerDoc && fetches < 10) {
+                fetches++;
+                const fetched = await fetchOlderOrdersFromServer();
+                if (!fetched) break;
+            }
+            performServerSearch(val, false);
+        };
+
+        searchInput.addEventListener('input', function (e) {
+            const val = this.value.trim();
+            const valLower = val.toLowerCase();
+            const tableBody = document.getElementById('orders-table-body');
+
+            if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+
+            if (val.length === 0) {
+                currentOrdersPage = 1;
+                renderOrdersFromMemory(); 
+                return;
+            }
+
+            // 1. FILTRO INSTANTÁNEO EN MEMORIA RAM
+            let results = adminOrdersCache.filter(o => matchesSearchTerm(o, valLower));
+
+            if (currentDateFilter !== 'ALL') {
+                results = results.filter(o => matchesDateFilter(o, currentDateFilter));
+            }
+
+            if (currentChannelFilter !== 'ALL') {
+                results = results.filter(o => matchesChannelFilter(o, currentChannelFilter));
+            }
+
+            if (results.length > 0) {
+                results.sort(compareOrdersDescending);
+                let searchHtml = `<tr class="bg-brand-orange/10 border-b border-brand-orange/20"><td colspan="8" class="py-2.5 px-4 md:px-6"><div class="flex items-center justify-between w-full text-[10px] font-black uppercase text-brand-black tracking-widest"><span><i class="fa-solid fa-search text-brand-orange mr-2"></i> ${results.length} Coincidencia(s) en Memoria</span><span class="text-[9px] text-slate-500 font-bold lowercase">Buscando también en la nube...</span></div></td></tr>`;
+                results.slice(0, ORDERS_PAGE_SIZE).forEach(o => { searchHtml += renderRow(o); });
+                tableBody.innerHTML = searchHtml;
+                updatePaginationControls(1, Math.min(results.length, ORDERS_PAGE_SIZE), results.length);
+                const btnNext = document.getElementById('btn-next-page');
+                const btnPrev = document.getElementById('btn-prev-page');
+                if (btnNext) btnNext.disabled = true;
+                if (btnPrev) btnPrev.disabled = true;
+            } else {
+                tableBody.innerHTML = `<tr><td colspan="8" class="p-8 text-center"><i class="fa-solid fa-cloud-arrow-down fa-bounce text-brand-orange mr-2"></i> Buscando "${val}" en toda la base de datos...</td></tr>`;
+                updatePaginationControls(0, 0, 0);
+            }
+
+            // 2. DISPARAR BÚSQUEDA EXHAUSTIVA EN SERVIDOR
+            if (val.length >= 2) {
+                searchDebounceTimer = setTimeout(() => {
+                    performServerSearch(val, results.length === 0);
+                }, 350);
             }
         });
 
-        // 🔥 NUEVO: Búsqueda forzada al servidor si presiona Enter (Busca en ID y en consecutivo)
-        searchInput.addEventListener('keyup', async function (e) {
+        searchInput.addEventListener('keyup', function (e) {
             if (e.key === 'Enter') {
                 const val = this.value.trim();
-                if (val.length < 3) return; // Evitar búsquedas muy cortas
-
-                const tableBody = document.getElementById('orders-table-body');
-                tableBody.innerHTML = `<tr><td colspan="7" class="p-8 text-center"><i class="fa-solid fa-cloud-arrow-down fa-bounce text-brand-orange"></i> Buscando en el archivo del servidor...</td></tr>`;
-
-                try {
-                    const ordersRef = collection(db, "orders");
-                    let finalDocs = [];
-
-                    // 1. Buscar por ID de Firebase
-                    const docRef = doc(db, "orders", val);
-                    const docSnap = await getDoc(docRef);
-                    if (docSnap.exists()) {
-                        finalDocs.push({ id: docSnap.id, ...docSnap.data() });
-                    }
-
-                    // 2. Buscar por internalOrderNumber (Si el usuario escribió un número, ej: "1045")
-                    if (!isNaN(val)) {
-                        const qNum = query(ordersRef, where("internalOrderNumber", "==", parseInt(val)));
-                        const snapNum = await getDocs(qNum);
-                        snapNum.forEach(d => {
-                            // Evitar duplicados si por casualidad coincidió con el ID
-                            if (!finalDocs.find(x => x.id === d.id)) {
-                                finalDocs.push({ id: d.id, ...d.data() });
-                            }
-                        });
-                    }
-
-                    if (finalDocs.length > 0) {
-                        tableBody.innerHTML = `<tr class="bg-gray-800 text-white"><td colspan="7" class="py-3 px-8 text-[10px] font-black uppercase tracking-widest"><i class="fa-solid fa-cloud text-brand-orange mr-2"></i> Resultado desde Servidor</td></tr>`;
-                        finalDocs.forEach(o => renderRow(o));
-                    } else {
-                        tableBody.innerHTML = `<tr><td colspan="7" class="p-10 text-center text-xs text-red-500 font-bold uppercase">Definitivamente no existe la orden con ID o Número: "${val}".</td></tr>`;
-                    }
-                } catch (e) {
-                    console.error("Error buscando en servidor:", e);
-                    renderOrdersFromMemory();
+                if (val.length >= 2) {
+                    if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+                    performServerSearch(val, true);
                 }
             }
         });
 
-        // --- RENDER DE FILA VISUAL ---
+        // --- HELPER DE CONTACTO WHATSAPP ---
+        function getCleanWhatsAppPhone(rawPhone) {
+            if (!rawPhone) return '';
+            let digits = String(rawPhone).replace(/\D/g, '');
+            if (digits.startsWith('57') && digits.length > 10) return digits;
+            if (digits.length === 10) return '57' + digits;
+            return digits;
+        }
+
+        // --- RENDER DE FILA VISUAL OPTIMIZADA Y COMPACTA ---
         function renderRow(o) {
             const isTienda = o.source === 'TIENDA' || o.source === 'TIENDA_WEB';
-            let channelText = 'MANUAL';
-            if (isTienda) {
-                channelText = 'WEB';
-            } else if (o.branchId && branchesMap[o.branchId]) {
-                channelText = branchesMap[o.branchId];
-            } else if (o.branchName) {
-                channelText = o.branchName;
-            }
-            channelText = channelText.toUpperCase();
-            let sClass = 'bg-gray-100 text-gray-500 border-gray-200', sText = o.status;
             
-            if (o.status === 'PENDIENTE') { sClass = 'bg-yellow-100 text-yellow-700 border-yellow-200'; sText = 'Por Atender'; }
-            else if (o.status === 'ALISTADO') { sClass = 'bg-blue-100 text-blue-700 border-blue-200'; sText = 'Alistado'; }
-            else if (o.status === 'PAGADO') { sClass = 'bg-red-100 text-red-600 border-red-200 animate-pulse'; sText = 'PAGADO (URGENTE)'; }
-            else if (o.status === 'DESPACHADO') { sClass = 'bg-green-100 text-green-700 border-green-200'; sText = 'Despachado'; }
-            else if (o.status === 'ENTREGADO') { sClass = 'bg-emerald-100 text-emerald-700 border-emerald-200'; sText = 'Entregado'; }
-            else if (['CANCELADO', 'RECHAZADO'].includes(o.status)) { sClass = 'bg-red-50 text-red-400 border-red-100'; sText = o.status; }
-            else if (o.status === 'DEVUELTO') { sClass = 'bg-purple-100 text-purple-700 border-purple-200'; sText = 'Devuelto'; }
-            else if (o.status === 'DEVOLUCION_PARCIAL') { sClass = 'bg-orange-100 text-orange-700 border-orange-200'; sText = 'Dev. Parcial'; }
+            // Estado Logístico Separado y Preciso
+            let logPill = '';
+            if (o.status === 'PAGADO') {
+                logPill = `<span class="inline-flex items-center gap-1.5 bg-rose-50 text-rose-700 border border-rose-200 text-[9px] font-black uppercase px-2.5 py-1 rounded-full shadow-2xs animate-pulse whitespace-nowrap"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Por Alistar (Urgente)</span>`;
+            } else if (o.status === 'PENDIENTE') {
+                logPill = `<span class="inline-flex items-center gap-1.5 bg-amber-50 text-amber-800 border border-amber-200 text-[9px] font-black uppercase px-2.5 py-1 rounded-full shadow-2xs whitespace-nowrap"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Por Atender</span>`;
+            } else if (o.status === 'ALISTADO') {
+                logPill = `<span class="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 border border-blue-200 text-[9px] font-black uppercase px-2.5 py-1 rounded-full shadow-2xs whitespace-nowrap"><i class="fa-solid fa-boxes-packing text-[9px]"></i> Alistado / Listo</span>`;
+            } else if (o.status === 'DESPACHADO') {
+                logPill = `<span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[9px] font-black uppercase px-2.5 py-1 rounded-full shadow-2xs whitespace-nowrap"><i class="fa-solid fa-truck-fast text-[9px]"></i> En Ruta</span>`;
+            } else if (o.status === 'ENTREGADO') {
+                logPill = `<span class="inline-flex items-center gap-1.5 bg-teal-50 text-teal-800 border border-teal-200 text-[9px] font-black uppercase px-2.5 py-1 rounded-full shadow-2xs whitespace-nowrap"><i class="fa-solid fa-circle-check text-[9px] text-teal-600"></i> Entregado</span>`;
+            } else if (o.status === 'DEVUELTO') {
+                logPill = `<span class="inline-flex items-center gap-1.5 bg-purple-50 text-purple-700 border border-purple-200 text-[9px] font-black uppercase px-2.5 py-1 rounded-full shadow-2xs whitespace-nowrap"><i class="fa-solid fa-rotate-left text-[9px]"></i> Devolución</span>`;
+            } else if (o.status === 'DEVOLUCION_PARCIAL') {
+                logPill = `<span class="inline-flex items-center gap-1.5 bg-orange-50 text-orange-700 border border-orange-200 text-[9px] font-black uppercase px-2.5 py-1 rounded-full shadow-2xs whitespace-nowrap"><i class="fa-solid fa-rotate-left text-[9px]"></i> Dev. Parcial</span>`;
+            } else if (['CANCELADO', 'RECHAZADO'].includes(o.status)) {
+                logPill = `<span class="inline-flex items-center gap-1 bg-slate-100 text-slate-500 border border-slate-200 text-[9px] font-bold uppercase px-2.5 py-1 rounded-full whitespace-nowrap"><i class="fa-solid fa-ban text-[8px]"></i> ${o.status}</span>`;
+            } else if (o.status === 'PENDIENTE_PAGO') {
+                logPill = `<span class="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 border border-amber-200 text-[9px] font-black uppercase px-2.5 py-1 rounded-full shadow-2xs whitespace-nowrap"><span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> Esperando Pago</span>`;
+            } else {
+                logPill = `<span class="inline-flex items-center gap-1 bg-gray-100 text-gray-600 border border-gray-200 text-[9px] font-bold uppercase px-2.5 py-1 rounded-full whitespace-nowrap">${o.status || 'N/A'}</span>`;
+            }
 
-            // Cálculos Financieros Estrictos
+            // Valores financieros
             const total = Number(o.total) || 0;
             const paid = Number(o.amountPaid) || 0;
             const refunded = Number(o.refundedAmount) || 0;
@@ -1086,25 +1913,18 @@
 
             const isFullyPaid = o.paymentStatus === 'PAID' || o.status === 'PAGADO' || pendingBalance === 0;
 
-            let pBadge = `<span class="text-[9px] font-black uppercase text-red-500 bg-red-50 px-2 py-1 rounded border border-red-100">Cartera</span>`;
+            let pBadge = `<span class="inline-flex items-center gap-1 text-[9px] font-black uppercase text-red-600 bg-red-50 px-2.5 py-1 rounded-full border border-red-200 shadow-2xs"><i class="fa-solid fa-circle-exclamation text-[8px]"></i> Cartera</span>`;
             if (isFullyPaid) {
-                pBadge = `<span class="text-[9px] font-black uppercase text-green-600 bg-green-50 px-2 py-1 rounded border border-green-100"><i class="fa-solid fa-check"></i> Pagado</span>`;
+                pBadge = `<span class="inline-flex items-center gap-1 text-[9px] font-black uppercase text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 shadow-2xs"><i class="fa-solid fa-check text-[8px]"></i> Pagado</span>`;
             }
 
-            const dateObj = new Date(o.createdAt);
-            const dateStr = !isNaN(dateObj) ? dateObj.toLocaleDateString('es-CO', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'}) : '--';
+            const orderDate = getOrderDate(o);
+            const dateStr = orderDate ? orderDate.toLocaleDateString('es-CO', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'}) : '--';
             
-            // Botones Acciones
-            let invoiceBtn = '';
-            if (o.invoiceUrl) {
-                invoiceBtn = `<a href="${o.invoiceUrl}" target="_blank" title="Descargar Factura PDF" class="w-9 h-9 rounded-xl bg-green-50 border border-green-200 text-green-600 hover:bg-green-500 hover:text-white transition shadow-sm flex items-center justify-center"><i class="fa-solid fa-file-arrow-down text-xs"></i></a>`;
-            } else if (o.requiresInvoice) {
-                invoiceBtn = `<span class="w-9 h-9 rounded-xl bg-blue-50 text-blue-500 border border-blue-100 flex items-center justify-center cursor-default" title="Factura Solicitada"><i class="fa-solid fa-check text-xs"></i></span>`;
-            } else {
-                invoiceBtn = `<button onclick="window.requestInvoice('${o.id}')" title="Solicitar Factura" class="w-9 h-9 rounded-xl bg-white border border-blue-200 text-blue-500 hover:bg-blue-500 hover:text-white transition shadow-sm flex items-center justify-center"><i class="fa-solid fa-file-invoice-dollar text-xs"></i></button>`;
-            }
+            const invoiceBtn = o.requiresInvoice 
+                ? `<span class="w-8 h-8 rounded-lg bg-blue-50 text-blue-500 border border-blue-100 flex items-center justify-center cursor-default shadow-2xs" title="Factura Solicitada"><i class="fa-solid fa-check text-xs"></i></span>`
+                : `<button onclick="window.requestInvoice('${o.id}')" title="Solicitar Factura" class="w-8 h-8 rounded-lg bg-white border border-blue-200 text-blue-500 hover:bg-blue-500 hover:text-white transition shadow-2xs flex items-center justify-center active:scale-95"><i class="fa-solid fa-file-invoice-dollar text-xs"></i></button>`;
 
-            // Lógica del Botón Pagar
             let payActionBtn = '';
             const isFinished = ['CANCELADO', 'RECHAZADO'].includes(o.status);
             
@@ -1112,13 +1932,21 @@
                 payActionBtn = `
                     <button onclick="window.openPaymentModal('${o.id}', ${pendingBalance})" 
                             title="Registrar Pago Manual" 
-                            class="w-9 h-9 rounded-xl bg-green-50 border border-green-200 text-green-600 hover:bg-green-500 hover:text-white transition shadow-sm flex items-center justify-center">
+                            class="w-8 h-8 rounded-lg bg-green-50 border border-green-200 text-green-600 hover:bg-green-500 hover:text-white transition shadow-2xs flex items-center justify-center active:scale-95">
                         <i class="fa-solid fa-hand-holding-dollar text-xs"></i>
                     </button>
                 `;
             }
 
-            // Visualización Precio Neto
+            const isML = (o.source && o.source.startsWith('MERCADOLIBRE')) || 
+                         o.channel === 'MERCADOLIBRE' || 
+                         (o.paymentMethod && o.paymentMethod.startsWith('MERCADOLIBRE')) || 
+                         String(o.id).startsWith('ML-') || 
+                         String(o.id).startsWith('ML2-') || 
+                         String(o.id).startsWith('ML3-') || 
+                         Boolean(o.mlOrderId);
+            const gross = Number(o.grossTotal) || 0;
+
             const netTotal = total - refunded;
             let priceHtml = `<span class="font-black text-brand-black text-sm">$${total.toLocaleString('es-CO')}</span>`;
             if (refunded > 0) {
@@ -1131,41 +1959,150 @@
                         </span>
                     </div>
                 `;
+            } else if (isML && gross > 0 && gross !== total) {
+                const mlDeductions = Math.max(0, gross - total);
+                priceHtml = `
+                    <div class="flex flex-col items-end leading-tight">
+                        <span class="text-[9px] text-gray-400 font-bold" title="Total Venta en MercadoLibre">Bruto: $${gross.toLocaleString('es-CO')}</span>
+                        <span class="text-sm font-black text-brand-black" title="Neto liquidado tras comisiones">$${total.toLocaleString('es-CO')}</span>
+                        ${mlDeductions > 0 ? `
+                        <span class="text-[8px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 mt-0.5" title="Comisión y retenciones MercadoLibre">
+                            ML: -$${mlDeductions.toLocaleString('es-CO')}
+                        </span>` : ''}
+                    </div>
+                `;
             }
 
-            // 🔥 DISEÑO NUEVO: Consecutivo Gigante y el ID de Firebase chiquito 🔥
             const internalNumDisplay = o.internalOrderNumber ? `#${o.internalOrderNumber}` : 'S/N';
             const shortId = o.id.slice(0, 8);
 
-            const tableBody = document.getElementById('orders-table-body');
-            tableBody.innerHTML += `
-                <tr class="hover:bg-slate-50 transition border-b border-gray-50 group fade-in">
-                    <td class="px-4 py-6 text-center">
+            // Datos del Cliente & Contacto WhatsApp
+            const rawPhone = o.buyerInfo?.phone || o.phone || '';
+            const cleanPhone = getCleanWhatsAppPhone(rawPhone);
+            const clientName = o.buyerInfo?.name || o.userName || 'Cliente';
+            const city = o.shippingData?.city || o.buyerInfo?.city || o.city || '';
+            const dept = o.shippingData?.department || o.buyerInfo?.department || '';
+            const cityDisplay = city ? (dept && dept.toLowerCase() !== city.toLowerCase() ? `${city}, ${dept}` : city) : '';
+            
+            let waText = `Hola ${clientName}, te escribimos de Mi Smartech respecto a tu pedido ${internalNumDisplay}. Nos comunicamos contigo para coordinar los detalles de tu orden.`;
+            if (o.status === 'PENDIENTE_PAGO') {
+                waText = `Hola ${clientName}, te escribimos de Mi Smartech respecto a tu pedido ${internalNumDisplay}. Nos comunicamos para brindarte información sobre el pago de tu orden.`;
+            } else if (o.status === 'DESPACHADO' && (o.shippingTracking || o.trackingNumber)) {
+                const trk = o.shippingTracking || o.trackingNumber;
+                const carr = (o.shippingCarrier || o.carrier) ? ` a través de ${o.shippingCarrier || o.carrier}` : '';
+                waText = `Hola ${clientName}, te escribimos de Mi Smartech para confirmarte que tu pedido ${internalNumDisplay} ya fue despachado${carr}. Tu número de guía es: ${trk}.`;
+            }
+            const waMsg = encodeURIComponent(waText);
+            const waUrl = cleanPhone && cleanPhone.length >= 10 ? `https://wa.me/${cleanPhone}?text=${waMsg}` : null;
+
+            // Resumen compacto de Productos para Picking rápido
+            const items = Array.isArray(o.items) ? o.items : [];
+            const totalUnits = items.reduce((acc, it) => acc + (Number(it.quantity) || 1), 0);
+            let itemsSummaryHtml = '';
+            if (items.length > 0) {
+                const itemsPreview = items.slice(0, 2).map(it => {
+                    const qty = Number(it.quantity) || 1;
+                    const name = it.name || it.title || 'Producto';
+                    const variants = [it.capacity, it.color || it.variant].filter(Boolean).join(' ');
+                    const shortName = name.length > 25 ? name.slice(0, 23) + '…' : name;
+                    return `${qty}x ${shortName}${variants ? ` (${variants})` : ''}`;
+                }).join(', ');
+                const moreCount = items.length > 2 ? ` (+${items.length - 2} más)` : '';
+                const fullTooltip = items.map(it => `${it.quantity || 1}x ${it.name || it.title} ${[it.capacity, it.color || it.variant].filter(Boolean).join(' ')}`).join(' | ');
+
+                // Miniatura de foto del producto en el chip de picking (28x28px)
+                const firstItem = items[0] || {};
+                const thumbUrl = firstItem.mainImage || firstItem.image || firstItem.imageUrl || firstItem.thumbnail || '';
+                const thumbHtml = thumbUrl 
+                    ? `<img src="${thumbUrl}" alt="Item" class="w-7 h-7 rounded-md object-cover border border-slate-200/80 shrink-0 bg-white shadow-2xs" onerror="this.onerror=null; this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');"><div class="hidden w-7 h-7 rounded-md bg-white border border-slate-200 flex items-center justify-center shrink-0 shadow-2xs"><i class="fa-solid fa-box text-slate-400 text-[10px]"></i></div>`
+                    : `<div class="w-7 h-7 rounded-md bg-white border border-slate-200 flex items-center justify-center shrink-0 shadow-2xs"><i class="fa-solid fa-box text-slate-400 text-[10px]"></i></div>`;
+
+                itemsSummaryHtml = `
+                    <div class="mt-1.5 flex items-center gap-2 text-[10px] text-slate-600 bg-slate-100/70 hover:bg-slate-100 transition p-1.5 rounded-lg border border-slate-200/60 max-w-[340px]" title="${fullTooltip.replace(/"/g, '&quot;')}">
+                        ${thumbHtml}
+                        <span class="truncate font-medium">${itemsPreview}${moreCount}</span>
+                        <span class="ml-auto shrink-0 text-[9px] font-black text-slate-500 bg-white px-1.5 py-0.5 rounded border border-slate-200 shadow-2xs">${totalUnits} ud</span>
+                    </div>`;
+            }
+
+            // Transportadora y Guía en columna logística con 1-clic para copiar
+            const carrier = o.shippingCarrier || o.carrier || o.shippingData?.carrier || '';
+            const tracking = o.shippingTracking || o.trackingNumber || o.tracking || o.shippingData?.trackingNumber || '';
+            let trackingBadge = '';
+            if (tracking) {
+                const guideLabel = carrier ? `${carrier}: ${tracking}` : `Guía: ${tracking}`;
+                trackingBadge = `
+                    <div class="mt-1 flex items-center justify-center">
+                        <button onclick="event.stopPropagation(); navigator.clipboard.writeText('${tracking}'); if(window.showActionToast) window.showActionToast('📋 Guía copiada: ${tracking}', 'success', 2000);" 
+                            class="inline-flex items-center gap-1 text-[9px] font-mono font-bold text-slate-600 bg-slate-100 hover:bg-brand-orange/10 hover:text-brand-orange hover:border-brand-orange/30 px-2 py-0.5 rounded-md border border-slate-200 transition cursor-pointer active:scale-95 group/trk" 
+                            title="Clic para copiar número de guía (${tracking})">
+                            <i class="fa-solid fa-barcode text-[9px] text-slate-400 group-hover/trk:text-brand-orange"></i>
+                            <span class="truncate max-w-[130px]">${guideLabel}</span>
+                            <i class="fa-regular fa-copy text-[8px] text-slate-400 opacity-60 group-hover/trk:opacity-100"></i>
+                        </button>
+                    </div>`;
+            }
+
+            // Distintivo de canal inteligente (MercadoLibre, Tienda Web o Manual)
+            let channelBadge = '';
+            const mlStore = getOrderMLStore(o);
+            if (mlStore !== null) {
+                const storeName = mlStoreNames[mlStore] || `MELI ${mlStore}`;
+                const shortLabel = storeName.length > 20 ? (storeName.substring(0, 18) + '…') : storeName;
+                channelBadge = `<span class="inline-flex items-center gap-1 text-[8px] font-black px-2 py-0.5 rounded shadow-2xs bg-[#FFE600] text-black border border-yellow-400 whitespace-nowrap tracking-tight" title="MercadoLibre - ${storeName} (Tienda ${mlStore})"><i class="fa-solid fa-handshake text-[9px]"></i> ${shortLabel}</span>`;
+            } else if (isTienda) {
+                channelBadge = `<span class="text-[8px] font-black px-2 py-0.5 rounded shadow-2xs bg-orange-50 text-brand-orange border border-orange-200">WEB</span>`;
+            } else {
+                channelBadge = `<span class="text-[8px] font-black px-2 py-0.5 rounded shadow-2xs bg-slate-900 text-white">MANUAL</span>`;
+            }
+
+            // Botón rápido de Rótulo MercadoLibre
+            const mlLabelBtn = isML ? `
+                <button onclick="window.openMercadoLibreLabel('${o.id}')" title="Imprimir Rótulo MercadoLibre" class="w-8 h-8 rounded-lg bg-[#FFE600] border border-yellow-400 text-black hover:bg-yellow-400/80 transition shadow-2xs flex items-center justify-center active:scale-95">
+                    <i class="fa-solid fa-tag text-xs"></i>
+                </button>
+            ` : '';
+
+            return `
+                <tr class="hover:bg-slate-50/80 transition border-b border-gray-50 group fade-in">
+                    <td class="px-4 py-3.5 text-center">
                         <input type="checkbox" class="order-cb cursor-pointer w-4 h-4 rounded text-brand-orange focus:ring-brand-orange border-gray-300" value="${o.id}">
                     </td>
-                    <td class="px-8 py-6">
-                        <div class="flex items-center gap-2 mb-1">
-                            <div class="font-black text-base text-brand-orange uppercase tracking-tighter">${internalNumDisplay}</div>
-                            <div class="font-mono text-[8px] text-gray-400 uppercase bg-gray-100 px-1.5 py-0.5 rounded" title="ID Firebase: ${o.id}">${shortId}</div>
+                    <td class="px-4 md:px-6 py-3.5">
+                        <div class="flex items-center gap-2 mb-0.5">
+                            <button onclick="window.viewOrderDetail('${o.id}')" class="font-black text-base text-brand-orange hover:text-brand-black uppercase tracking-tighter hover:underline text-left transition cursor-pointer" title="Ver detalle de pedido">${internalNumDisplay}</button>
+                            <button onclick="navigator.clipboard.writeText('${o.id}'); if(window.showActionToast) window.showActionToast('📋 ID copiado: ${shortId}', 'success', 2000);" class="font-mono text-[8px] text-gray-500 hover:text-brand-black hover:bg-gray-200 uppercase bg-gray-100 px-1.5 py-0.5 rounded transition cursor-pointer flex items-center gap-1 active:scale-95" title="Copiar ID Firebase (${o.id})">${shortId} <i class="fa-regular fa-copy text-[7px] text-gray-400"></i></button>
                         </div>
-                        <div class="text-[9px] font-bold text-brand-black mt-1">${dateStr}</div>
+                        <div class="text-[9px] font-bold text-gray-400 flex items-center gap-1 flex-wrap">
+                            <i class="fa-regular fa-clock text-[8px]"></i> ${dateStr}
+                            ${(window.hasDraftSerials && window.hasDraftSerials(o.id) && !['DESPACHADO', 'ENTREGADO', 'CANCELADO', 'RECHAZADO', 'DEVUELTO'].includes(o.status)) ? `<span class="text-slate-300">•</span><span class="text-amber-800 bg-amber-50 border border-amber-200 px-1.5 py-0.2 rounded text-[8px] font-black uppercase inline-flex items-center gap-1" title="Tienes seriales guardados localmente para este pedido"><i class="fa-solid fa-floppy-disk text-[7px] text-brand-orange"></i> Borrador</span>` : ''}
+                        </div>
                     </td>
-                    <td class="px-8 py-6">
-                        <div class="font-black text-brand-black uppercase text-xs">${o.buyerInfo?.name || o.userName || 'Cliente'}</div>
-                        <div class="text-[9px] text-brand-black font-bold">${o.buyerInfo?.phone || o.phone || ''}</div>
+                    <td class="px-4 md:px-6 py-3.5">
+                        <div class="flex items-center gap-1.5">
+                            <button onclick="window.viewOrderDetail('${o.id}')" class="font-black text-brand-black hover:text-brand-orange uppercase text-xs truncate max-w-[200px] hover:underline text-left transition cursor-pointer" title="Ver detalle de ${clientName}">${clientName}</button>
+                            ${waUrl ? `<a href="${waUrl}" target="_blank" rel="noopener noreferrer" title="Escribir a WhatsApp" class="inline-flex items-center justify-center w-5 h-5 rounded-md bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white transition shadow-2xs text-[11px]"><i class="fa-brands fa-whatsapp"></i></a>` : ''}
+                        </div>
+                        <div class="flex items-center gap-2 text-[10px] text-slate-500 font-bold mt-0.5">
+                            <span>${rawPhone || 'Sin teléfono'}</span>
+                            ${cityDisplay ? `<span class="text-slate-300">•</span><span class="text-slate-500 font-semibold flex items-center gap-0.5 truncate max-w-[150px]"><i class="fa-solid fa-location-dot text-rose-400 text-[9px] shrink-0"></i> ${cityDisplay}</span>` : ''}
+                        </div>
+                        ${itemsSummaryHtml}
                     </td>
-                    <td class="px-8 py-6 text-center">
-                        <span class="text-[8px] font-black px-2 py-0.5 rounded shadow-sm ${isTienda ? 'bg-brand-orange text-brand-black' : 'bg-brand-black text-white'}">${channelText}</span>
+                    <td class="px-4 md:px-6 py-3.5 text-center">
+                        ${channelBadge}
                     </td>
-                    <td class="px-8 py-6 text-center">${pBadge}</td>
-                    <td class="px-8 py-6 text-center">
-                        <span class="${sClass} px-3 py-1 rounded-full text-[9px] font-black uppercase border shadow-sm block w-fit mx-auto whitespace-nowrap">${sText}</span>
+                    <td class="px-4 md:px-6 py-3.5 text-center">${pBadge}</td>
+                    <td class="px-4 md:px-6 py-3.5 text-center">
+                        ${logPill}
+                        ${trackingBadge}
                     </td>
-                    <td class="px-8 py-6 text-right align-middle">${priceHtml}</td>
-                    <td class="px-8 py-6 text-center">
-                        <div class="flex items-center justify-center gap-2">
-                            <button onclick="window.viewOrderDetail('${o.id}')" title="Ver Detalle" class="w-9 h-9 rounded-xl bg-white border border-gray-200 text-brand-black hover:bg-brand-black hover:text-white transition shadow-sm flex items-center justify-center"><i class="fa-solid fa-eye text-xs"></i></button>
-                            <button onclick="window.printRemission('${o.id}')" title="Imprimir Recibo" class="w-9 h-9 rounded-xl bg-white border border-red-200 text-red-500 hover:bg-red-500 hover:text-white transition shadow-sm flex items-center justify-center"><i class="fa-solid fa-file-pdf text-xs"></i></button>
+                    <td class="px-4 md:px-6 py-3.5 text-right align-middle">${priceHtml}</td>
+                    <td class="px-4 md:px-6 py-3.5 text-center">
+                        <div class="flex items-center justify-center gap-1.5">
+                            <button onclick="window.viewOrderDetail('${o.id}')" title="Ver Detalle" class="w-8 h-8 rounded-lg bg-white border border-gray-200 text-brand-black hover:bg-brand-black hover:text-white transition shadow-2xs flex items-center justify-center active:scale-95"><i class="fa-solid fa-eye text-xs"></i></button>
+                            <button onclick="window.viewReceipt('${o.id}')" title="Ver Recibo" class="w-8 h-8 rounded-lg bg-white border border-rose-200 text-rose-500 hover:bg-rose-500 hover:text-white transition shadow-2xs flex items-center justify-center active:scale-95"><i class="fa-solid fa-receipt text-xs"></i></button>
+                            ${mlLabelBtn}
                             ${payActionBtn}
                             ${invoiceBtn}
                         </div>
@@ -1173,28 +2110,205 @@
                 </tr>`;
         }
 
-        // --- LÓGICA DE SELECCIÓN PARA RÓTULOS ---
+        // --- ACTUALIZADOR DE BADGES NUMÉRICOS EN PESTAÑAS Y TARJETAS KPI ---
+        function updateTabBadgesAndKPIs() {
+            const allOrders = window.adminOrdersCache || adminOrdersCache || [];
+            
+            // Conteos por estado
+            const actionable = allOrders.filter(o => ["PAGADO", "PENDIENTE", "ALISTADO"].includes(o.status));
+            const waiting = allOrders.filter(o => o.status === "PENDIENTE_PAGO");
+            const dispatched = allOrders.filter(o => ["DESPACHADO", "ENTREGADO"].includes(o.status));
+            const refunds = allOrders.filter(o => ["DEVUELTO", "DEVOLUCION_PARCIAL"].includes(o.status));
+            const failed = allOrders.filter(o => ["CANCELADO", "RECHAZADO"].includes(o.status));
+            
+            // Badges en pestañas
+            const setBadge = (id, count) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = count;
+            };
+            setBadge('badge-tab-actionable', actionable.length);
+            setBadge('badge-tab-waiting', waiting.length);
+            setBadge('badge-tab-dispatched', dispatched.length);
+            setBadge('badge-tab-refunds', refunds.length);
+            setBadge('badge-tab-failed', failed.length);
+            setBadge('badge-tab-all', allOrders.length);
+
+            // Conteo de pedidos de MercadoLibre
+            const mlOrders = allOrders.filter(o => getOrderMLStore(o) !== null);
+            setBadge('badge-quick-ml-count', mlOrders.length);
+
+            // Auto-detectar tiendas ML con pedidos existentes en memoria
+            let detectedChange = false;
+            for (const o of allOrders) {
+                const s = getOrderMLStore(o);
+                if (s && !mlStoreStatus[s]) {
+                    mlStoreStatus[s] = true;
+                    detectedChange = true;
+                }
+            }
+            if (detectedChange) {
+                updateChannelFilterUI();
+            }
+        }
+
+        // --- GESTOR DE BARRA FLOTANTE Y SELECCIÓN MASIVA ---
+        window.updateBulkActionBar = function() {
+            const checked = document.querySelectorAll('.order-cb:checked');
+            const bar = document.getElementById('floating-bulk-bar');
+            const countEl = document.getElementById('floating-selected-count');
+            const selectAllCb = document.getElementById('select-all-orders');
+            const totalCbs = document.querySelectorAll('.order-cb');
+
+            if (countEl) countEl.textContent = checked.length;
+            
+            if (selectAllCb) {
+                selectAllCb.checked = totalCbs.length > 0 && checked.length === totalCbs.length;
+                selectAllCb.indeterminate = checked.length > 0 && checked.length < totalCbs.length;
+            }
+
+            if (bar) {
+                if (checked.length > 0) {
+                    bar.classList.remove('translate-y-28', 'opacity-0', 'pointer-events-none');
+                    bar.classList.add('translate-y-0', 'opacity-100', 'pointer-events-auto');
+                } else {
+                    bar.classList.add('translate-y-28', 'opacity-0', 'pointer-events-none');
+                    bar.classList.remove('translate-y-0', 'opacity-100', 'pointer-events-auto');
+                }
+            }
+        };
+
         window.toggleAllOrders = function(source) {
             const checkboxes = document.querySelectorAll('.order-cb');
             checkboxes.forEach(cb => cb.checked = source.checked);
+            window.updateBulkActionBar();
         };
+
+        window.clearOrderSelections = function() {
+            const checkboxes = document.querySelectorAll('.order-cb');
+            checkboxes.forEach(cb => cb.checked = false);
+            const selectAllCb = document.getElementById('select-all-orders');
+            if (selectAllCb) {
+                selectAllCb.checked = false;
+                selectAllCb.indeterminate = false;
+            }
+            window.updateBulkActionBar();
+        };
+
+        // Delegación de eventos en tabla para sincronizar la barra flotante de inmediato
+        const tableBodyEl = document.getElementById('orders-table-body');
+        if (tableBodyEl) {
+            tableBodyEl.addEventListener('change', (e) => {
+                if (e.target && e.target.classList.contains('order-cb')) {
+                    window.updateBulkActionBar();
+                }
+            });
+        }
 
         window.printSelectedLabels = function() {
             const checkboxes = document.querySelectorAll('.order-cb:checked');
-            if(checkboxes.length === 0) {
+            if (checkboxes.length === 0) {
                 alert("⚠️ Por favor, selecciona al menos un pedido marcando las casillas de la tabla.");
                 return;
             }
-            
-            // Extraer los IDs seleccionados
             const selectedIds = Array.from(checkboxes).map(cb => cb.value);
-            
-            // Filtrar los objetos completos de la caché local para no gastar lecturas de Firebase
-            const selectedOrders = adminOrdersCache.filter(o => selectedIds.includes(o.id));
-            
-            // Llamar a la función generadora en admin/order-actions.js
-            window.generateLabels(selectedOrders);
+            const cache = window.adminOrdersCache || adminOrdersCache || [];
+            const selectedOrders = cache.filter(o => selectedIds.includes(o.id));
+
+            // Detectar si hay órdenes de MercadoLibre seleccionadas
+            const mlOrders = selectedOrders.filter(o => {
+                const isML = (o.source && o.source.startsWith('MERCADOLIBRE')) || 
+                             o.channel === 'MERCADOLIBRE' || 
+                             (o.paymentMethod && o.paymentMethod.startsWith('MERCADOLIBRE')) || 
+                             String(o.id).startsWith('ML-') || 
+                             String(o.id).startsWith('ML2-') || 
+                             String(o.id).startsWith('ML3-') || 
+                             Boolean(o.mlOrderId);
+                const sId = o.shippingId || o.shippingData?.shipmentId;
+                return isML && (sId || o.id);
+            });
+
+            if (mlOrders.length > 0) {
+                const choice = confirm(`📦 Se detectaron ${mlOrders.length} pedido(s) de MercadoLibre seleccionados.\n\n¿Deseas descargar el PDF con todos los Rótulos Oficiales de MercadoLibre (Mercado Envíos / Flex) unificados?\n\n• Haz clic en [Aceptar] para descargar los Rótulos Oficiales de MercadoLibre (Multipágina con códigos de barra de Mercado Envíos).\n• Haz clic en [Cancelar] para imprimir los rótulos internos estándar de la tienda.`);
+                if (choice) {
+                    let functionsUrl = "https://us-central1-mismartech.cloudfunctions.net/getMercadoLibreLabel";
+                    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+                        functionsUrl = "http://localhost:5001/mismartech/us-central1/getMercadoLibreLabel";
+                    }
+
+                    const storesMap = {};
+                    mlOrders.forEach(o => {
+                        let st = "1";
+                        if (o.mlStore) st = String(o.mlStore);
+                        else if (o.source === 'MERCADOLIBRE_STORE2' || o.source === 'MERCADOLIBRE_2' || String(o.id).startsWith('ML2-')) st = "2";
+                        else if (o.source === 'MERCADOLIBRE_STORE3' || o.source === 'MERCADOLIBRE_3' || String(o.id).startsWith('ML3-')) st = "3";
+
+                        const sId = o.shippingId || o.shippingData?.shipmentId;
+                        if (!storesMap[st]) storesMap[st] = [];
+                        if (sId && !storesMap[st].includes(sId)) {
+                            storesMap[st].push(sId);
+                        } else if (!sId && !storesMap[st].includes(o.id)) {
+                            storesMap[st].push(o.id);
+                        }
+                    });
+
+                    Object.keys(storesMap).forEach(st => {
+                        const joinedIds = storesMap[st].join(',');
+                        const labelUrl = `${functionsUrl}?shipmentId=${encodeURIComponent(joinedIds)}&store=${st}`;
+                        window.open(labelUrl, '_blank');
+                    });
+
+                    // Si también hay pedidos que no son de MercadoLibre seleccionados, preguntar si generar sus rótulos internos
+                    const nonMlOrders = selectedOrders.filter(o => !mlOrders.some(m => m.id === o.id));
+                    if (nonMlOrders.length > 0) {
+                        setTimeout(() => {
+                            if (confirm(`ℹ️ También hay ${nonMlOrders.length} pedido(s) convencionales seleccionados (no MercadoLibre). ¿Deseas imprimir sus rótulos internos de la tienda ahora?`)) {
+                                if (typeof window.generateLabels === 'function') {
+                                    window.generateLabels(nonMlOrders);
+                                }
+                            }
+                        }, 600);
+                    }
+                    return;
+                }
+            }
+
+            if (typeof window.generateLabels === 'function') {
+                window.generateLabels(selectedOrders);
+            } else {
+                alert("⚠️ La función para generar rótulos aún no se ha cargado. Por favor, reintenta en un segundo.");
+            }
         };
+
+        window.openMercadoLibreLabel = function(orderId) {
+            const cache = window.adminOrdersCache || (typeof adminOrdersCache !== 'undefined' ? adminOrdersCache : []);
+            const o = cache.find(x => x.id === orderId);
+            let sId = o ? (o.shippingId || o.shippingData?.shipmentId) : null;
+            let st = "1";
+            if (o) {
+                if (o.mlStore) st = String(o.mlStore);
+                else if (o.source === 'MERCADOLIBRE_STORE2' || o.source === 'MERCADOLIBRE_2' || String(o.id).startsWith('ML2-')) st = "2";
+                else if (o.source === 'MERCADOLIBRE_STORE3' || o.source === 'MERCADOLIBRE_3' || String(o.id).startsWith('ML3-')) st = "3";
+            }
+            let functionsUrl = "https://us-central1-mismartech.cloudfunctions.net/getMercadoLibreLabel";
+            if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+                functionsUrl = "http://localhost:5001/mismartech/us-central1/getMercadoLibreLabel";
+            }
+            if (sId) {
+                window.open(`${functionsUrl}?shipmentId=${encodeURIComponent(sId)}&store=${st}`, '_blank');
+            } else {
+                window.open(`${functionsUrl}?orderId=${encodeURIComponent(orderId)}&store=${st}`, '_blank');
+            }
+        };
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const openOrderId = urlParams.get('openOrder') || urlParams.get('orderId');
+        if (openOrderId) {
+            setTimeout(() => {
+                if (typeof window.viewOrderDetail === 'function') {
+                    window.viewOrderDetail(openOrderId);
+                }
+            }, 600);
+        }
     </script>
     <script type="module" src="../js/admin/admin-guard.js"></script>
 </body>

@@ -1,6 +1,7 @@
 import { db, storage, collection, doc, updateDoc, getDoc, runTransaction, ref, uploadBytes, getDownloadURL } from '../firebase-init.js';
 import { loadAdminSidebar } from './admin-ui.js';
 import { AdminStore } from './admin-store.js'; // 🔥 IMPORTAMOS EL CEREBRO
+import { adjustStock } from './inventory-core.js';
 
 loadAdminSidebar();
 
@@ -306,7 +307,6 @@ window.confirmResolution = async () => {
                 if (!prodSnap.exists()) throw "Producto no existe.";
                 const currentStock = prodSnap.data().stock || 0;
                 if (currentStock < 1) throw "⛔ No hay stock disponible para reemplazo.";
-                transaction.update(prodRef, { stock: currentStock - 1, updatedAt: new Date() }); // 🔥 updatedAt para el Store
             }
 
             const warrantyRef = doc(db, "warranties", currentWarranty.id);
@@ -332,6 +332,10 @@ window.confirmResolution = async () => {
                 entryDate: new Date()
             });
         });
+
+        if (resolutionType === 'REPLACEMENT' && currentWarranty.productId) {
+            await adjustStock(currentWarranty.productId, -1, currentWarranty.color, currentWarranty.capacity, currentWarranty.branchId || 'bodega');
+        }
 
         alert("✅ Garantía procesada.");
         resolutionModal.classList.add('hidden');

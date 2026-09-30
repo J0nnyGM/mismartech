@@ -1,4 +1,4 @@
-import { db, collection, doc, runTransaction, addDoc, setDoc, getDocs, query, orderBy, auth } from '../firebase-init.js';
+import { db, collection, doc, runTransaction, addDoc, setDoc, deleteDoc, getDocs, query, orderBy, auth } from '../firebase-init.js';
 import { adjustStock } from './inventory-core.js';
 import { AdminStore } from './admin-store.js';
 
@@ -1112,6 +1112,9 @@ async function saveOrder() {
         const activeBranchId = sessionStorage.getItem('activeBranchId') || 'bodega';
         const activeBranchName = sessionStorage.getItem('activeBranchName') || 'Sede Principal';
 
+        // -------------------------------------------------------------------------
+        // PASO 1: Validación y Creación de Cliente Nuevo (si aplica)
+        // -------------------------------------------------------------------------
         let finalUserId = selectedUserId;
         let custName = selectedUserName;
         let custPhone = selectedUserPhone;
@@ -1134,7 +1137,7 @@ async function saveOrder() {
             finalUserId = docRef.id;
         }
 
-        // 🔥 LÓGICA DE 4X1000
+        // --- CÁLCULO DE TOTALES Y 4X1000 ---
         const shippingCost = parseCurrency(document.getElementById('m-shipping-cost').value);
         const subtotal = items.reduce((acc, i) => acc + (i.price * i.quantity), 0);
         let baseTotal = subtotal + shippingCost;
@@ -1186,49 +1189,20 @@ async function saveOrder() {
         });
 
         if (nonCreditSplits.length > 0) {
-            await runTransaction(db, async (t) => {
-                const accountData = [];
-                for (const split of nonCreditSplits) {
-                    const ref = doc(db, "accounts", split.accountId);
-                    const snap = await t.get(ref);
-                    if (!snap.exists()) throw new Error(`La cuenta seleccionada ya no existe.`);
-                    accountData.push({ ref, snap, split });
-                }
-
-                for (const ad of accountData) {
-                    const currentBalance = ad.snap.data().balance || 0;
-                    t.update(ad.ref, { balance: currentBalance + ad.split.amount });
-                }
-            });
-
-            for (const split of nonCreditSplits) {
-                const accName = manualAccountsList.find(a => a.id === split.accountId)?.name || 'Cuenta Desconocida';
-                await addDoc(collection(db, "expenses"), {
-                    amount: split.amount,
-                    category: "Ingreso Ventas Manual",
-                    description: `Cobro Inmediato (Dividido) - Venta a ${custName || 'Cliente'}`,
-                    paymentMethod: accName,
-                    supplierName: custName || "Cliente Directo",
-                    date: new Date(),
-                    createdAt: new Date(),
-                    type: 'INCOME'
-                });
-            }
-
             amountPaid = totalPaid;
             if (hasCredit) {
                 paymentStatus = 'PARTIAL';
                 paymentMethodName = 'Múltiples Cuentas';
             } else {
                 paymentStatus = 'PAID';
-                paymentMethodName = nonCreditSplits.length > 1 ? 'Múltiples Cuentas' : manualAccountsList.find(a => a.id === nonCreditSplits[0].accountId)?.name || 'Efectivo';
+                paymentMethodName = nonCreditSplits.length > 1 ? 'Múltiples Cuentas' : (manualAccountsList.find(a => a.id === nonCreditSplits[0].accountId)?.name || 'Efectivo');
             }
         }
 
         const orderData = {
             userId: finalUserId, userName: custName, phone: custPhone, clientDoc: custDoc, 
             items, 
-            subtotal, shippingCost, tax4x1000, total, // 🔥 SE GUARDA EL 4x1000
+            subtotal, shippingCost, tax4x1000, total,
             status: 'PENDIENTE', source: 'MANUAL', requiresInvoice: document.getElementById('m-requires-invoice').checked,
             paymentStatus, amountPaid, paymentAccountId: nonCreditSplits.length > 0 ? nonCreditSplits[0].accountId : null, paymentMethodName,
             paymentSplits: paymentSplitsField,
@@ -1236,51 +1210,148 @@ async function saveOrder() {
             branchId: activeBranchId,
             branchName: activeBranchName
         };
-        
+
+        // -------------------------------------------------------------------------
+        // PASO 2: GUARDAR ORDEN (/orders) Y REMISIÓN (/remissions) EN FIRESTORE
+        // -------------------------------------------------------------------------
         const orderRef = await addDoc(collection(db, "orders"), orderData);
         await setDoc(doc(db, "remissions", orderRef.id), { ...orderData, orderId: orderRef.id, status: 'PENDIENTE_ALISTAMIENTO', type: 'DIRECTA' });
+        console.log(`✅ Orden ${orderRef.id} y Remisión creadas exitosamente en Firestore.`);
 
-        // --- DESCONTAR INVENTARIO LOCAL Y CREAR TRASLADOS AUTOMÁTICOS ---
-        for (const item of items) {
-            const qtyToTransfer = item.qtyToTransfer || 0;
+        // -------------------------------------------------------------------------
+        // PASO 3: REGISTRO DE CUENTAS DE PAGO E INGRESOS EN /expenses
+        // -------------------------------------------------------------------------
+        const createdExpenseIds = [];
+        const updatedAccounts = [];
 
-            if (qtyToTransfer === 0) {
-                // Hay stock suficiente localmente
-                await adjustStock(item.id, -item.quantity, item.color, item.capacity, activeBranchId);
-            } else {
-                // Hay déficit: descontar lo disponible en la sede activa si es mayor a cero
-                const localDeduction = item.quantity - qtyToTransfer;
-                if (localDeduction > 0) {
-                    await adjustStock(item.id, -localDeduction, item.color, item.capacity, activeBranchId);
-                }
-                
-                // Reservar el excedente en la sede origen elegida y registrar solicitud de traslado
-                const sourceBranchId = item.sourceBranchId;
-                const srcBr = manualBranchesList.find(b => b.id === sourceBranchId);
-                const sourceBranchName = srcBr ? srcBr.name : sourceBranchId;
+        if (nonCreditSplits.length > 0) {
+            try {
+                await runTransaction(db, async (t) => {
+                    const accountData = [];
+                    for (const split of nonCreditSplits) {
+                        const ref = doc(db, "accounts", split.accountId);
+                        const snap = await t.get(ref);
+                        if (!snap.exists()) throw new Error(`La cuenta seleccionada ya no existe.`);
+                        accountData.push({ ref, snap, split });
+                    }
 
-                // Descontar del origen (reservar)
-                await adjustStock(item.id, -qtyToTransfer, item.color, item.capacity, sourceBranchId);
-
-                // Crear solicitud de traslado
-                await addDoc(collection(db, "transfers"), {
-                    productId: item.id,
-                    productName: item.name,
-                    color: item.color,
-                    capacity: item.capacity,
-                    quantity: qtyToTransfer,
-                    sourceBranchId: sourceBranchId,
-                    sourceBranchName: sourceBranchName,
-                    targetBranchId: activeBranchId,
-                    targetBranchName: activeBranchName,
-                    status: 'PENDING',
-                    requestedBy: 'Traslado Automático por Venta Manual - ' + (auth.currentUser ? auth.currentUser.email : 'Sistema'),
-                    requestedAt: new Date(),
-                    resolvedBy: null,
-                    resolvedAt: null,
-                    associatedOrderId: orderRef.id
+                    for (const ad of accountData) {
+                        const currentBalance = ad.snap.data().balance || 0;
+                        t.update(ad.ref, { balance: currentBalance + ad.split.amount });
+                        updatedAccounts.push({ ref: ad.ref, amountAdded: ad.split.amount });
+                    }
                 });
+
+                for (const split of nonCreditSplits) {
+                    const accName = manualAccountsList.find(a => a.id === split.accountId)?.name || 'Cuenta Desconocida';
+                    const expRef = await addDoc(collection(db, "expenses"), {
+                        amount: split.amount,
+                        category: "Ingreso Ventas Manual",
+                        description: `Cobro Inmediato (Dividido) - Venta a ${custName || 'Cliente'}`,
+                        paymentMethod: accName,
+                        supplierName: custName || "Cliente Directo",
+                        date: new Date(),
+                        createdAt: new Date(),
+                        type: 'INCOME'
+                    });
+                    createdExpenseIds.push(expRef.id);
+                }
+            } catch (err) {
+                // Rollback de la orden y remisión creadas si fallan las cuentas
+                await deleteDoc(doc(db, "remissions", orderRef.id)).catch(() => {});
+                await deleteDoc(doc(db, "orders", orderRef.id)).catch(() => {});
+                throw new Error("🚨 Error al procesar el pago en la cuenta: " + (err?.message || err));
             }
+        }
+
+        // -------------------------------------------------------------------------
+        // PASO 4 (ÚLTIMO PASO): DESCONTAR INVENTARIO Y REGISTRAR TRASLADOS CON ROLLBACK
+        // -------------------------------------------------------------------------
+        const completedDeductions = [];
+        const createdTransferIds = [];
+
+        try {
+            for (const item of items) {
+                const qtyToTransfer = item.qtyToTransfer || 0;
+
+                if (qtyToTransfer === 0) {
+                    // Hay stock suficiente localmente
+                    await adjustStock(item.id, -item.quantity, item.color, item.capacity, activeBranchId);
+                    completedDeductions.push({ productId: item.id, qty: item.quantity, color: item.color, capacity: item.capacity, branchId: activeBranchId });
+                } else {
+                    // Hay déficit: descontar lo disponible en la sede activa si es mayor a cero
+                    const localDeduction = item.quantity - qtyToTransfer;
+                    if (localDeduction > 0) {
+                        await adjustStock(item.id, -localDeduction, item.color, item.capacity, activeBranchId);
+                        completedDeductions.push({ productId: item.id, qty: localDeduction, color: item.color, capacity: item.capacity, branchId: activeBranchId });
+                    }
+                    
+                    // Reservar el excedente en la sede origen elegida y registrar solicitud de traslado
+                    const sourceBranchId = item.sourceBranchId;
+                    const srcBr = manualBranchesList.find(b => b.id === sourceBranchId);
+                    const sourceBranchName = srcBr ? srcBr.name : sourceBranchId;
+
+                    // Descontar del origen (reservar)
+                    await adjustStock(item.id, -qtyToTransfer, item.color, item.capacity, sourceBranchId);
+                    completedDeductions.push({ productId: item.id, qty: qtyToTransfer, color: item.color, capacity: item.capacity, branchId: sourceBranchId });
+
+                    // Crear solicitud de traslado
+                    const trRef = await addDoc(collection(db, "transfers"), {
+                        productId: item.id,
+                        productName: item.name,
+                        color: item.color,
+                        capacity: item.capacity,
+                        quantity: qtyToTransfer,
+                        sourceBranchId: sourceBranchId,
+                        sourceBranchName: sourceBranchName,
+                        targetBranchId: activeBranchId,
+                        targetBranchName: activeBranchName,
+                        status: 'PENDING',
+                        requestedBy: 'Traslado Automático por Venta Manual - ' + (auth.currentUser ? auth.currentUser.email : 'Sistema'),
+                        requestedAt: new Date(),
+                        resolvedBy: null,
+                        resolvedAt: null,
+                        associatedOrderId: orderRef.id
+                    });
+                    createdTransferIds.push(trRef.id);
+                }
+            }
+        } catch (stockErr) {
+            console.error("🚨 Error durante el descuento de inventario. Iniciando ROLLBACK...", stockErr);
+
+            // 1. Revertir traslados creados
+            for (const trId of createdTransferIds) {
+                await deleteDoc(doc(db, "transfers", trId)).catch(() => {});
+            }
+
+            // 2. Revertir existencias descontadas
+            for (const ded of completedDeductions) {
+                await adjustStock(ded.productId, +ded.qty, ded.color, ded.capacity, ded.branchId).catch(() => {});
+            }
+
+            // 3. Revertir gastos creados
+            for (const expId of createdExpenseIds) {
+                await deleteDoc(doc(db, "expenses", expId)).catch(() => {});
+            }
+
+            // 4. Revertir cuentas de pago
+            if (updatedAccounts.length > 0) {
+                await runTransaction(db, async (t) => {
+                    for (const acc of updatedAccounts) {
+                        const snap = await t.get(acc.ref);
+                        if (snap.exists()) {
+                            const cur = snap.data().balance || 0;
+                            t.update(acc.ref, { balance: cur - acc.amountAdded });
+                        }
+                    }
+                }).catch(() => {});
+            }
+
+            // 5. Revertir Orden y Remisión
+            await deleteDoc(doc(db, "remissions", orderRef.id)).catch(() => {});
+            await deleteDoc(doc(db, "orders", orderRef.id)).catch(() => {});
+
+            throw new Error("🚨 La orden no pudo completarse debido a un error en el inventario: " + (stockErr?.message || stockErr));
         }
 
         alert(`✅ Venta Exitosa.\nLa orden #${orderRef.id.slice(0,6)} ha sido enviada al centro logístico y se registraron las solicitudes de traslado correspondientes.`);
@@ -1288,7 +1359,9 @@ async function saveOrder() {
         if (onSuccessCallback) onSuccessCallback();
 
     } catch (e) {
-        console.error(e); alert(e.message);
+        console.error("❌ Error en Venta Manual:", e); 
+        const errorMsg = e?.message || (typeof e === 'string' ? e : "Ocurrió un error inesperado al procesar la venta.");
+        alert("🚨 Error al guardar la venta:\n" + errorMsg);
     } finally {
         isSavingOrder = false;
         btn.disabled = false; btn.innerHTML = originalText;

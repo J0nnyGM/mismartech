@@ -95,6 +95,9 @@ exports.renewMercadoLibreToken = onSchedule("every 5 hours", mercadolibreModule.
 exports.getMercadoLibreLabel = functions.https.onRequest(mercadolibreModule.getLabel);
 exports.getMercadoLibreAuthUrl = functions.https.onCall(mercadolibreModule.getAuthUrl);
 exports.authorizeMercadoLibreCode = functions.https.onCall(mercadolibreModule.authorizeCode);
+exports.disconnectMercadoLibre = functions.https.onCall(mercadolibreModule.disconnectMercadoLibre);
+exports.syncAllStockToML = mercadolibreModule.syncAllStockToML;
+exports.recalcMLOrderFinances = mercadolibreModule.recalcMLOrderFinances;
 
 // Tienda 2
 exports.mercadolibreStore2Webhook = functions.https.onRequest(mercadolibre2Module.webhook);

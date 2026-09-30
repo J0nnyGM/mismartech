@@ -4,6 +4,70 @@ import { db, collection, query, where, onSnapshot } from '../firebase-init.js';
 const normalizeText = (str) => str ? str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
 
 // ==========================================================================
+// 💾 HELPER INDEXEDDB (Supera el límite de 5MB de localStorage)
+// ==========================================================================
+const IDBStore = {
+    dbName: 'miSmartechAdminDB',
+    storeName: 'adminCache',
+    
+    async getDB() {
+        return new Promise((resolve, reject) => {
+            const req = indexedDB.open(this.dbName, 1);
+            req.onupgradeneeded = () => {
+                const db = req.result;
+                if (!db.objectStoreNames.contains(this.storeName)) {
+                    db.createObjectStore(this.storeName);
+                }
+            };
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => reject(req.error);
+        });
+    },
+    
+    async getItem(key) {
+        try {
+            const db = await this.getDB();
+            return new Promise((resolve) => {
+                const tx = db.transaction(this.storeName, 'readonly');
+                const req = tx.objectStore(this.storeName).get(key);
+                req.onsuccess = () => resolve(req.result !== undefined ? req.result : null);
+                req.onerror = () => resolve(null);
+            });
+        } catch (e) {
+            return null;
+        }
+    },
+    
+    async setItem(key, value) {
+        try {
+            const db = await this.getDB();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(this.storeName, 'readwrite');
+                tx.objectStore(this.storeName).put(value, key);
+                tx.oncomplete = () => resolve(true);
+                tx.onerror = () => reject(tx.error);
+            });
+        } catch (e) {
+            return false;
+        }
+    },
+    
+    async removeItem(key) {
+        try {
+            const db = await this.getDB();
+            return new Promise((resolve) => {
+                const tx = db.transaction(this.storeName, 'readwrite');
+                tx.objectStore(this.storeName).delete(key);
+                tx.oncomplete = () => resolve(true);
+                tx.onerror = () => resolve(false);
+            });
+        } catch (e) {
+            return false;
+        }
+    }
+};
+
+// ==========================================================================
 // 🧬 CLASE MAESTRA: Delta Sync 3.0 (Zero Index Required)
 // ==========================================================================
 class StoreModule {
@@ -25,13 +89,28 @@ class StoreModule {
         this.loadFromCache();
     }
 
-    loadFromCache() {
-        const cached = localStorage.getItem(this.storageKey);
-        if (cached) {
-            try {
-                const parsed = JSON.parse(cached);
-                this.runtimeMap = parsed.map || {};
-                this.lastSyncTime = parsed.lastSync || 0;
+    async loadFromCache() {
+        try {
+            let cached = await IDBStore.getItem(this.storageKey);
+            
+            // Migración desde localStorage legacy si existe
+            if (!cached) {
+                const legacy = localStorage.getItem(this.storageKey);
+                if (legacy) {
+                    try {
+                        cached = JSON.parse(legacy);
+                        await IDBStore.setItem(this.storageKey, cached);
+                        localStorage.removeItem(this.storageKey);
+                        console.log(`📦 [Store: ${this.name}] Caché migrado de localStorage a IndexedDB.`);
+                    } catch (e) {
+                        localStorage.removeItem(this.storageKey);
+                    }
+                }
+            }
+
+            if (cached) {
+                this.runtimeMap = cached.map || {};
+                this.lastSyncTime = cached.lastSync || 0;
                 
                 // Convert dateObj strings back to Date objects
                 Object.keys(this.runtimeMap).forEach(id => {
@@ -40,7 +119,13 @@ class StoreModule {
                         item.dateObj = new Date(item.dateObj);
                     }
                 });
-            } catch (e) { localStorage.removeItem(this.storageKey); }
+
+                if (Object.keys(this.runtimeMap).length > 0) {
+                    this.notifyAll();
+                }
+            }
+        } catch (e) {
+            console.warn(`[Store: ${this.name}] Error cargando caché IDB:`, e);
         }
     }
 
@@ -146,7 +231,7 @@ class StoreModule {
         });
     }
 
-    saveToCache() {
+    async saveToCache() {
         const sortedArray = this.getSortedArray();
         const lightMap = {};
         
@@ -159,7 +244,13 @@ class StoreModule {
             }
         });
 
-        localStorage.setItem(this.storageKey, JSON.stringify({ map: lightMap, lastSync: this.lastSyncTime }));
+        const cachePayload = { map: lightMap, lastSync: this.lastSyncTime };
+        const saved = await IDBStore.setItem(this.storageKey, cachePayload);
+        if (!saved) {
+            try {
+                localStorage.setItem(this.storageKey, JSON.stringify(cachePayload));
+            } catch (e) {}
+        }
     }
 
     getSortedArray() {

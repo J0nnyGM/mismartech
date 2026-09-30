@@ -10,6 +10,7 @@ export function loadAdminSidebar(userRole = 'customer') {
     // --- 1. PERMISOS DE MÓDULOS (Nombres exactos del menú) ---
     const rolePermissions = {
         'admin': ['all'],
+        'developer': ['all'],
         'contabilidad': ['Dashboard', 'Facturación', 'Gestión de Cartera', 'Cuentas', 'Control de Gastos', 'Rentabilidad FIFO', 'Rentabilidad Sedes', 'Sedes y Cierres'],
         'ventas': ['Dashboard', 'WhatsApp', 'Pedidos', 'Clientes', 'Garantías', 'Productos', 'Categorías', 'Banners y Promos', 'Cupones Descuento', 'Sedes y Cierres'],
         'logistica': ['Dashboard', 'Pedidos', 'Productos', 'Nueva Entrada', 'Inventario RMA', 'Logística', 'Sedes y Cierres']
@@ -67,8 +68,8 @@ export function loadAdminSidebar(userRole = 'customer') {
     // --- 3. FILTRAR MENÚ SEGÚN EL ROL ---
     const filteredGroups = navGroups.map(group => {
         const allowedItems = group.items.filter(item => {
-            if (userRole === 'admin') return true;
-            // Configuración, Usuarios y Cupones siempre restringidos a Admin
+            if (userRole === 'admin' || userRole === 'developer') return true;
+            // Configuración, Usuarios y Cupones siempre restringidos a Admin y Developer
             if (item.name === 'Gestión Usuarios' || item.name === 'Configuración' || item.name === 'Proveedores' || item.name === 'Marcas') return false; 
             return rolePermissions[userRole]?.includes(item.name);
         });

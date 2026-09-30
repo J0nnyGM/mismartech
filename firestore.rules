@@ -22,11 +22,15 @@ service cloud.firestore {
 
     // Funciones de validación de roles
     function isAdmin() {
-      return isAuthenticated() && getUserData().role == 'admin';
+      return isAuthenticated() && getUserData().role in ['admin', 'developer'];
+    }
+
+    function isDeveloper() {
+      return isAuthenticated() && getUserData().role == 'developer';
     }
 
     function isStaff() {
-      return isAuthenticated() && getUserData().role in ['admin', 'ventas', 'contabilidad', 'logistica'];
+      return isAuthenticated() && getUserData().role in ['admin', 'developer', 'ventas', 'contabilidad', 'logistica'];
     }
 
     // ====================================================
@@ -138,9 +142,32 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
     
+    // ⚙️ CONFIGURACIONES DEL SISTEMA
+    // Credenciales sensibles de backend (acceso exclusivo para Desarrolladores)
+    match /config/developer {
+      allow read, write: if isDeveloper();
+    }
+    match /config/falabella {
+      allow read, write: if isDeveloper();
+    }
+    match /config/mercadolibre {
+      allow read, write: if isDeveloper();
+    }
+    match /config/mercadolibre_store2 {
+      allow read, write: if isDeveloper();
+    }
+    match /config/mercadolibre_store3 {
+      allow read, write: if isDeveloper();
+    }
+    // Estado de servicios para que administradores vean ACTIVO / DESACTIVADO sin ver secretos
+    match /config/services_status {
+      allow read: if isStaff();
+      allow write: if isDeveloper();
+    }
+    // Configuraciones públicas y operativas (mantenimiento, envíos, analítica)
     match /config/{configDoc} {
       allow read: if true;
-      allow write: if isAdmin(); // Configuraciones críticas solo Admin
+      allow write: if isAdmin();
     }
 
     // 8. CHATS Y ESTADÍSTICAS (Marketing)

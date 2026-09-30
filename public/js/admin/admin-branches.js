@@ -1231,6 +1231,34 @@ function calculateValuationFromQueue(queue, quantity, fallbackCost) {
     return totalValue;
 }
 
+function getBranchStock(item, activeBranchId) {
+    const totalStock = parseInt(item.stock) || 0;
+    if (activeBranchId === 'global') return totalStock;
+
+    const bStock = item.branchStock || {};
+    
+    // 1. Si la sede requerida está explícitamente en el map de branchStock
+    if (bStock[activeBranchId] !== undefined) {
+        return Math.max(0, parseInt(bStock[activeBranchId]) || 0);
+    }
+
+    // 2. Si la sede no está en el map, calcular cuánto stock fue asignado a OTRAS sedes secundarias
+    let allocatedToOtherBranches = 0;
+    Object.keys(bStock).forEach(bId => {
+        if (bId !== 'bodega') {
+            allocatedToOtherBranches += (parseInt(bStock[bId]) || 0);
+        }
+    });
+
+    // 3. Si la sede activa es la Bodega Principal (Matriz / bodega), se le asigna el remanente no asignado
+    if (activeBranchId === 'bodega') {
+        return Math.max(0, totalStock - allocatedToOtherBranches);
+    }
+
+    // 4. Para cualquier otra sede secundaria (ej. centro) sin registro en branchStock, su stock es 0 (no totalStock)
+    return 0;
+}
+
 function renderInventoryRows() {
     const activeBranchId = inventorySelectedBranchId || sessionStorage.getItem('activeBranchId') || 'bodega';
     const term = document.getElementById('inventory-search').value.toLowerCase().trim();
@@ -1248,11 +1276,7 @@ function renderInventoryRows() {
 
                 if (!term || fullName.toLowerCase().includes(term) || sku.toLowerCase().includes(term) || (p.brand && p.brand.toLowerCase().includes(term))) {
                     const totalStock = parseInt(combo.stock) || 0;
-                    const activeStock = (activeBranchId === 'global')
-                        ? totalStock
-                        : ((combo.branchStock && combo.branchStock[activeBranchId] !== undefined)
-                            ? (parseInt(combo.branchStock[activeBranchId]) || 0)
-                            : totalStock);
+                    const activeStock = getBranchStock(combo, activeBranchId);
                     const bodegaStock = (activeBranchId === 'global') ? 0 : Math.max(0, totalStock - activeStock);
 
                     let price = 0;
@@ -1284,11 +1308,7 @@ function renderInventoryRows() {
             const sku = p.sku || '---';
             if (!term || p.name.toLowerCase().includes(term) || sku.toLowerCase().includes(term) || (p.brand && p.brand.toLowerCase().includes(term))) {
                 const totalStock = parseInt(p.stock) || 0;
-                const activeStock = (activeBranchId === 'global')
-                    ? totalStock
-                    : ((p.branchStock && p.branchStock[activeBranchId] !== undefined)
-                        ? (parseInt(p.branchStock[activeBranchId]) || 0)
-                        : totalStock);
+                const activeStock = getBranchStock(p, activeBranchId);
                 const bodegaStock = (activeBranchId === 'global') ? 0 : Math.max(0, totalStock - activeStock);
 
                 let price = 0;

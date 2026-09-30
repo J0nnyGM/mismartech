@@ -10,27 +10,42 @@ if (!admin.apps.length) {
 // ==========================================
 // CONFIGURATION
 // ==========================================
-const IS_SANDBOX = false; 
-
-const ADDI_BASE_URL = IS_SANDBOX
-    ? "https://api.addi-staging.com"
-    : "https://api.addi.com";
-
 const ADDI_AUTH_URL = "https://auth.addi.com";
 const ADDI_AUDIENCE = "https://api.addi.com";
-
-const ADDI_CLIENT_ID = process.env.ADDI_CLIENT_ID;
-const ADDI_CLIENT_SECRET = process.env.ADDI_CLIENT_SECRET;
 const WEBHOOK_URL = "https://addiwebhook-wghz2bdqpq-uc.a.run.app";
+
+async function getAddiConfig(db) {
+    let clientId = process.env.ADDI_CLIENT_ID;
+    let clientSecret = process.env.ADDI_CLIENT_SECRET;
+    let isSandbox = false;
+
+    try {
+        const devDoc = await db.collection('config').doc('developer').get();
+        if (devDoc.exists) {
+            const data = devDoc.data();
+            if (data.ADDI_CLIENT_ID) clientId = data.ADDI_CLIENT_ID.trim();
+            if (data.ADDI_CLIENT_SECRET) clientSecret = data.ADDI_CLIENT_SECRET.trim();
+            if (data.ADDI_ENV) isSandbox = data.ADDI_ENV === 'sandbox';
+        }
+    } catch (err) {
+        console.error("Error reading ADDI config from Firestore:", err);
+    }
+
+    const baseUrl = isSandbox
+        ? "https://api.addi-staging.com"
+        : "https://api.addi.com";
+
+    return { clientId, clientSecret, isSandbox, baseUrl };
+}
 
 // ==========================================
 // HELPER: GET TOKEN
 // ==========================================
-async function getAddiToken() {
+async function getAddiToken(addiConfig) {
     try {
-        console.log(`🔐 Requesting Token (${IS_SANDBOX ? 'SANDBOX' : 'PROD'})...`);
+        console.log(`🔐 Requesting Token (${addiConfig.isSandbox ? 'SANDBOX' : 'PROD'})...`);
 
-        if (!ADDI_CLIENT_ID || !ADDI_CLIENT_SECRET) {
+        if (!addiConfig.clientId || !addiConfig.clientSecret) {
             throw new Error("ADDI credentials missing.");
         }
 
@@ -38,8 +53,8 @@ async function getAddiToken() {
             method: 'post',
             url: `${ADDI_AUTH_URL}/oauth/token`,
             data: {
-                client_id: ADDI_CLIENT_ID.trim(),
-                client_secret: ADDI_CLIENT_SECRET.trim(),
+                client_id: addiConfig.clientId.trim(),
+                client_secret: addiConfig.clientSecret.trim(),
                 audience: ADDI_AUDIENCE,
                 grant_type: "client_credentials"
             },
@@ -122,6 +137,7 @@ exports.createAddiCheckout = async (data, context) => {
         clientDoc: clientDoc,
         
         shippingData: shippingData,
+        shippingType: shippingData.shippingType || 'ESTANDAR',
         billingData: extraData.billingData || null,
         requiresInvoice: extraData.needsInvoice || false,
 
@@ -141,7 +157,8 @@ exports.createAddiCheckout = async (data, context) => {
     });
 
     // 4. Preparar Payload ADDI (Para la API Externa)
-    const addiToken = await getAddiToken();
+    const addiConfig = await getAddiConfig(db);
+    const addiToken = await getAddiToken(addiConfig);
 
     // Limpieza específica para la API de ADDI (no afecta lo guardado en Firebase)
     const cleanDoc = String(clientDoc).replace(/\D/g, '');
@@ -200,7 +217,7 @@ exports.createAddiCheckout = async (data, context) => {
     console.log("📤 Enviando a ADDI:", JSON.stringify(addiPayload));
 
     try {
-        const response = await axios.post(`${ADDI_BASE_URL}/v1/online-applications`, addiPayload, {
+        const response = await axios.post(`${addiConfig.baseUrl}/v1/online-applications`, addiPayload, {
             headers: {
                 'Authorization': `Bearer ${addiToken}`,
                 'Content-Type': 'application/json',

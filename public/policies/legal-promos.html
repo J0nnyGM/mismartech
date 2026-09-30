@@ -204,7 +204,7 @@
                     ? `${p.value}% de descuento sobre productos seleccionados` 
                     : p.type === 'fixed_amount' 
                     ? `$${p.value.toLocaleString('es-CO')} COP de descuento sobre productos seleccionados` 
-                    : 'Envío Gratis a nivel nacional';
+                    : 'Envío Gratis a nivel nacional* (Sujeto a cobertura ordinaria)';
 
                 const minOrderText = p.minOrderValue > 0 
                     ? `Compra mínima de $${p.minOrderValue.toLocaleString('es-CO')} COP.` 
@@ -234,6 +234,10 @@
                     };
                     const resolvedPayments = p.applicablePaymentMethods.map(m => payMethodsMap[m.toUpperCase()] || m);
                     rules.push(`Válido exclusivamente pagando con <strong>${resolvedPayments.join(', ')}</strong>.`);
+                }
+                
+                if (p.type === 'free_shipping') {
+                    rules.push(`Beneficio sujeto a cobertura ordinaria nacional y volumen según nuestra <a href="/policies/shipping.html" class="underline text-brand-orange font-bold hover:text-orange-600 transition">Política de Envíos</a>.`);
                 }
                 
                 if (p.isStackable) {

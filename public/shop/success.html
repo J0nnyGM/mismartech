@@ -389,8 +389,8 @@
             document.getElementById('order-subtotal').textContent = `$${subtotal.toLocaleString('es-CO')}`;
             const shippingEl = document.getElementById('order-shipping');
             if (shipping === 0) {
-                shippingEl.textContent = "GRATIS";
-                shippingEl.className = "font-black text-emerald-600 text-base uppercase tracking-wider animate-pulse";
+                shippingEl.textContent = "GRATIS*";
+                shippingEl.className = "font-black text-emerald-600 text-base uppercase tracking-wider";
             } else {
                 shippingEl.textContent = `$${shipping.toLocaleString('es-CO')}`;
                 shippingEl.className = "font-black text-brand-black text-base";

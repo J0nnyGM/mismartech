@@ -1,16 +1,43 @@
+const admin = require("firebase-admin");
 const { onDocumentCreated, onDocumentUpdated } = require("firebase-functions/v2/firestore");
 const nodemailer = require("nodemailer");
 
-// --- CONFIGURACIÓN DE TRANSPORTE ---
-const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT) || 465,
-    secure: true,
-    auth: {
-        user: process.env.SMTP_EMAIL,
-        pass: process.env.SMTP_PASSWORD
+// --- CONFIGURACIÓN DE TRANSPORTE DINÁMICO ---
+async function getMailTransporter() {
+    let host = process.env.SMTP_HOST;
+    let port = parseInt(process.env.SMTP_PORT) || 465;
+    let user = process.env.SMTP_EMAIL;
+    let pass = process.env.SMTP_PASSWORD;
+
+    try {
+        const db = admin.firestore();
+        const devDoc = await db.collection('config').doc('developer').get();
+        if (devDoc.exists) {
+            const data = devDoc.data();
+            if (data.SMTP_HOST) host = data.SMTP_HOST.trim();
+            if (data.SMTP_PORT) port = parseInt(data.SMTP_PORT) || 465;
+            if (data.SMTP_EMAIL) user = data.SMTP_EMAIL.trim();
+            if (data.SMTP_PASSWORD) pass = data.SMTP_PASSWORD.trim();
+        }
+    } catch (e) {
+        console.error("Error reading SMTP config from Firestore:", e);
     }
-});
+
+    if (!host || !user || !pass) {
+        console.warn("Servicio SMTP no configurado.");
+        return null;
+    }
+
+    return {
+        fromEmail: user,
+        mailer: nodemailer.createTransport({
+            host: host,
+            port: port,
+            secure: port === 465,
+            auth: { user, pass }
+        })
+    };
+}
 
 // --- HELPER: Formatear Moneda ---
 const formatMoney = (amount) => {
@@ -147,7 +174,7 @@ function getBeautifulEmailTemplate(type, order, orderId) {
                                     <tr>
                                         <td style="padding: 5px 0; color: #64748b; font-size: 14px;">Envío</td>
                                         <td style="text-align: right; color: ${primaryColor}; font-weight: bold;">
-                                            ${order.shippingCost ? formatMoney(order.shippingCost) : 'GRATIS'}
+                                            ${order.shippingData?.shippingType === 'FLETE_AL_COBRO' || order.shippingType === 'FLETE_AL_COBRO' ? 'AL COBRO (Pagas al recibir)' : (order.shippingCost ? formatMoney(order.shippingCost) : 'GRATIS')}
                                         </td>
                                     </tr>
                                     <tr>
@@ -232,17 +259,20 @@ exports.sendOrderConfirmation = onDocumentCreated("orders/{orderId}", async (eve
         return;
     }
 
+    const mailerObj = await getMailTransporter();
+    if (!mailerObj) return;
+
     const htmlContent = getBeautifulEmailTemplate('CONFIRMATION', orderData, orderId);
 
     const mailOptions = {
-        from: `"MiSmartech Pedidos" <${process.env.SMTP_EMAIL}>`,
+        from: `"MiSmartech Pedidos" <${mailerObj.fromEmail}>`,
         to: email,
         subject: `¡Recibimos tu pedido! #${orderId.slice(0,8).toUpperCase()} 🎉`,
         html: htmlContent
     };
 
     try {
-        await transporter.sendMail(mailOptions);
+        await mailerObj.mailer.sendMail(mailOptions);
         console.log(`Email CONFIRMACION enviado a ${email}`);
         return event.data.ref.update({ confirmationEmailSent: true });
     } catch (error) {
@@ -266,17 +296,20 @@ exports.sendDispatchNotification = onDocumentUpdated("orders/{orderId}", async (
         const email = newData.buyerInfo?.email;
         if (!email) return;
 
+        const mailerObj = await getMailTransporter();
+        if (!mailerObj) return;
+
         const htmlContent = getBeautifulEmailTemplate('DISPATCH', newData, orderId);
 
         const mailOptions = {
-            from: `"MiSmartech Envíos" <${process.env.SMTP_EMAIL}>`,
+            from: `"MiSmartech Envíos" <${mailerObj.fromEmail}>`,
             to: email,
             subject: `¡Tu pedido va en camino! 🚚 #${orderId.slice(0,8).toUpperCase()}`,
             html: htmlContent
         };
 
         try {
-            await transporter.sendMail(mailOptions);
+            await mailerObj.mailer.sendMail(mailOptions);
             console.log(`Email DESPACHO enviado a ${email}`);
             return event.data.after.ref.update({ dispatchEmailSent: true });
         } catch (error) {

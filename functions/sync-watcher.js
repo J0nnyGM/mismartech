@@ -53,6 +53,16 @@ COLLECTIONS_TO_WATCH.forEach(collectionName => {
             }
         }
 
+        // 🔥 SINCRONIZACIÓN AUTOMÁTICA DE STOCK A MERCADOLIBRE AL CAMBIAR PRODUCTO
+        if (collectionName === "products") {
+            try {
+                const { syncProductStockToML } = require("./mercadolibre");
+                await syncProductStockToML(admin.firestore(), previousData, newData);
+            } catch (err) {
+                console.error(`[SyncWatcher ML Sync Error] products/${event.params.docId}:`, err);
+            }
+        }
+
         // EVITAR BUCLES INFINITOS:
         const now = admin.firestore.Timestamp.now();
         let needsUpdate = false;

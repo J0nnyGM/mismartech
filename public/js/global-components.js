@@ -378,6 +378,9 @@ export function injectCartDrawerHTML() {
                 <div class="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
                     <div id="shipping-progress-drawer" class="h-full bg-brand-orange transition-all duration-500 w-0"></div>
                 </div>
+                <div class="text-center mt-1.5">
+                    <a href="/policies/shipping.html" class="text-[8px] text-gray-400 hover:text-brand-orange font-medium underline inline-flex items-center gap-1">*Aplican condiciones y restricciones de envío</a>
+                </div>
             </div>
 
             <div id="cart-drawer-items" class="flex-grow overflow-y-auto px-6 py-4 space-y-4 no-scrollbar relative bg-white">
@@ -418,7 +421,7 @@ export async function initHeaderLogic() {
         const renderBanner = (data) => {
             let freeHTML = '';
             if (data && data.freeThreshold > 0) {
-                freeHTML = `<span class="mx-8 flex items-center gap-2 text-brand-orange"><i class="fa-solid fa-gift animate-pulse"></i> ENVÍO GRATIS DESDE $${parseInt(data.freeThreshold).toLocaleString('es-CO')}</span>`;
+                freeHTML = `<a href="/policies/shipping.html" class="mx-8 flex items-center gap-2 text-brand-orange hover:underline cursor-pointer"><i class="fa-solid fa-gift animate-pulse"></i> ENVÍO GRATIS* DESDE $${parseInt(data.freeThreshold).toLocaleString('es-CO')}</a>`;
             }
             const baseContent = `<span class="mx-8 flex items-center gap-2"><i class="fa-solid fa-truck-fast text-brand-orange"></i> Envíos a toda Colombia</span><span class="mx-8 flex items-center gap-2"><i class="fa-solid fa-hand-holding-dollar text-brand-orange"></i> Contra entrega disponible</span><span class="mx-8 flex items-center gap-2"><i class="fa-solid fa-credit-card text-brand-orange"></i> Paga con MERCADOPAGO o SISTECREDITO</span>${freeHTML}`;
             
@@ -604,18 +607,36 @@ export async function initHeaderLogic() {
             if (cachedConfig) {
                 const data = JSON.parse(cachedConfig);
                 const threshold = parseInt(data.freeThreshold) || 0;
+                const excludedIds = data.excludedProductIds || (data.excludedProducts ? data.excludedProducts.map(p => p.id) : []);
+                const hasExcludedItem = cart.some(item => excludedIds.includes(item.id));
+
                 if (threshold > 0) {
                     shippingBarContainer.classList.remove('hidden');
-                    const diff = threshold - subtotal;
-                    let percent = subtotal >= threshold ? 100 : (subtotal / threshold) * 100;
-                    shippingBar.style.width = `${percent}%`;
-                    
-                    if (diff > 0) {
-                        shippingMsg.innerHTML = `TE FALTAN <span class="text-brand-orange font-black">$${diff.toLocaleString('es-CO')}</span> PARA ENVÍO GRATIS`;
-                        shippingBar.classList.remove('bg-emerald-500'); shippingBar.classList.add('bg-brand-orange');
+                    if (hasExcludedItem) {
+                        const isFleteCobro = (data.bulkyShippingMode || 'flete_al_cobro') === 'flete_al_cobro';
+                        if (isFleteCobro) {
+                            shippingMsg.innerHTML = `<span class="text-sky-500 font-bold"><i class="fa-solid fa-truck-ramp-box mr-1"></i> PRODUCTO VOLUMINOSO (FLETE AL COBRO AL RECIBIR)</span>`;
+                            shippingBar.style.width = '100%';
+                            shippingBar.classList.remove('bg-emerald-500', 'bg-brand-orange', 'bg-amber-500');
+                            shippingBar.classList.add('bg-sky-500');
+                        } else {
+                            shippingMsg.innerHTML = `<span class="text-amber-600 font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i> PRODUCTO DE GRAN VOLUMEN (ENVÍO ESTÁNDAR)</span>`;
+                            shippingBar.style.width = '100%';
+                            shippingBar.classList.remove('bg-emerald-500', 'bg-brand-orange', 'bg-sky-500');
+                            shippingBar.classList.add('bg-amber-500');
+                        }
                     } else {
-                        shippingMsg.innerHTML = `<span class="text-emerald-500 font-black"><i class="fa-solid fa-check-circle"></i> ¡TIENES ENVÍO GRATIS!</span>`;
-                        shippingBar.classList.remove('bg-brand-orange'); shippingBar.classList.add('bg-emerald-500');
+                        const diff = threshold - subtotal;
+                        let percent = subtotal >= threshold ? 100 : (subtotal / threshold) * 100;
+                        shippingBar.style.width = `${percent}%`;
+                        
+                        if (diff > 0) {
+                            shippingMsg.innerHTML = `TE FALTAN <span class="text-brand-orange font-black">$${diff.toLocaleString('es-CO')}</span> PARA ENVÍO GRATIS*`;
+                            shippingBar.classList.remove('bg-emerald-500', 'bg-amber-500'); shippingBar.classList.add('bg-brand-orange');
+                        } else {
+                            shippingMsg.innerHTML = `<span class="text-emerald-500 font-black"><i class="fa-solid fa-check-circle"></i> ¡TIENES ENVÍO GRATIS!*</span>`;
+                            shippingBar.classList.remove('bg-brand-orange', 'bg-amber-500'); shippingBar.classList.add('bg-emerald-500');
+                        }
                     }
                 } else {
                     shippingBarContainer.classList.add('hidden');

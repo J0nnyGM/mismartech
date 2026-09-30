@@ -24,17 +24,24 @@
 
         <main class="flex-1 flex flex-col h-screen overflow-y-auto w-full relative custom-scroll">
             
-            <header class="bg-white border-b border-gray-200 p-4 flex justify-between items-center md:hidden sticky top-0 z-20">
-                <span class="font-black text-brand-black">CONFIGURACIÓN</span>
+            <header class="bg-white/90 backdrop-blur-xl border-b border-gray-100 px-8 py-5 flex flex-col sm:flex-row justify-between items-start sm:items-center sticky top-0 z-30 shadow-sm gap-4 sm:gap-0 shrink-0">
+                <div>
+                    <h2 class="font-black text-gray-400 text-[9px] uppercase tracking-[0.3em] mb-1">Ajustes & Conectividad</h2>
+                    <h1 class="text-2xl font-black text-brand-black tracking-tighter uppercase">Panel de <span class="text-brand-orange">Configuración</span></h1>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 bg-brand-black text-white rounded-xl flex items-center justify-center font-bold shadow-lg">
+                        <i class="fa-solid fa-gears"></i>
+                    </div>
+                </div>
             </header>
 
-            <div class="p-6 md:p-12 w-full pb-24 md:pb-12">
-                
-                <h1 class="text-3xl md:text-4xl font-black mb-2 text-brand-black tracking-tight">Configuración</h1>
-                <p class="text-gray-500 mb-10 text-sm font-medium">Estado de integraciones y pasarelas.</p>
+            <div class="p-8 max-w-[1600px] mx-auto w-full pb-20">
+                <p class="text-sm text-gray-500 mb-8 font-medium">Estado de integraciones y pasarelas de la plataforma.</p>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
+                    <!-- Mercado Pago Card -->
                     <div class="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-xl relative overflow-hidden">
                         <div class="flex justify-between items-start mb-6">
                             <div class="flex items-center gap-4">
@@ -46,19 +53,20 @@
                                     <p class="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">Pasarela de Pagos</p>
                                 </div>
                             </div>
-                            <span class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-green-100 text-green-600 border border-green-200">
-                                ACTIVO
+                            <span id="status-badge-mp" class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-red-100 text-red-600 border border-red-200">
+                                DESACTIVADO
                             </span>
                         </div>
                         <p class="text-sm text-gray-500 mb-4">
-                            Procesa pagos con tarjeta de crédito, débito y PSE. Configurado mediante variables de entorno seguras.
+                            Procesa pagos con tarjeta de crédito, débito y PSE.
                         </p>
                         <div class="p-4 bg-gray-50 rounded-xl border border-gray-200 flex items-center gap-3">
                             <i class="fa-solid fa-server text-gray-400"></i>
-                            <p class="text-xs text-gray-500 font-medium">Gestión vía Servidor (Cloud Functions)</p>
+                            <p class="text-xs text-gray-500 font-medium">Contacta con el desarrollador para cambiar esta configuración.</p>
                         </div>
                     </div>
 
+                    <!-- ADDI Card -->
                     <div class="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-xl relative overflow-hidden">
                         <div class="flex justify-between items-start mb-6">
                             <div class="flex items-center gap-4">
@@ -70,7 +78,7 @@
                                     <p class="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">Buy Now, Pay Later</p>
                                 </div>
                             </div>
-                            <span class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-red-100 text-red-600 border border-red-200">
+                            <span id="status-badge-addi" class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-red-100 text-red-600 border border-red-200">
                                 DESACTIVADO
                             </span>
                         </div>
@@ -79,7 +87,7 @@
                         </p>
                         <div class="p-4 bg-gray-50 rounded-xl border border-gray-200 flex items-center gap-3">
                             <i class="fa-solid fa-code text-gray-400"></i>
-                            <p class="text-xs text-gray-500 font-medium">Configurado en Variables de Entorno (.env)</p>
+                            <p class="text-xs text-gray-500 font-medium">Contacta con el desarrollador para cambiar esta configuración.</p>
                         </div>
                         <div class="mt-4 flex gap-2">
                             <a href="https://aliados.addi.com/" target="_blank" class="text-[10px] font-bold text-[#00D6D6] hover:underline flex items-center gap-1">
@@ -100,8 +108,8 @@
                                     <p class="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">Crédito de Consumo</p>
                                 </div>
                             </div>
-                            <span class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-green-100 text-green-600 border border-green-200">
-                                ACTIVO
+                            <span id="status-badge-sc" class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-red-100 text-red-600 border border-red-200">
+                                DESACTIVADO
                             </span>
                         </div>
                         <p class="text-sm text-gray-500 mb-4">
@@ -109,51 +117,276 @@
                         </p>
                         <div class="p-4 bg-gray-50 rounded-xl border border-gray-200 flex items-center gap-3">
                             <i class="fa-solid fa-server text-gray-400"></i>
-                            <p class="text-xs text-gray-500 font-medium">Gestión vía Servidor (Cloud Functions)</p>
+                            <p class="text-xs text-gray-500 font-medium">Contacta con el desarrollador para cambiar esta configuración.</p>
                         </div>
                     </div>
 
-                    <!-- Mercado Libre Card -->
+                    <!-- Correo SMTP Card -->
+                    <div class="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-xl relative overflow-hidden">
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="flex items-center gap-4">
+                                <div class="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 text-2xl">
+                                    <i class="fa-solid fa-envelope"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-xl text-gray-900">Correo SMTP</h3>
+                                    <p class="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">Notificaciones por Email</p>
+                                </div>
+                            </div>
+                            <span id="status-badge-smtp" class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-red-100 text-red-600 border border-red-200">
+                                DESACTIVADO
+                            </span>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-4">
+                            Envío automático de notificaciones de compra, facturas digitales y alertas operativas a clientes.
+                        </p>
+                        <div class="p-4 bg-gray-50 rounded-xl border border-gray-200 flex items-center gap-3">
+                            <i class="fa-solid fa-server text-gray-400"></i>
+                            <p class="text-xs text-gray-500 font-medium">Contacta con el desarrollador para cambiar esta configuración.</p>
+                        </div>
+                    </div>
+
+                    <!-- WhatsApp Cloud API Card -->
+                    <div class="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-xl relative overflow-hidden">
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="flex items-center gap-4">
+                                <div class="w-14 h-14 bg-green-50 rounded-2xl flex items-center justify-center text-green-600 text-2xl">
+                                    <i class="fa-brands fa-whatsapp"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-xl text-gray-900">WhatsApp API</h3>
+                                    <p class="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">Notificaciones Automáticas</p>
+                                </div>
+                            </div>
+                            <span id="status-badge-whatsapp" class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-red-100 text-red-600 border border-red-200">
+                                DESACTIVADO
+                            </span>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-4">
+                            Notifica guías de despacho, confirmaciones de pedido y campañas masivas de WhatsApp de forma directa.
+                        </p>
+                        <div class="p-4 bg-gray-50 rounded-xl border border-gray-200 flex items-center gap-3">
+                            <i class="fa-solid fa-server text-gray-400"></i>
+                            <p class="text-xs text-gray-500 font-medium">Contacta con el desarrollador para cambiar esta configuración.</p>
+                        </div>
+                    </div>
+
+                    <!-- MercadoLibre Tienda 1 Card -->
                     <div class="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-xl relative overflow-hidden flex flex-col justify-between">
                         <div>
                             <div class="flex justify-between items-start mb-6">
                                 <div class="flex items-center gap-4">
-                                    <div class="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-500 text-2xl font-black">
-                                        ML
+                                    <div class="w-14 h-14 bg-yellow-50 rounded-2xl flex items-center justify-center text-yellow-600 text-2xl shadow-inner">
+                                        <i class="fa-solid fa-store"></i>
                                     </div>
                                     <div>
-                                        <h3 class="font-bold text-xl text-gray-900">Mercado Libre</h3>
-                                        <p class="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">Integración de Ventas</p>
+                                        <h3 class="font-bold text-xl text-gray-900">MercadoLibre - Tienda 1</h3>
+                                        <p class="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">Integración de Canal Principal</p>
                                     </div>
                                 </div>
-                                <span id="ml-status-badge" class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-gray-100 text-gray-500 border border-gray-200">
-                                    Cargando...
+                                <span id="status-badge-ml1" class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-red-100 text-red-600 border border-red-200">
+                                    DESACTIVADO
                                 </span>
                             </div>
-                            <p class="text-sm text-gray-500 mb-4">
-                                Sincroniza stock, órdenes y rótulos de despacho de tus tiendas de Mercado Libre de forma automática.
+                            <p class="text-sm text-gray-500 mb-6">
+                                Sincroniza stock, precios y descarga pedidos de tu primera cuenta de MercadoLibre en tiempo real.
                             </p>
-                            
-                            <div class="space-y-3 mb-6">
-                                <div class="p-3 bg-gray-50 rounded-xl border border-gray-100 text-xs">
-                                    <p class="font-bold text-gray-700 mb-1">Tienda 1 (Principal):</p>
-                                    <p id="ml-store1-info" class="text-gray-500">Cargando estado...</p>
-                                </div>
-                                <div class="p-3 bg-gray-50 rounded-xl border border-gray-100 text-xs">
-                                    <p class="font-bold text-gray-700 mb-1">Tienda 2:</p>
-                                    <p id="ml-store2-info" class="text-gray-500">Cargando estado...</p>
-                                </div>
-                                <div class="p-3 bg-gray-50 rounded-xl border border-gray-100 text-xs">
-                                    <p class="font-bold text-gray-700 mb-1">Tienda 3:</p>
-                                    <p id="ml-store3-info" class="text-gray-500">Cargando estado...</p>
-                                </div>
-                            </div>
                         </div>
                         
+                        <!-- Contenedor dinámico de estado y acciones -->
+                        <div class="space-y-3 pt-3 border-t border-gray-100">
+                            <!-- Estado de Cuenta Conectada (visible si está ACTIVO) -->
+                            <div id="ml1-account-info" class="hidden p-3.5 bg-amber-50/80 rounded-2xl border border-amber-200/80 text-xs">
+                                <div class="flex items-center justify-between gap-2 mb-1">
+                                    <span class="font-bold text-gray-800 flex items-center gap-1.5 truncate">
+                                        <i class="fa-solid fa-circle-check text-green-500 text-sm"></i>
+                                        <span id="ml1-account-name">Conectado</span>
+                                    </span>
+                                    <span id="ml1-account-id" class="text-[10px] font-mono text-gray-500 bg-white/90 px-2 py-0.5 rounded border border-gray-200 shrink-0">ID: -</span>
+                                </div>
+                                <p class="text-[11px] text-gray-500">Sincronización activa de pedidos y stock por SKU.</p>
+                            </div>
+
+                            <!-- Botones de Acción -->
+                            <div class="flex items-center gap-2">
+                                <button type="button" id="btn-link-ml1" class="flex-1 bg-[#FFE600] hover:bg-[#F5DC00] active:scale-[0.98] text-gray-900 font-black text-xs py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition shadow-sm border border-yellow-400/50">
+                                    <i class="fa-solid fa-link"></i> <span id="ml1-btn-label">Enlazar Aplicación</span>
+                                </button>
+                                <button type="button" id="btn-disconnect-ml1" class="hidden px-3.5 py-3 rounded-xl border border-red-200 text-red-500 hover:bg-red-50 text-xs font-bold transition" title="Desvincular Tienda 1">
+                                    <i class="fa-solid fa-link-slash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MercadoLibre Tienda 2 Card -->
+                    <div class="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-xl relative overflow-hidden flex flex-col justify-between">
                         <div>
-                            <button onclick="window.openMeliAuthModal()" class="w-full bg-brand-orange text-white py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-black hover:shadow-lg transition-all duration-300 transform active:scale-95">
-                                <i class="fa-solid fa-key"></i> Autorizar Aplicación
-                            </button>
+                            <div class="flex justify-between items-start mb-6">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-14 h-14 bg-yellow-50/70 rounded-2xl flex items-center justify-center text-yellow-600 text-2xl shadow-inner">
+                                        <i class="fa-solid fa-store"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-xl text-gray-900">MercadoLibre - Tienda 2</h3>
+                                        <p class="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">Integración de Canal Secundario</p>
+                                    </div>
+                                </div>
+                                <span id="status-badge-ml2" class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-red-100 text-red-600 border border-red-200">
+                                    DESACTIVADO
+                                </span>
+                            </div>
+                            <p class="text-sm text-gray-500 mb-6">
+                                Sincroniza stock, precios y descarga pedidos de tu segunda cuenta de MercadoLibre en tiempo real.
+                            </p>
+                        </div>
+                        
+                        <!-- Contenedor dinámico de estado y acciones -->
+                        <div class="space-y-3 pt-3 border-t border-gray-100">
+                            <!-- Estado de Cuenta Conectada (visible si está ACTIVO) -->
+                            <div id="ml2-account-info" class="hidden p-3.5 bg-amber-50/80 rounded-2xl border border-amber-200/80 text-xs">
+                                <div class="flex items-center justify-between gap-2 mb-1">
+                                    <span class="font-bold text-gray-800 flex items-center gap-1.5 truncate">
+                                        <i class="fa-solid fa-circle-check text-green-500 text-sm"></i>
+                                        <span id="ml2-account-name">Conectado</span>
+                                    </span>
+                                    <span id="ml2-account-id" class="text-[10px] font-mono text-gray-500 bg-white/90 px-2 py-0.5 rounded border border-gray-200 shrink-0">ID: -</span>
+                                </div>
+                                <p class="text-[11px] text-gray-500">Sincronización activa de pedidos y stock por SKU.</p>
+                            </div>
+
+                            <!-- Botones de Acción -->
+                            <div class="flex items-center gap-2">
+                                <button type="button" id="btn-link-ml2" class="flex-1 bg-[#FFE600] hover:bg-[#F5DC00] active:scale-[0.98] text-gray-900 font-black text-xs py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition shadow-sm border border-yellow-400/50">
+                                    <i class="fa-solid fa-link"></i> <span id="ml2-btn-label">Enlazar Aplicación</span>
+                                </button>
+                                <button type="button" id="btn-disconnect-ml2" class="hidden px-3.5 py-3 rounded-xl border border-red-200 text-red-500 hover:bg-red-50 text-xs font-bold transition" title="Desvincular Tienda 2">
+                                    <i class="fa-solid fa-link-slash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MercadoLibre Tienda 3 Card -->
+                    <div class="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-xl relative overflow-hidden flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-start mb-6">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-14 h-14 bg-yellow-50/50 rounded-2xl flex items-center justify-center text-yellow-600 text-2xl shadow-inner">
+                                        <i class="fa-solid fa-store"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-xl text-gray-900">MercadoLibre - Tienda 3</h3>
+                                        <p class="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">Integración de Canal Adicional</p>
+                                    </div>
+                                </div>
+                                <span id="status-badge-ml3" class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-red-100 text-red-600 border border-red-200">
+                                    DESACTIVADO
+                                </span>
+                            </div>
+                            <p class="text-sm text-gray-500 mb-6">
+                                Sincroniza stock, precios y descarga pedidos de tu tercera cuenta de MercadoLibre en tiempo real.
+                            </p>
+                        </div>
+                        
+                        <!-- Contenedor dinámico de estado y acciones -->
+                        <div class="space-y-3 pt-3 border-t border-gray-100">
+                            <!-- Estado de Cuenta Conectada (visible si está ACTIVO) -->
+                            <div id="ml3-account-info" class="hidden p-3.5 bg-amber-50/80 rounded-2xl border border-amber-200/80 text-xs">
+                                <div class="flex items-center justify-between gap-2 mb-1">
+                                    <span class="font-bold text-gray-800 flex items-center gap-1.5 truncate">
+                                        <i class="fa-solid fa-circle-check text-green-500 text-sm"></i>
+                                        <span id="ml3-account-name">Conectado</span>
+                                    </span>
+                                    <span id="ml3-account-id" class="text-[10px] font-mono text-gray-500 bg-white/90 px-2 py-0.5 rounded border border-gray-200 shrink-0">ID: -</span>
+                                </div>
+                                <p class="text-[11px] text-gray-500">Sincronización activa de pedidos y stock por SKU.</p>
+                            </div>
+
+                            <!-- Botones de Acción -->
+                            <div class="flex items-center gap-2">
+                                <button type="button" id="btn-link-ml3" class="flex-1 bg-[#FFE600] hover:bg-[#F5DC00] active:scale-[0.98] text-gray-900 font-black text-xs py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition shadow-sm border border-yellow-400/50">
+                                    <i class="fa-solid fa-link"></i> <span id="ml3-btn-label">Enlazar Aplicación</span>
+                                </button>
+                                <button type="button" id="btn-disconnect-ml3" class="hidden px-3.5 py-3 rounded-xl border border-red-200 text-red-500 hover:bg-red-50 text-xs font-bold transition" title="Desvincular Tienda 3">
+                                    <i class="fa-solid fa-link-slash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Falabella Marketplace Card -->
+                    <div class="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-xl relative overflow-hidden">
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="flex items-center gap-4">
+                                <div class="w-14 h-14 bg-pink-50 rounded-2xl flex items-center justify-center text-pink-600 text-2xl">
+                                    <i class="fa-solid fa-bag-shopping"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-xl text-gray-900">Falabella Marketplace</h3>
+                                    <p class="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">Integración de Canal Falabella</p>
+                                </div>
+                            </div>
+                            <span id="status-badge-falabella" class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-red-100 text-red-600 border border-red-200">
+                                DESACTIVADO
+                            </span>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-4">
+                            Descarga automática de ventas, actualización de stocks y rótulos de envío del Marketplace de Falabella.
+                        </p>
+                        <div class="p-4 bg-gray-50 rounded-xl border border-gray-200 flex items-center gap-3">
+                            <i class="fa-solid fa-server text-gray-400"></i>
+                            <p class="text-xs text-gray-500 font-medium">Contacta con el desarrollador para cambiar esta configuración.</p>
+                        </div>
+                    </div>
+
+                    <!-- Recuperación de Carritos Card -->
+                    <div class="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-xl relative overflow-hidden">
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="flex items-center gap-4">
+                                <div class="w-14 h-14 bg-orange-50 rounded-2xl flex items-center justify-center text-brand-orange text-2xl">
+                                    <i class="fa-solid fa-cart-shopping"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-xl text-gray-900">Recuperación de Carritos</h3>
+                                    <p class="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">Recuperación por Correo</p>
+                                </div>
+                            </div>
+                            <span id="status-badge-cart-recovery" class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-red-100 text-red-600 border border-red-200">
+                                DESACTIVADO
+                            </span>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-4">
+                            Envía correos electrónicos automatizados con enlaces de pago directos a los clientes que abandonen su proceso de pago.
+                        </p>
+                        <div class="p-4 bg-gray-50 rounded-xl border border-gray-200 flex items-center gap-3">
+                            <i class="fa-solid fa-server text-gray-400"></i>
+                            <p class="text-xs text-gray-500 font-medium">Contacta con el desarrollador para cambiar esta configuración.</p>
+                        </div>
+                    </div>
+
+                    <!-- Chatbot de IA Card -->
+                    <div class="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-xl relative overflow-hidden">
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="flex items-center gap-4">
+                                <div class="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 text-2xl">
+                                    <i class="fa-solid fa-robot"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-xl text-gray-900">Chatbot de IA</h3>
+                                    <p class="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">Google Gemini API</p>
+                                </div>
+                            </div>
+                            <span id="status-badge-chatbot" class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-red-100 text-red-600 border border-red-200">
+                                DESACTIVADO
+                            </span>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-4">
+                            Auto-responde a tus clientes en WhatsApp de manera inteligente y natural utilizando el modelo Google Gemini.
+                        </p>
+                        <div class="p-4 bg-gray-50 rounded-xl border border-gray-200 flex items-center gap-3">
+                            <i class="fa-solid fa-server text-gray-400"></i>
+                            <p class="text-xs text-gray-500 font-medium">Contacta con el desarrollador para cambiar esta configuración.</p>
                         </div>
                     </div>
 
@@ -184,71 +417,907 @@
                         </div>
                     </div>
 
+                    <!-- Google & Meta Ads Integration Card -->
+                    <div class="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-xl relative overflow-hidden lg:col-span-2">
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="flex items-center gap-4">
+                                <div class="w-14 h-14 bg-gradient-to-tr from-blue-500 to-green-500 rounded-2xl flex items-center justify-center text-white text-2xl">
+                                    <i class="fa-solid fa-rectangle-ad"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-xl text-gray-900">Integración de Google & Meta Ads</h3>
+                                    <p class="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">Píxeles, Conversiones y Feeds de Catálogo</p>
+                                </div>
+                            </div>
+                            <span class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-blue-100 text-blue-600 border border-blue-200">
+                                MARKETING
+                            </span>
+                        </div>
+
+                        <!-- Form Inputs -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-2">Meta Pixel ID (Facebook)</label>
+                                <input type="text" id="marketing-pixel-id" placeholder="Ej: 123456789012345" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-3 text-xs font-semibold outline-none text-brand-black focus:border-brand-orange focus:bg-white transition-all">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-2">Google Analytics 4 (GA4) ID</label>
+                                <input type="text" id="marketing-ga-id" placeholder="Ej: G-XXXXXXXXXX" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-3 text-xs font-semibold outline-none text-brand-black focus:border-brand-orange focus:bg-white transition-all">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-2">Google Tag Manager (GTM) ID</label>
+                                <input type="text" id="marketing-gtm-id" placeholder="Ej: GTM-XXXXXXX" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-3 text-xs font-semibold outline-none text-brand-black focus:border-brand-orange focus:bg-white transition-all">
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-2">Google Ads Conversion ID</label>
+                                    <input type="text" id="marketing-ads-id" placeholder="Ej: AW-12345" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-3 text-xs font-semibold outline-none text-brand-black focus:border-brand-orange transition-all">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-2">Conversion Label</label>
+                                    <input type="text" id="marketing-ads-label" placeholder="Ej: AbC-dEf" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-3 text-xs font-semibold outline-none text-brand-black focus:border-brand-orange transition-all">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Catalog Feed Info and Rebuilding -->
+                        <div class="p-6 bg-slate-50 rounded-2xl border border-gray-200 space-y-4 mb-6">
+                            <h4 class="font-black text-xs uppercase tracking-wider text-brand-orange flex items-center gap-2">
+                                <i class="fa-solid fa-rss"></i> Feed de Productos para Google Merchant & Meta Catalog
+                            </h4>
+                            <p class="text-xs text-gray-500 font-medium leading-normal">
+                                Usa el siguiente enlace en Google Merchant Center o el Administrador de Ventas de Meta para importar tus productos automáticamente.
+                            </p>
+                            
+                            <div class="flex items-center gap-2">
+                                <input type="text" id="feed-url-display" readonly value="" class="flex-1 bg-white border border-gray-200 rounded-xl p-2.5 text-xs font-mono text-gray-600 outline-none">
+                                <button id="btn-copy-feed-url" class="bg-brand-black text-white px-4 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-orange hover:text-brand-black transition">
+                                    Copiar
+                                </button>
+                            </div>
+
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-2 border-t border-gray-200/60">
+                                <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">La caché del feed se actualiza automáticamente cada hora</span>
+                                <button id="btn-rebuild-feed" class="bg-white border border-gray-300 text-brand-black hover:border-brand-orange hover:text-brand-orange px-4 py-2 rounded-xl font-bold text-xs transition flex items-center gap-2">
+                                    <i class="fa-solid fa-arrows-rotate"></i> Reconstruir Caché del Feed
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Save Settings Button -->
+                        <div class="flex justify-end">
+                            <button id="btn-save-marketing" class="bg-brand-black text-white px-8 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-brand-orange hover:text-brand-black transition shadow-lg flex items-center gap-2">
+                                <i class="fa-solid fa-floppy-disk"></i> Guardar Integración de Ads
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Developer Settings (Backend) Card -->
+                    <div id="developer-settings-container" class="hidden bg-white p-8 rounded-[2rem] border border-gray-100 shadow-xl relative overflow-hidden lg:col-span-2">
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="flex items-center gap-4">
+                                <div class="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center text-brand-red text-2xl">
+                                    <i class="fa-solid fa-code"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-xl text-gray-900">Configuración de Desarrollador (Backend)</h3>
+                                    <p class="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">Configuración y credenciales de Cloud Functions</p>
+                                </div>
+                            </div>
+                            <span class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-red-100 text-brand-red border border-red-200">
+                                SÓLO DESARROLLADORES
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <!-- Mercado Pago -->
+                            <div class="p-6 bg-slate-50/50 rounded-2xl border border-gray-100 md:col-span-2">
+                                <h4 class="font-bold text-sm text-gray-900 mb-4 flex items-center gap-2"><i class="fa-solid fa-credit-card text-blue-500"></i> Mercado Pago</h4>
+                                <div>
+                                    <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-2">MP_ACCESS_TOKEN</label>
+                                    <input type="password" id="dev-mp-token" placeholder="AccessToken de producción de Mercado Pago" class="w-full bg-white border border-gray-200 rounded-xl p-3 text-xs font-mono outline-none text-brand-black focus:border-brand-orange transition-all">
+                                </div>
+                            </div>
+
+                            <!-- ADDI -->
+                            <div class="p-6 bg-slate-50/50 rounded-2xl border border-gray-100">
+                                <h4 class="font-bold text-sm text-gray-900 mb-4 flex items-center gap-2"><i class="fa-solid fa-circle-dollar-to-slot text-green-500"></i> Crédito ADDI</h4>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-2">ADDI_CLIENT_ID</label>
+                                        <input type="text" id="dev-addi-id" placeholder="Client ID de ADDI" class="w-full bg-white border border-gray-200 rounded-xl p-3 text-xs font-mono outline-none text-brand-black focus:border-brand-orange transition-all">
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-2">ADDI_CLIENT_SECRET</label>
+                                        <input type="password" id="dev-addi-secret" placeholder="Client Secret de ADDI" class="w-full bg-white border border-gray-200 rounded-xl p-3 text-xs font-mono outline-none text-brand-black focus:border-brand-orange transition-all">
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-2">ADDI_ENV (Entorno)</label>
+                                        <select id="dev-addi-env" class="w-full bg-white border border-gray-200 rounded-xl p-3 text-xs font-semibold outline-none text-brand-black focus:border-brand-orange transition-all">
+                                            <option value="sandbox">Sandbox (Pruebas)</option>
+                                            <option value="production">Production (Real)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Sistecrédito -->
+                            <div class="p-6 bg-slate-50/50 rounded-2xl border border-gray-100">
+                                <h4 class="font-bold text-sm text-gray-900 mb-4 flex items-center gap-2"><i class="fa-solid fa-money-bill-wave text-emerald-500"></i> Sistecrédito</h4>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-2">SC_API_KEY</label>
+                                        <input type="text" id="dev-sc-api-key" placeholder="API Key" class="w-full bg-white border border-gray-200 rounded-xl p-3 text-xs font-mono outline-none text-brand-black focus:border-brand-orange transition-all">
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-2">SC_APP_KEY</label>
+                                        <input type="text" id="dev-sc-app-key" placeholder="App Key" class="w-full bg-white border border-gray-200 rounded-xl p-3 text-xs font-mono outline-none text-brand-black focus:border-brand-orange transition-all">
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-2">SC_APP_TOKEN</label>
+                                        <input type="password" id="dev-sc-app-token" placeholder="App Token" class="w-full bg-white border border-gray-200 rounded-xl p-3 text-xs font-mono outline-none text-brand-black focus:border-brand-orange transition-all">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Servidor SMTP -->
+                            <div class="p-6 bg-slate-50/50 rounded-2xl border border-gray-100 md:col-span-2">
+                                <h4 class="font-bold text-sm text-gray-900 mb-4 flex items-center gap-2"><i class="fa-solid fa-envelope text-indigo-500"></i> SMTP (Correos Salientes)</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-2">SMTP_HOST</label>
+                                        <input type="text" id="dev-smtp-host" placeholder="mail.tuempresa.com" class="w-full bg-white border border-gray-200 rounded-xl p-3 text-xs font-mono outline-none text-brand-black focus:border-brand-orange transition-all">
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-2">SMTP_PORT</label>
+                                        <input type="text" id="dev-smtp-port" placeholder="465" class="w-full bg-white border border-gray-200 rounded-xl p-3 text-xs font-mono outline-none text-brand-black focus:border-brand-orange transition-all">
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-2">SMTP_EMAIL</label>
+                                        <input type="text" id="dev-smtp-email" placeholder="correo@tuempresa.com" class="w-full bg-white border border-gray-200 rounded-xl p-3 text-xs font-mono outline-none text-brand-black focus:border-brand-orange transition-all">
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-2">SMTP_PASSWORD</label>
+                                        <input type="password" id="dev-smtp-password" placeholder="Contraseña de la cuenta de correo" class="w-full bg-white border border-gray-200 rounded-xl p-3 text-xs font-mono outline-none text-brand-black focus:border-brand-orange transition-all">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- WhatsApp Cloud API -->
+                            <div class="p-6 bg-slate-50/50 rounded-2xl border border-gray-100 md:col-span-2">
+                                <h4 class="font-bold text-sm text-gray-900 mb-4 flex items-center gap-2"><i class="fa-solid fa-message text-green-500"></i> WhatsApp Cloud API</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-2">WHATSAPP_PHONE_ID</label>
+                                        <input type="text" id="dev-wa-phone-id" placeholder="ID del teléfono Meta" class="w-full bg-white border border-gray-200 rounded-xl p-3 text-xs font-mono outline-none text-brand-black focus:border-brand-orange transition-all">
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-2">WHATSAPP_VERIFY_TOKEN</label>
+                                        <input type="text" id="dev-wa-verify-token" placeholder="Token de verificación webhook" class="w-full bg-white border border-gray-200 rounded-xl p-3 text-xs font-mono outline-none text-brand-black focus:border-brand-orange transition-all">
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-2">WHATSAPP_API_TOKEN</label>
+                                        <input type="password" id="dev-wa-api-token" placeholder="Token de acceso permanente de Meta Developer" class="w-full bg-white border border-gray-200 rounded-xl p-3 text-xs font-mono outline-none text-brand-black focus:border-brand-orange transition-all">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Chatbot de WhatsApp con IA -->
+                            <div class="p-6 bg-slate-50/50 rounded-2xl border border-gray-100 md:col-span-2">
+                                <h4 class="font-bold text-sm text-gray-900 mb-4 flex items-center gap-2"><i class="fa-solid fa-robot text-brand-orange"></i> Chatbot de WhatsApp con IA (Gemini)</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-2">CHATBOT_ENABLED</label>
+                                        <select id="dev-chatbot-enabled" class="w-full bg-white border border-gray-200 rounded-xl p-3 text-xs outline-none text-brand-black focus:border-brand-orange transition-all">
+                                            <option value="false">DESACTIVADO</option>
+                                            <option value="true">ACTIVO (Auto-responder con IA)</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-2">CHATBOT_DELAY (Minutos)</label>
+                                        <select id="dev-chatbot-delay" class="w-full bg-white border border-gray-200 rounded-xl p-3 text-xs outline-none text-brand-black focus:border-brand-orange transition-all">
+                                            <option value="0">0 (Inmediato)</option>
+                                            <option value="1">1 Minuto</option>
+                                            <option value="1.5">1.5 Minutos</option>
+                                            <option value="2">2 Minutos</option>
+                                            <option value="2.5">2.5 Minutos</option>
+                                            <option value="3">3 Minutos</option>
+                                            <option value="5">5 Minutos</option>
+                                        </select>
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-2">GEMINI_API_KEY</label>
+                                        <input type="password" id="dev-gemini-api-key" placeholder="API Key de Google Gemini" class="w-full bg-white border border-gray-200 rounded-xl p-3 text-xs font-mono outline-none text-brand-black focus:border-brand-orange transition-all">
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-2">CHATBOT_PROMPT (Instrucciones del Negocio / Contexto)</label>
+                                        <textarea id="dev-chatbot-prompt" rows="5" placeholder="Define la personalidad de tu chatbot, horarios de atención, dirección física, políticas de envío y respuestas personalizadas..." class="w-full bg-white border border-gray-200 rounded-xl p-3 text-xs outline-none text-brand-black focus:border-brand-orange transition-all font-medium leading-relaxed"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- MercadoLibre Integración -->
+                            <div class="p-6 bg-slate-50/50 rounded-2xl border border-gray-100 md:col-span-2">
+                                <h4 class="font-bold text-sm text-gray-900 mb-4 flex items-center gap-2"><i class="fa-solid fa-store text-yellow-500"></i> MercadoLibre API Integración</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-2">ML_APP_ID (Tienda 1 - Principal)</label>
+                                        <input type="text" id="dev-ml-id" placeholder="App ID Tienda 1" class="w-full bg-white border border-gray-200 rounded-xl p-3 text-xs font-mono outline-none text-brand-black focus:border-brand-orange transition-all">
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-2">ML_CLIENT_SECRET (Tienda 1 - Principal)</label>
+                                        <input type="password" id="dev-ml-secret" placeholder="Client Secret Tienda 1" class="w-full bg-white border border-gray-200 rounded-xl p-3 text-xs font-mono outline-none text-brand-black focus:border-brand-orange transition-all">
+                                    </div>
+                                    <div class="md:col-span-2 border-t border-gray-200/50 my-2"></div>
+                                    <div>
+                                        <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-2">ML_APP_ID_2 (Tienda 2)</label>
+                                        <input type="text" id="dev-ml-id-2" placeholder="App ID Tienda 2" class="w-full bg-white border border-gray-200 rounded-xl p-3 text-xs font-mono outline-none text-brand-black focus:border-brand-orange transition-all">
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-2">ML_CLIENT_SECRET_2 (Tienda 2)</label>
+                                        <input type="password" id="dev-ml-secret-2" placeholder="Client Secret Tienda 2" class="w-full bg-white border border-gray-200 rounded-xl p-3 text-xs font-mono outline-none text-brand-black focus:border-brand-orange transition-all">
+                                    </div>
+                                    <div class="md:col-span-2 border-t border-gray-200/50 my-2"></div>
+                                    <div>
+                                        <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-2">ML_APP_ID_3 (Tienda 3)</label>
+                                        <input type="text" id="dev-ml-id-3" placeholder="App ID Tienda 3" class="w-full bg-white border border-gray-200 rounded-xl p-3 text-xs font-mono outline-none text-brand-black focus:border-brand-orange transition-all">
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-2">ML_CLIENT_SECRET_3 (Tienda 3)</label>
+                                        <input type="password" id="dev-ml-secret-3" placeholder="Client Secret Tienda 3" class="w-full bg-white border border-gray-200 rounded-xl p-3 text-xs font-mono outline-none text-brand-black focus:border-brand-orange transition-all">
+                                    </div>
+                                    <div class="md:col-span-2 border-t border-gray-200/50 my-2 pt-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                                        <div>
+                                            <p class="text-xs font-bold text-gray-800 uppercase">Sincronización Masiva de Stock por SKU</p>
+                                            <p class="text-[10px] text-gray-400 font-medium">Sincroniza el inventario actual de tus productos locales hacia todas tus publicaciones de MercadoLibre.</p>
+                                        </div>
+                                        <button type="button" id="btn-sync-ml-stock" class="bg-yellow-500 hover:bg-yellow-600 text-brand-black px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-wider transition shadow-md flex items-center gap-2 shrink-0">
+                                            <i class="fa-solid fa-arrows-rotate"></i> Sincronizar Stock por SKU
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Falabella Marketplace -->
+                            <div class="p-6 bg-slate-50/50 rounded-2xl border border-gray-100 md:col-span-2">
+                                <h4 class="font-bold text-sm text-gray-900 mb-4 flex items-center gap-2"><i class="fa-solid fa-bag-shopping text-pink-500"></i> Falabella Marketplace</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-2">FALABELLA_USER_ID</label>
+                                        <input type="text" id="dev-fal-user-id" placeholder="Seller Center User ID" class="w-full bg-white border border-gray-200 rounded-xl p-3 text-xs font-mono outline-none text-brand-black focus:border-brand-orange transition-all">
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-2">FALABELLA_API_KEY</label>
+                                        <input type="password" id="dev-fal-api-key" placeholder="Seller Center API Key" class="w-full bg-white border border-gray-200 rounded-xl p-3 text-xs font-mono outline-none text-brand-black focus:border-brand-orange transition-all">
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-2">FALABELLA_API_URL</label>
+                                        <input type="text" id="dev-fal-api-url" placeholder="https://sellercenter-api.falabella.com/" class="w-full bg-white border border-gray-200 rounded-xl p-3 text-xs font-mono outline-none text-brand-black focus:border-brand-orange transition-all">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Save Button -->
+                        <div class="flex justify-end">
+                            <button id="btn-save-developer" class="bg-brand-black text-white px-8 py-3.5 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-brand-orange hover:text-brand-black transition shadow-lg flex items-center gap-2">
+                                <i class="fa-solid fa-shield-halved"></i> Guardar Configuración de Backend
+                            </button>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Meli Auth Modal -->
-    <div id="meli-auth-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[999] flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-[2rem] p-8 max-w-md w-full shadow-2xl border border-gray-100 transform transition-all relative">
-            <button onclick="window.closeMeliAuthModal()" class="absolute top-6 right-6 w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-gray-400 hover:bg-slate-100 hover:text-brand-black transition">
-                <i class="fa-solid fa-xmark text-sm"></i>
+    <!-- Modal: Asistente para Enlazar MercadoLibre -->
+    <div id="modal-link-ml" class="fixed inset-0 z-50 hidden bg-brand-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white w-full max-w-xl rounded-[2rem] shadow-2xl border border-gray-100 p-6 sm:p-8 relative max-h-[90vh] overflow-y-auto my-auto">
+            <!-- Botón Cerrar -->
+            <button type="button" id="btn-close-ml-modal" class="absolute top-6 right-6 w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-800 flex items-center justify-center transition">
+                <i class="fa-solid fa-times text-lg"></i>
             </button>
-            
-            <h2 class="text-2xl font-black text-brand-black tracking-tight mb-2 uppercase">Vincular Mercado Libre</h2>
-            <p class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-6">Autorizar tiendas mediante OAuth</p>
-            
-            <form id="meli-auth-form" class="space-y-6">
-                <div>
-                    <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">Seleccionar Tienda</label>
-                    <select id="meli-auth-store" class="w-full bg-slate-50 border border-gray-100 px-4 py-3 rounded-xl text-xs font-bold text-brand-black focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition">
-                        <option value="1">Tienda 1 (Principal)</option>
-                        <option value="2">Tienda 2</option>
-                        <option value="3">Tienda 3</option>
-                    </select>
+
+            <!-- Encabezado Modal -->
+            <div class="flex items-center gap-4 mb-6">
+                <div class="w-14 h-14 bg-[#FFE600] rounded-2xl flex items-center justify-center text-gray-900 text-2xl shadow-sm shrink-0">
+                    <i class="fa-solid fa-store"></i>
                 </div>
-                
                 <div>
-                    <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">Redirect URI de tu App</label>
-                    <input type="url" id="meli-auth-redirect" placeholder="https://mi-tienda.com/admin/settings.html" class="w-full bg-slate-50 border border-gray-100 px-4 py-3 rounded-xl text-xs font-bold text-brand-black focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition" required>
-                    <p class="text-[9px] text-gray-400 mt-2 leading-relaxed">
-                        Debe coincidir exactamente con la URI de redireccionamiento configurada en la consola de Mercado Libre Developers.
-                    </p>
+                    <h3 id="modal-ml-title" class="text-xl font-black text-gray-900 leading-tight">Enlazar MercadoLibre - Tienda 1</h3>
+                    <p id="modal-ml-subtitle" class="text-xs text-gray-500 font-medium mt-1">Conecta tu cuenta oficial de MercadoLibre para sincronizar órdenes y stock por SKU.</p>
+                </div>
+            </div>
+
+            <!-- Contenedor de Estado Actual si está conectada -->
+            <div id="modal-ml-connected-alert" class="hidden mb-5 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs">
+                <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2 text-emerald-800 font-bold">
+                        <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
+                        <span>Tienda actualmente vinculada: <strong id="modal-ml-connected-name" class="text-emerald-950 font-black">-</strong></span>
+                    </div>
+                    <span id="modal-ml-connected-id" class="text-[10px] font-mono bg-white px-2 py-0.5 rounded border border-emerald-200 text-emerald-800">ID: -</span>
+                </div>
+                <p class="text-[11px] text-emerald-700 mt-1">Puedes volver a autorizar si necesitas actualizar permisos o cambiar de usuario.</p>
+            </div>
+
+            <!-- Paso 1: Configurar Redirect URI en developers.mercadolibre.com -->
+            <div class="mb-5 p-5 bg-amber-50/70 border border-amber-200/80 rounded-2xl space-y-3">
+                <div class="flex items-start gap-2.5">
+                    <span class="w-6 h-6 rounded-full bg-amber-500 text-white font-black text-xs flex items-center justify-center shrink-0 mt-0.5">1</span>
+                    <div>
+                        <h4 class="font-bold text-xs uppercase tracking-wider text-amber-900">URL de Redirección (Redirect URI)</h4>
+                        <p class="text-[11px] text-amber-800 leading-relaxed mt-0.5">
+                            En tu aplicación en <a href="https://developers.mercadolibre.com" target="_blank" class="underline font-bold hover:text-amber-950">developers.mercadolibre.com</a>, asegúrate de registrar exactamente esta URL en el campo <strong>Redirect URI</strong>:
+                        </p>
+                    </div>
                 </div>
 
-                <div class="flex gap-3">
-                    <button type="button" onclick="window.startMeliRedirect()" class="flex-1 bg-brand-black text-white py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-orange transition-all duration-300 flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Ir a Autorización
+                <div class="flex items-center gap-2">
+                    <input type="text" id="modal-ml-redirect-uri" readonly value="" class="flex-1 bg-white border border-amber-300 rounded-xl px-3 py-2.5 text-xs font-mono text-gray-700 select-all outline-none">
+                    <button type="button" id="btn-copy-ml-redirect" class="bg-amber-600 hover:bg-amber-700 text-white px-3.5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0 shadow-sm">
+                        <i class="fa-regular fa-copy"></i> <span id="btn-copy-ml-text">Copiar</span>
                     </button>
                 </div>
-                
-                <div class="pt-4 border-t border-gray-100">
-                    <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">¿Ya fuiste redireccionado? Pega el código aquí:</label>
+            </div>
+
+            <!-- Paso 2: Credenciales de la Aplicación -->
+            <div class="mb-6 space-y-4">
+                <div class="flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-full bg-gray-800 text-white font-black text-xs flex items-center justify-center shrink-0">2</span>
+                    <h4 class="font-bold text-xs uppercase tracking-wider text-gray-800">Credenciales de tu Aplicación en MercadoLibre</h4>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-1.5">APP ID (Client ID)</label>
+                        <input type="text" id="modal-ml-app-id" placeholder="Ej: 1234567890123456" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-3 text-xs font-mono outline-none text-gray-900 focus:border-brand-orange focus:bg-white transition-all">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-1.5">CLIENT SECRET</label>
+                        <div class="relative">
+                            <input type="password" id="modal-ml-client-secret" placeholder="Client Secret" class="w-full bg-slate-50 border border-gray-200 rounded-xl p-3 text-xs font-mono outline-none text-gray-900 focus:border-brand-orange focus:bg-white transition-all pr-10">
+                            <button type="button" id="btn-toggle-secret-visibility" class="absolute right-3 top-3 text-gray-400 hover:text-brand-orange transition">
+                                <i class="fa-solid fa-eye text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-[10px] text-gray-400 font-medium">
+                    <i class="fa-solid fa-shield-halved text-gray-400 mr-1"></i>Las credenciales se guardan protegidas en tu base de datos y se usan para renovar tokens de sincronización automáticamente.
+                </p>
+            </div>
+
+            <!-- Botón de Acción Principal -->
+            <div class="space-y-3">
+                <button type="button" id="btn-modal-start-auth" class="w-full bg-[#FFE600] hover:bg-[#F5DC00] active:scale-[0.98] text-gray-900 py-3.5 px-6 rounded-xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 transition shadow-md hover:shadow-lg border border-yellow-400/80">
+                    <i class="fa-solid fa-arrow-up-right-from-square text-sm"></i> <span id="btn-modal-auth-text">Iniciar Autorización en MercadoLibre</span>
+                </button>
+            </div>
+
+            <!-- Acordeón / Fallback: Canje manual de código -->
+            <div class="mt-6 pt-4 border-t border-gray-100">
+                <button type="button" id="btn-toggle-manual-code" class="text-xs text-gray-500 hover:text-gray-800 font-bold flex items-center gap-2 transition">
+                    <i class="fa-solid fa-chevron-right text-[10px] transition-transform" id="icon-manual-code"></i>
+                    <span>¿Ya tienes un código de autorización manual? (?code=...)</span>
+                </button>
+
+                <div id="container-manual-code" class="hidden mt-3 p-4 bg-slate-50 rounded-2xl border border-gray-200 space-y-3">
+                    <p class="text-[11px] text-gray-500">Si autorizaste externamente o tu navegador fue redirigido a una URL con <code>?code=TG-xxx</code>, pégalo aquí para canjearlo directamente:</p>
                     <div class="flex gap-2">
-                        <input type="text" id="meli-auth-code" placeholder="TG-XXXXXXXXXX" class="flex-1 bg-slate-50 border border-gray-100 px-4 py-3 rounded-xl text-xs font-bold text-brand-black focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition">
-                        <button type="button" onclick="window.submitMeliCode()" class="bg-emerald-600 text-white px-4 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-700 transition">
-                            Activar
+                        <input type="text" id="input-manual-code" placeholder="TG-XXXXXXXX-XXXXXXXX" class="flex-1 bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs font-mono outline-none focus:border-brand-orange">
+                        <button type="button" id="btn-exchange-manual-code" class="bg-brand-black hover:bg-gray-800 text-white px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0">
+                            <i class="fa-solid fa-key"></i> Canjear Código
                         </button>
                     </div>
                 </div>
-            </form>
+            </div>
+
         </div>
     </div>
 
     <script type="module">
-        import { auth, onAuthStateChanged, db, doc, setDoc, onSnapshot, functions, httpsCallable } from '../js/firebase-init.js';
+        import { auth, onAuthStateChanged, db, doc, setDoc, onSnapshot, getDoc, functions, httpsCallable } from '../js/firebase-init.js';
         import { loadAdminSidebar } from '../js/admin/admin-ui.js';
+
+        let currentUserRole = null;
 
         document.addEventListener('DOMContentLoaded', () => {
             loadAdminSidebar();
             initMaintenanceSettings();
-            initMeliSettings();
+            initMarketingSettings();
+            initMLAssistant();
+            checkMLOAuthCallback();
         });
 
-        onAuthStateChanged(auth, (user) => {
-            if (!user) window.location.href = '/auth/login.html';
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = '/auth/login.html';
+                return;
+            }
+            
+            try {
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    currentUserRole = userDoc.data().role || 'customer';
+                    
+                    if (currentUserRole === 'developer') {
+                        const devContainer = document.getElementById('developer-settings-container');
+                        if (devContainer) {
+                            devContainer.classList.remove('hidden');
+                            initDeveloperSettings();
+                        }
+                    }
+                }
+                initGatewayStatus();
+            } catch (e) {
+                console.error("Error al validar rol de usuario:", e);
+                initGatewayStatus();
+            }
         });
+
+        function initGatewayStatus() {
+            const badges = {
+                mp: document.getElementById('status-badge-mp'),
+                addi: document.getElementById('status-badge-addi'),
+                sc: document.getElementById('status-badge-sc'),
+                smtp: document.getElementById('status-badge-smtp'),
+                wa: document.getElementById('status-badge-whatsapp'),
+                ml1: document.getElementById('status-badge-ml1'),
+                ml2: document.getElementById('status-badge-ml2'),
+                ml3: document.getElementById('status-badge-ml3'),
+                fal: document.getElementById('status-badge-falabella'),
+                cartRecovery: document.getElementById('status-badge-cart-recovery'),
+                chatbot: document.getElementById('status-badge-chatbot')
+            };
+
+            const updateBadge = (el, isActive) => {
+                if (!el) return;
+                if (isActive) {
+                    el.className = "px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-green-100 text-green-600 border border-green-200";
+                    el.textContent = "ACTIVO";
+                } else {
+                    el.className = "px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-red-100 text-red-600 border border-red-200";
+                    el.textContent = "DESACTIVADO";
+                }
+            };
+
+            const updateMLCardUI = (storeNum, isActive, nickname, userId) => {
+                const badge = badges['ml' + storeNum];
+                updateBadge(badge, isActive);
+
+                const infoBox = document.getElementById(`ml${storeNum}-account-info`);
+                const nameEl = document.getElementById(`ml${storeNum}-account-name`);
+                const idEl = document.getElementById(`ml${storeNum}-account-id`);
+                const btnLabel = document.getElementById(`ml${storeNum}-btn-label`);
+                const btnLink = document.getElementById(`btn-link-ml${storeNum}`);
+                const btnDisconnect = document.getElementById(`btn-disconnect-ml${storeNum}`);
+
+                if (isActive) {
+                    if (infoBox) infoBox.classList.remove('hidden');
+                    if (nameEl) nameEl.textContent = nickname || 'Cuenta Conectada';
+                    if (idEl) idEl.textContent = userId ? `ID: ${userId}` : 'ID: Activo';
+                    if (btnLabel) btnLabel.textContent = 'Re-vincular / Actualizar';
+                    if (btnLink) {
+                        btnLink.classList.remove('bg-[#FFE600]', 'hover:bg-[#F5DC00]');
+                        btnLink.classList.add('bg-slate-100', 'hover:bg-slate-200', 'text-gray-800');
+                    }
+                    if (btnDisconnect) btnDisconnect.classList.remove('hidden');
+                } else {
+                    if (infoBox) infoBox.classList.add('hidden');
+                    if (btnLabel) btnLabel.textContent = 'Enlazar Aplicación';
+                    if (btnLink) {
+                        btnLink.classList.remove('bg-slate-100', 'hover:bg-slate-200');
+                        btnLink.classList.add('bg-[#FFE600]', 'hover:bg-[#F5DC00]', 'text-gray-900');
+                    }
+                    if (btnDisconnect) btnDisconnect.classList.add('hidden');
+                }
+            };
+
+            // 1. Escuchar el documento público/sanitizado de estados (accesible a administradores sin exponer secretos)
+            const statusRef = doc(db, "config", "services_status");
+            onSnapshot(statusRef, (snap) => {
+                if (snap.exists()) {
+                    const data = snap.data();
+                    updateBadge(badges.mp, !!data.mp);
+                    updateBadge(badges.addi, !!data.addi);
+                    updateBadge(badges.sc, !!data.sc);
+                    updateBadge(badges.smtp, !!data.smtp);
+                    updateBadge(badges.wa, !!data.wa);
+                    updateMLCardUI('1', !!data.ml1, data.ml1_nickname, data.ml1_userId);
+                    updateMLCardUI('2', !!data.ml2, data.ml2_nickname, data.ml2_userId);
+                    updateMLCardUI('3', !!data.ml3, data.ml3_nickname, data.ml3_userId);
+                    updateBadge(badges.fal, !!data.fal);
+                    updateBadge(badges.cartRecovery, !!data.cartRecovery);
+                    updateBadge(badges.chatbot, !!data.chatbot);
+                }
+            }, (error) => {
+                if (currentUserRole === 'developer') {
+                    listenDirectDeveloperConfig(updateBadge, badges, updateMLCardUI);
+                } else {
+                    console.log("Esperando inicialización de services_status.");
+                }
+            });
+
+            // Si es developer, también escucha directo developer para feedback instantáneo al editar
+            if (currentUserRole === 'developer') {
+                listenDirectDeveloperConfig(updateBadge, badges, updateMLCardUI);
+            }
+        }
+
+        function listenDirectDeveloperConfig(updateBadge, badges, updateMLCardUI) {
+            const devRef = doc(db, "config", "developer");
+            const falRef = doc(db, "config", "falabella");
+
+            onSnapshot(devRef, (snap) => {
+                let data = snap.exists() ? snap.data() : {};
+                updateBadge(badges.mp, !!(data.MP_ACCESS_TOKEN && data.MP_ACCESS_TOKEN.trim()));
+                updateBadge(badges.addi, !!(data.ADDI_CLIENT_ID && data.ADDI_CLIENT_ID.trim()));
+                updateBadge(badges.sc, !!(data.SC_API_KEY && data.SC_API_KEY.trim()));
+                updateBadge(badges.smtp, !!(data.SMTP_HOST && data.SMTP_HOST.trim()));
+                updateBadge(badges.wa, !!(data.WHATSAPP_PHONE_ID && data.WHATSAPP_API_TOKEN && data.WHATSAPP_API_TOKEN.trim()));
+                if (updateMLCardUI) {
+                    updateMLCardUI('1', !!(data.ML_ACCESS_TOKEN && data.ML_ACCESS_TOKEN.trim()), data.ML_NICKNAME, data.ML_USER_ID);
+                    updateMLCardUI('2', !!(data.ML_ACCESS_TOKEN_2 && data.ML_ACCESS_TOKEN_2.trim()), data.ML_NICKNAME_2, data.ML_USER_ID_2);
+                    updateMLCardUI('3', !!(data.ML_ACCESS_TOKEN_3 && data.ML_ACCESS_TOKEN_3.trim()), data.ML_NICKNAME_3, data.ML_USER_ID_3);
+                }
+                updateBadge(badges.cartRecovery, !!(data.SMTP_HOST && data.SMTP_HOST.trim()));
+                updateBadge(badges.chatbot, !!(data.CHATBOT_ENABLED && data.GEMINI_API_KEY && data.GEMINI_API_KEY.trim()));
+            }, (err) => {});
+
+            onSnapshot(falRef, (snap) => {
+                let data = snap.exists() ? snap.data() : {};
+                updateBadge(badges.fal, !!(data.userId && data.apiKey && data.userId.trim() && data.apiKey.trim()));
+            }, (err) => {});
+        }
+
+        // ====================================================================
+        // ASISTENTE DE ENLACE DE MERCADOLIBRE (TIENDAS 1, 2 Y 3)
+        // ====================================================================
+        let activeMLStore = "1";
+        let latestDevConfig = {};
+
+        function listenDevConfigForModal() {
+            try {
+                const devRef = doc(db, "config", "developer");
+                onSnapshot(devRef, (snap) => {
+                    if (snap.exists()) {
+                        latestDevConfig = snap.data();
+                    }
+                }, () => {});
+            } catch (e) {}
+        }
+
+        function initMLAssistant() {
+            listenDevConfigForModal();
+
+            const modal = document.getElementById('modal-link-ml');
+            const btnClose = document.getElementById('btn-close-ml-modal');
+            const btnCopyRedirect = document.getElementById('btn-copy-ml-redirect');
+            const btnStartAuth = document.getElementById('btn-modal-start-auth');
+            const btnToggleManual = document.getElementById('btn-toggle-manual-code');
+            const btnExchangeManual = document.getElementById('btn-exchange-manual-code');
+            const toggleSecretVisibility = document.getElementById('btn-toggle-secret-visibility');
+            const inputSecret = document.getElementById('modal-ml-client-secret');
+
+            // Conectar botones en las tarjetas de Tienda 1, 2 y 3
+            ['1', '2', '3'].forEach(store => {
+                const btnLink = document.getElementById(`btn-link-ml${store}`);
+                if (btnLink) {
+                    btnLink.addEventListener('click', () => openMLLinkingModal(store));
+                }
+
+                const btnDisconnect = document.getElementById(`btn-disconnect-ml${store}`);
+                if (btnDisconnect) {
+                    btnDisconnect.addEventListener('click', () => disconnectMLStore(store));
+                }
+            });
+
+            if (btnClose && modal) {
+                btnClose.addEventListener('click', () => modal.classList.add('hidden'));
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) modal.classList.add('hidden');
+                });
+            }
+
+            if (toggleSecretVisibility && inputSecret) {
+                toggleSecretVisibility.addEventListener('click', () => {
+                    if (inputSecret.type === 'password') {
+                        inputSecret.type = 'text';
+                        toggleSecretVisibility.innerHTML = '<i class="fa-solid fa-eye-slash text-xs text-brand-orange"></i>';
+                    } else {
+                        inputSecret.type = 'password';
+                        toggleSecretVisibility.innerHTML = '<i class="fa-solid fa-eye text-xs"></i>';
+                    }
+                });
+            }
+
+            if (btnCopyRedirect) {
+                btnCopyRedirect.addEventListener('click', async () => {
+                    const input = document.getElementById('modal-ml-redirect-uri');
+                    if (input) {
+                        try {
+                            await navigator.clipboard.writeText(input.value);
+                            const textSpan = document.getElementById('btn-copy-ml-text');
+                            const original = textSpan ? textSpan.textContent : "Copiar";
+                            if (textSpan) textSpan.textContent = "¡Copiado!";
+                            btnCopyRedirect.classList.replace('bg-amber-600', 'bg-green-600');
+                            setTimeout(() => {
+                                if (textSpan) textSpan.textContent = original;
+                                btnCopyRedirect.classList.replace('bg-green-600', 'bg-amber-600');
+                            }, 2000);
+                        } catch (err) {
+                            input.select();
+                            document.execCommand('copy');
+                            showNotification("URL copiada al portapapeles", "success");
+                        }
+                    }
+                });
+            }
+
+            if (btnToggleManual) {
+                btnToggleManual.addEventListener('click', () => {
+                    const container = document.getElementById('container-manual-code');
+                    const icon = document.getElementById('icon-manual-code');
+                    if (container) {
+                        const isHidden = container.classList.contains('hidden');
+                        if (isHidden) {
+                            container.classList.remove('hidden');
+                            if (icon) icon.classList.add('rotate-90');
+                        } else {
+                            container.classList.add('hidden');
+                            if (icon) icon.classList.remove('rotate-90');
+                        }
+                    }
+                });
+            }
+
+            if (btnStartAuth) {
+                btnStartAuth.addEventListener('click', startMLOAuth);
+            }
+
+            if (btnExchangeManual) {
+                btnExchangeManual.addEventListener('click', exchangeManualMLCode);
+            }
+        }
+
+        function openMLLinkingModal(store) {
+            activeMLStore = String(store);
+            const modal = document.getElementById('modal-link-ml');
+            if (!modal) return;
+
+            const title = document.getElementById('modal-ml-title');
+            const subtitle = document.getElementById('modal-ml-subtitle');
+            const redirectInput = document.getElementById('modal-ml-redirect-uri');
+            const appIdInput = document.getElementById('modal-ml-app-id');
+            const clientSecretInput = document.getElementById('modal-ml-client-secret');
+            const connectedAlert = document.getElementById('modal-ml-connected-alert');
+            const connectedName = document.getElementById('modal-ml-connected-name');
+            const connectedId = document.getElementById('modal-ml-connected-id');
+            const btnAuthText = document.getElementById('btn-modal-auth-text');
+
+            const storeNames = {
+                '1': 'Tienda 1 (Principal)',
+                '2': 'Tienda 2 (Secundaria)',
+                '3': 'Tienda 3 (Adicional)'
+            };
+
+            if (title) title.textContent = `Enlazar MercadoLibre - ${storeNames[activeMLStore] || 'Tienda ' + activeMLStore}`;
+            if (subtitle) subtitle.textContent = `Autoriza la integración para sincronizar inventario por SKU y recibir pedidos en tiempo real.`;
+
+            // Redirect URI: URL limpia actual de settings.html
+            const cleanRedirect = window.location.origin + window.location.pathname;
+            if (redirectInput) redirectInput.value = cleanRedirect;
+
+            // Pre-llenar credenciales existentes
+            let currentAppId = '';
+            let currentSecret = '';
+            if (activeMLStore === '2') {
+                currentAppId = latestDevConfig.ML_APP_ID_2 || '';
+                currentSecret = latestDevConfig.ML_CLIENT_SECRET_2 || '';
+            } else if (activeMLStore === '3') {
+                currentAppId = latestDevConfig.ML_APP_ID_3 || '';
+                currentSecret = latestDevConfig.ML_CLIENT_SECRET_3 || '';
+            } else {
+                currentAppId = latestDevConfig.ML_APP_ID || '';
+                currentSecret = latestDevConfig.ML_CLIENT_SECRET || '';
+            }
+
+            // También verificar los inputs de la sección dev si están presentes
+            const devIdInput = document.getElementById(`dev-ml-id${activeMLStore === '1' ? '' : '-' + activeMLStore}`);
+            const devSecretInput = document.getElementById(`dev-ml-secret${activeMLStore === '1' ? '' : '-' + activeMLStore}`);
+            if (devIdInput && devIdInput.value) currentAppId = devIdInput.value.trim();
+            if (devSecretInput && devSecretInput.value) currentSecret = devSecretInput.value.trim();
+
+            if (appIdInput) appIdInput.value = currentAppId;
+            if (clientSecretInput) clientSecretInput.value = currentSecret;
+
+            // Verificar si actualmente está activa
+            const badge = document.getElementById(`status-badge-ml${activeMLStore}`);
+            const isActive = badge && badge.textContent.trim() === 'ACTIVO';
+            const accountNameEl = document.getElementById(`ml${activeMLStore}-account-name`);
+            const accountIdEl = document.getElementById(`ml${activeMLStore}-account-id`);
+
+            if (isActive && connectedAlert) {
+                connectedAlert.classList.remove('hidden');
+                if (connectedName) connectedName.textContent = (accountNameEl ? accountNameEl.textContent : 'Conectada');
+                if (connectedId) connectedId.textContent = (accountIdEl ? accountIdEl.textContent : '');
+                if (btnAuthText) btnAuthText.textContent = "Re-autorizar con MercadoLibre";
+            } else if (connectedAlert) {
+                connectedAlert.classList.add('hidden');
+                if (btnAuthText) btnAuthText.textContent = "Iniciar Autorización en MercadoLibre";
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        async function startMLOAuth() {
+            const btn = document.getElementById('btn-modal-start-auth');
+            const appIdInput = document.getElementById('modal-ml-app-id');
+            const clientSecretInput = document.getElementById('modal-ml-client-secret');
+            const redirectInput = document.getElementById('modal-ml-redirect-uri');
+
+            const appId = appIdInput ? appIdInput.value.trim() : '';
+            const clientSecret = clientSecretInput ? clientSecretInput.value.trim() : '';
+            const redirectUri = redirectInput ? redirectInput.value.trim() : (window.location.origin + window.location.pathname);
+
+            if (!appId) {
+                showNotification("Por favor ingresa el APP ID de tu aplicación en MercadoLibre", "warning");
+                if (appIdInput) appIdInput.focus();
+                return;
+            }
+
+            btn.disabled = true;
+            const originalContent = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-sm"></i> Generando enlace de autorización...';
+
+            try {
+                // Si el usuario ingresó credenciales, guardarlas si es posible
+                if (appId || clientSecret) {
+                    const devUpdates = {};
+                    if (activeMLStore === '2') {
+                        if (appId) devUpdates.ML_APP_ID_2 = appId;
+                        if (clientSecret) devUpdates.ML_CLIENT_SECRET_2 = clientSecret;
+                    } else if (activeMLStore === '3') {
+                        if (appId) devUpdates.ML_APP_ID_3 = appId;
+                        if (clientSecret) devUpdates.ML_CLIENT_SECRET_3 = clientSecret;
+                    } else {
+                        if (appId) devUpdates.ML_APP_ID = appId;
+                        if (clientSecret) devUpdates.ML_CLIENT_SECRET = clientSecret;
+                    }
+                    try {
+                        await setDoc(doc(db, "config", "developer"), devUpdates, { merge: true });
+                    } catch (e) {
+                        console.warn("No se pudo guardar credenciales directamente:", e);
+                    }
+                }
+
+                // Guardar en sessionStorage para rescatar tras la redirección
+                sessionStorage.setItem('ml_auth_store', activeMLStore);
+                sessionStorage.setItem('ml_auth_redirect_uri', redirectUri);
+
+                const getAuthUrlFn = httpsCallable(functions, 'getMercadoLibreAuthUrl');
+                const resp = await getAuthUrlFn({
+                    store: activeMLStore,
+                    redirectUri: redirectUri,
+                    appId: appId
+                });
+
+                if (resp.data && resp.data.authUrl) {
+                    btn.innerHTML = '<i class="fa-solid fa-arrow-right text-sm"></i> Redirigiendo a MercadoLibre...';
+                    window.location.href = resp.data.authUrl;
+                } else {
+                    throw new Error("El servidor no devolvió una URL de autorización válida.");
+                }
+            } catch (err) {
+                console.error("Error al iniciar OAuth con MercadoLibre:", err);
+                showNotification("Error: " + (err.message || "No se pudo generar la URL de autorización"), "error");
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
+            }
+        }
+
+        async function exchangeManualMLCode() {
+            const inputCode = document.getElementById('input-manual-code');
+            const btn = document.getElementById('btn-exchange-manual-code');
+            const code = inputCode ? inputCode.value.trim() : '';
+
+            if (!code) {
+                showNotification("Por favor ingresa el código de autorización (?code=...)", "warning");
+                if (inputCode) inputCode.focus();
+                return;
+            }
+
+            const redirectInput = document.getElementById('modal-ml-redirect-uri');
+            const redirectUri = redirectInput ? redirectInput.value.trim() : (window.location.origin + window.location.pathname);
+            const appIdInput = document.getElementById('modal-ml-app-id');
+            const clientSecretInput = document.getElementById('modal-ml-client-secret');
+
+            btn.disabled = true;
+            const originalContent = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Canjeando...';
+
+            try {
+                const authorizeFn = httpsCallable(functions, 'authorizeMercadoLibreCode');
+                const res = await authorizeFn({
+                    store: activeMLStore,
+                    code: code,
+                    redirectUri: redirectUri,
+                    appId: appIdInput ? appIdInput.value.trim() : undefined,
+                    clientSecret: clientSecretInput ? clientSecretInput.value.trim() : undefined
+                });
+
+                const data = res.data || {};
+                showNotification(`🎉 ¡Tienda ${activeMLStore} vinculada con éxito! (${data.nickname || data.userId || 'Activo'})`, "success");
+                if (inputCode) inputCode.value = '';
+                const modal = document.getElementById('modal-link-ml');
+                if (modal) modal.classList.add('hidden');
+            } catch (err) {
+                console.error("Error al canjear código manual:", err);
+                showNotification("Error al canjear código: " + (err.message || err), "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
+            }
+        }
+
+        async function disconnectMLStore(store) {
+            const storeNames = { '1': 'Tienda 1 (Principal)', '2': 'Tienda 2 (Secundaria)', '3': 'Tienda 3 (Adicional)' };
+            const confirmMsg = `¿Estás seguro de que deseas desvincular ${storeNames[store] || 'la Tienda ' + store} de MercadoLibre?\n\nSe pausará la sincronización de inventario por SKU y pedidos en tiempo real.`;
+            if (!confirm(confirmMsg)) return;
+
+            try {
+                showNotification(`Desvinculando Tienda ${store}...`, "info");
+                const disconnectFn = httpsCallable(functions, 'disconnectMercadoLibre');
+                await disconnectFn({ store: String(store) });
+                showNotification(`Tienda ${store} desvinculada exitosamente`, "success");
+            } catch (err) {
+                console.error("Error al desvincular tienda:", err);
+                showNotification("Error al desvincular: " + (err.message || err), "error");
+            }
+        }
+
+        async function checkMLOAuthCallback() {
+            const params = new URLSearchParams(window.location.search);
+            const code = params.get('code');
+            const error = params.get('error');
+
+            if (error) {
+                const errorDesc = params.get('error_description') || error;
+                window.history.replaceState({}, document.title, window.location.pathname);
+                showNotification(`Autorización en MercadoLibre cancelada: ${errorDesc}`, "warning");
+                return;
+            }
+
+            if (!code) return;
+
+            const stateStore = params.get('state');
+            const store = stateStore || sessionStorage.getItem('ml_auth_store') || '1';
+            const redirectUri = sessionStorage.getItem('ml_auth_redirect_uri') || (window.location.origin + window.location.pathname);
+
+            // Limpiar query params de inmediato para evitar re-canjes accidentales
+            window.history.replaceState({}, document.title, window.location.pathname);
+            sessionStorage.removeItem('ml_auth_store');
+            sessionStorage.removeItem('ml_auth_redirect_uri');
+
+            showNotification(`Procesando vinculación de MercadoLibre (Tienda ${store})...`, "info");
+
+            try {
+                const authorizeFn = httpsCallable(functions, 'authorizeMercadoLibreCode');
+                const res = await authorizeFn({
+                    store: String(store),
+                    code: code,
+                    redirectUri: redirectUri
+                });
+
+                const data = res.data || {};
+                showNotification(`🎉 ¡MercadoLibre Tienda ${store} vinculada exitosamente! ${data.nickname ? '(' + data.nickname + ')' : ''}`, "success");
+            } catch (err) {
+                console.error("Error en callback de autorización de MercadoLibre:", err);
+                showNotification(`Error al finalizar vinculación con MercadoLibre: ${err.message || err}`, "error");
+            }
+        }
 
         function initMaintenanceSettings() {
             const toggle = document.getElementById('maintenance-toggle');
@@ -256,7 +1325,6 @@
             const statusText = document.getElementById('maintenance-status-text');
             const configRef = doc(db, "config", "system");
 
-            // Escuchar cambios en tiempo real
             onSnapshot(configRef, (snap) => {
                 if (snap.exists()) {
                     const data = snap.data();
@@ -273,7 +1341,6 @@
                         statusText.className = "text-xs text-green-600 font-bold";
                     }
                 } else {
-                    // Si el documento no existe en absoluto (base de datos limpia), inicializamos inactivo
                     toggle.checked = false;
                     pulse.className = "w-2.5 h-2.5 rounded-full bg-green-500";
                     statusText.innerText = "Modo Mantenimiento: INACTIVO (Configuración inicial lista)";
@@ -284,7 +1351,6 @@
                 statusText.innerText = "Error de red o permisos para leer la configuración.";
             });
 
-            // Guardar cambios al activar/desactivar (creando el documento si no existe)
             toggle.addEventListener('change', async () => {
                 const active = toggle.checked;
                 try {
@@ -298,9 +1364,298 @@
                 } catch (error) {
                     console.error("Error al actualizar mantenimiento:", error);
                     showNotification("Error al guardar cambios", "error");
-                    toggle.checked = !active; // Revertir
+                    toggle.checked = !active;
                 }
             });
+        }
+
+        async function initMarketingSettings() {
+            const host = window.location.origin;
+            const feedUrlDisplay = document.getElementById('feed-url-display');
+            const feedUrl = `${host}/serve_feed.php`;
+            feedUrlDisplay.value = feedUrl;
+
+            document.getElementById('btn-copy-feed-url').addEventListener('click', () => {
+                feedUrlDisplay.select();
+                document.execCommand('copy');
+                showNotification("Enlace del feed copiado al portapapeles", "success");
+            });
+
+            const btnRebuild = document.getElementById('btn-rebuild-feed');
+            btnRebuild.addEventListener('click', async () => {
+                btnRebuild.disabled = true;
+                const originalHtml = btnRebuild.innerHTML;
+                btnRebuild.innerHTML = '<i class="fa-solid fa-arrows-rotate fa-spin"></i> Reconstruyendo...';
+                try {
+                    const res = await fetch(`${feedUrl}?rebuild=true`);
+                    if (res.ok) {
+                        showNotification("Caché del feed reconstruida con éxito", "success");
+                    } else {
+                        throw new Error(`HTTP error! status: ${res.status}`);
+                    }
+                } catch (e) {
+                    console.error("Error al reconstruir feed:", e);
+                    showNotification("Error al reconstruir la caché del feed", "error");
+                } finally {
+                    btnRebuild.disabled = false;
+                    btnRebuild.innerHTML = originalHtml;
+                }
+            });
+
+            const configRef = doc(db, "config", "analytics");
+            const inputPixel = document.getElementById('marketing-pixel-id');
+            const inputGa = document.getElementById('marketing-ga-id');
+            const inputGtm = document.getElementById('marketing-gtm-id');
+            const inputAdsId = document.getElementById('marketing-ads-id');
+            const inputAdsLabel = document.getElementById('marketing-ads-label');
+            const btnSave = document.getElementById('btn-save-marketing');
+
+            onSnapshot(configRef, (snap) => {
+                if (snap.exists()) {
+                    const data = snap.data();
+                    inputPixel.value = data.pixelId || '';
+                    inputGa.value = data.gaId || '';
+                    inputGtm.value = data.gtmId || '';
+                    inputAdsId.value = data.googleAdsId || '';
+                    inputAdsLabel.value = data.googleAdsLabel || '';
+                }
+            }, (error) => {
+                console.error("Error al leer configuración de marketing:", error);
+            });
+
+            btnSave.addEventListener('click', async () => {
+                btnSave.disabled = true;
+                const originalText = btnSave.innerHTML;
+                btnSave.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Guardando...';
+                
+                try {
+                    await setDoc(configRef, {
+                        pixelId: inputPixel.value.trim(),
+                        gaId: inputGa.value.trim(),
+                        gtmId: inputGtm.value.trim(),
+                        googleAdsId: inputAdsId.value.trim(),
+                        googleAdsLabel: inputAdsLabel.value.trim(),
+                        marketingUpdatedAt: new Date(),
+                        marketingUpdatedBy: auth.currentUser ? auth.currentUser.email : 'system'
+                    }, { merge: true });
+                    
+                    showNotification("Integración de Ads guardada con éxito", "success");
+                } catch (error) {
+                    console.error("Error al guardar configuración de marketing:", error);
+                    showNotification("Error al guardar la configuración", "error");
+                } finally {
+                    btnSave.disabled = false;
+                    btnSave.innerHTML = originalText;
+                }
+            });
+        }
+
+        function initDeveloperSettings() {
+            const configRef = doc(db, "config", "developer");
+            const falabellaRef = doc(db, "config", "falabella");
+            const servicesStatusRef = doc(db, "config", "services_status");
+
+            const inputs = {
+                mpToken: document.getElementById('dev-mp-token'),
+                addiId: document.getElementById('dev-addi-id'),
+                addiSecret: document.getElementById('dev-addi-secret'),
+                addiEnv: document.getElementById('dev-addi-env'),
+                scApiKey: document.getElementById('dev-sc-api-key'),
+                scAppKey: document.getElementById('dev-sc-app-key'),
+                scAppToken: document.getElementById('dev-sc-app-token'),
+                smtpHost: document.getElementById('dev-smtp-host'),
+                smtpPort: document.getElementById('dev-smtp-port'),
+                smtpEmail: document.getElementById('dev-smtp-email'),
+                smtpPassword: document.getElementById('dev-smtp-password'),
+                waPhoneId: document.getElementById('dev-wa-phone-id'),
+                waVerifyToken: document.getElementById('dev-wa-verify-token'),
+                waApiToken: document.getElementById('dev-wa-api-token'),
+                geminiApiKey: document.getElementById('dev-gemini-api-key'),
+                chatbotEnabled: document.getElementById('dev-chatbot-enabled'),
+                chatbotDelay: document.getElementById('dev-chatbot-delay'),
+                chatbotPrompt: document.getElementById('dev-chatbot-prompt'),
+                mlId: document.getElementById('dev-ml-id'),
+                mlSecret: document.getElementById('dev-ml-secret'),
+                mlId2: document.getElementById('dev-ml-id-2'),
+                mlSecret2: document.getElementById('dev-ml-secret-2'),
+                mlId3: document.getElementById('dev-ml-id-3'),
+                mlSecret3: document.getElementById('dev-ml-secret-3'),
+                falUserId: document.getElementById('dev-fal-user-id'),
+                falApiKey: document.getElementById('dev-fal-api-key'),
+                falApiUrl: document.getElementById('dev-fal-api-url')
+            };
+            const btnSave = document.getElementById('btn-save-developer');
+
+            // Habilitar botón para ver/ocultar credenciales sensibles
+            document.querySelectorAll('#developer-settings-container input[type="password"]').forEach(input => {
+                const wrapper = input.parentElement;
+                if (wrapper && !wrapper.querySelector('.btn-toggle-eye')) {
+                    wrapper.classList.add('relative');
+                    const toggleBtn = document.createElement('button');
+                    toggleBtn.type = 'button';
+                    toggleBtn.className = 'btn-toggle-eye absolute right-3 top-8 text-gray-400 hover:text-brand-orange transition';
+                    toggleBtn.innerHTML = '<i class="fa-solid fa-eye text-xs"></i>';
+                    toggleBtn.title = "Mostrar / Ocultar";
+                    toggleBtn.onclick = () => {
+                        if (input.type === 'password') {
+                            input.type = 'text';
+                            toggleBtn.innerHTML = '<i class="fa-solid fa-eye-slash text-xs text-brand-orange"></i>';
+                        } else {
+                            input.type = 'password';
+                            toggleBtn.innerHTML = '<i class="fa-solid fa-eye text-xs"></i>';
+                        }
+                    };
+                    wrapper.appendChild(toggleBtn);
+                }
+            });
+
+            onSnapshot(configRef, (snap) => {
+                if (snap.exists()) {
+                    const data = snap.data();
+                    inputs.mpToken.value = data.MP_ACCESS_TOKEN || '';
+                    inputs.addiId.value = data.ADDI_CLIENT_ID || '';
+                    inputs.addiSecret.value = data.ADDI_CLIENT_SECRET || '';
+                    inputs.addiEnv.value = data.ADDI_ENV || 'sandbox';
+                    inputs.scApiKey.value = data.SC_API_KEY || '';
+                    inputs.scAppKey.value = data.SC_APP_KEY || '';
+                    inputs.scAppToken.value = data.SC_APP_TOKEN || '';
+                    inputs.smtpHost.value = data.SMTP_HOST || '';
+                    inputs.smtpPort.value = data.SMTP_PORT || '';
+                    inputs.smtpEmail.value = data.SMTP_EMAIL || '';
+                    inputs.smtpPassword.value = data.SMTP_PASSWORD || '';
+                    inputs.waPhoneId.value = data.WHATSAPP_PHONE_ID || '';
+                    inputs.waVerifyToken.value = data.WHATSAPP_VERIFY_TOKEN || '';
+                    inputs.waApiToken.value = data.WHATSAPP_API_TOKEN || '';
+                    inputs.geminiApiKey.value = data.GEMINI_API_KEY || '';
+                    inputs.chatbotEnabled.value = data.CHATBOT_ENABLED ? data.CHATBOT_ENABLED.toString() : 'false';
+                    inputs.chatbotDelay.value = data.CHATBOT_DELAY !== undefined ? data.CHATBOT_DELAY.toString() : '0';
+                    inputs.chatbotPrompt.value = data.CHATBOT_PROMPT || '';
+                    inputs.mlId.value = data.ML_APP_ID || '';
+                    inputs.mlSecret.value = data.ML_CLIENT_SECRET || '';
+                    inputs.mlId2.value = data.ML_APP_ID_2 || '';
+                    inputs.mlSecret2.value = data.ML_CLIENT_SECRET_2 || '';
+                    inputs.mlId3.value = data.ML_APP_ID_3 || '';
+                    inputs.mlSecret3.value = data.ML_CLIENT_SECRET_3 || '';
+                }
+            }, (error) => {
+                console.error("Error al cargar config de desarrollador:", error);
+            });
+
+            onSnapshot(falabellaRef, (snap) => {
+                if (snap.exists()) {
+                    const data = snap.data();
+                    inputs.falUserId.value = data.userId || '';
+                    inputs.falApiKey.value = data.apiKey || '';
+                    inputs.falApiUrl.value = data.apiUrl || '';
+                }
+            }, (error) => {
+                console.error("Error al cargar config de Falabella:", error);
+            });
+
+            btnSave.addEventListener('click', async () => {
+                btnSave.disabled = true;
+                const originalText = btnSave.innerHTML;
+                btnSave.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Guardando en Servidor...';
+
+                try {
+                    const devPayload = {
+                        MP_ACCESS_TOKEN: inputs.mpToken.value.trim(),
+                        ADDI_CLIENT_ID: inputs.addiId.value.trim(),
+                        ADDI_CLIENT_SECRET: inputs.addiSecret.value.trim(),
+                        ADDI_ENV: inputs.addiEnv.value,
+                        SC_API_KEY: inputs.scApiKey.value.trim(),
+                        SC_APP_KEY: inputs.scAppKey.value.trim(),
+                        SC_APP_TOKEN: inputs.scAppToken.value.trim(),
+                        SMTP_HOST: inputs.smtpHost.value.trim(),
+                        SMTP_PORT: inputs.smtpPort.value.trim(),
+                        SMTP_EMAIL: inputs.smtpEmail.value.trim(),
+                        SMTP_PASSWORD: inputs.smtpPassword.value.trim(),
+                        WHATSAPP_PHONE_ID: inputs.waPhoneId.value.trim(),
+                        WHATSAPP_VERIFY_TOKEN: inputs.waVerifyToken.value.trim(),
+                        WHATSAPP_API_TOKEN: inputs.waApiToken.value.trim(),
+                        GEMINI_API_KEY: inputs.geminiApiKey.value.trim(),
+                        CHATBOT_ENABLED: inputs.chatbotEnabled.value === 'true',
+                        CHATBOT_DELAY: parseFloat(inputs.chatbotDelay.value) || 0,
+                        CHATBOT_PROMPT: inputs.chatbotPrompt.value.trim(),
+                        ML_APP_ID: inputs.mlId.value.trim(),
+                        ML_CLIENT_SECRET: inputs.mlSecret.value.trim(),
+                        ML_APP_ID_2: inputs.mlId2.value.trim(),
+                        ML_CLIENT_SECRET_2: inputs.mlSecret2.value.trim(),
+                        ML_APP_ID_3: inputs.mlId3.value.trim(),
+                        ML_CLIENT_SECRET_3: inputs.mlSecret3.value.trim(),
+                        developerUpdatedAt: new Date(),
+                        developerUpdatedBy: auth.currentUser ? auth.currentUser.email : 'system'
+                    };
+
+                    const falPayload = {
+                        userId: inputs.falUserId.value.trim(),
+                        apiKey: inputs.falApiKey.value.trim(),
+                        apiUrl: inputs.falApiUrl.value.trim(),
+                        falabellaUpdatedAt: new Date(),
+                        falabellaUpdatedBy: auth.currentUser ? auth.currentUser.email : 'system'
+                    };
+
+                    // 1. Guardar config/developer
+                    await setDoc(configRef, devPayload, { merge: true });
+
+                    // 2. Guardar config/falabella
+                    await setDoc(falabellaRef, falPayload, { merge: true });
+
+                    // 3. Guardar estado sanitizado para Administradores (Sin exponer ningún secreto ni desvincular ML)
+                    let currentStatus = {};
+                    try {
+                        const currentStatusDoc = await getDoc(servicesStatusRef);
+                        if (currentStatusDoc.exists()) currentStatus = currentStatusDoc.data();
+                    } catch (e) {}
+
+                    const statusPayload = {
+                        mp: !!devPayload.MP_ACCESS_TOKEN,
+                        addi: !!devPayload.ADDI_CLIENT_ID,
+                        sc: !!devPayload.SC_API_KEY,
+                        smtp: !!devPayload.SMTP_HOST,
+                        wa: !!(devPayload.WHATSAPP_PHONE_ID && devPayload.WHATSAPP_API_TOKEN),
+                        ml1: currentStatus.ml1 !== undefined ? currentStatus.ml1 : (!!devPayload.ML_APP_ID),
+                        ml2: currentStatus.ml2 !== undefined ? currentStatus.ml2 : (!!devPayload.ML_APP_ID_2),
+                        ml3: currentStatus.ml3 !== undefined ? currentStatus.ml3 : (!!devPayload.ML_APP_ID_3),
+                        fal: !!(falPayload.userId && falPayload.apiKey),
+                        cartRecovery: !!devPayload.SMTP_HOST,
+                        chatbot: devPayload.CHATBOT_ENABLED && !!devPayload.GEMINI_API_KEY,
+                        updatedAt: new Date()
+                    };
+                    await setDoc(servicesStatusRef, statusPayload, { merge: true });
+
+                    showNotification("Configuración de backend guardada con éxito", "success");
+                } catch (error) {
+                    console.error("Error al guardar config de desarrollador:", error);
+                    showNotification("Error de permisos al guardar configuración de backend", "error");
+                } finally {
+                    btnSave.disabled = false;
+                    btnSave.innerHTML = originalText;
+                }
+            });
+
+            const btnSyncML = document.getElementById('btn-sync-ml-stock');
+            if (btnSyncML) {
+                btnSyncML.addEventListener('click', async () => {
+                    if (!confirm("¿Deseas iniciar la sincronización masiva de stock hacia MercadoLibre?")) return;
+                    btnSyncML.disabled = true;
+                    const originalText = btnSyncML.innerHTML;
+                    btnSyncML.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Sincronizando...';
+
+                    try {
+                        const syncFn = httpsCallable(functions, 'syncAllStockToML');
+                        const res = await syncFn();
+                        const data = res.data || {};
+                        showNotification(`Stock sincronizado exitosamente (${data.totalUpdated || 0} publicaciones en MercadoLibre actualizadas).`, "success");
+                    } catch (err) {
+                        console.error("Error en sincronización de stock ML:", err);
+                        showNotification("Error al sincronizar stock con MercadoLibre: " + err.message, "error");
+                    } finally {
+                        btnSyncML.disabled = false;
+                        btnSyncML.innerHTML = originalText;
+                    }
+                });
+            }
         }
 
         function showNotification(message, type) {
@@ -339,185 +1694,6 @@
                 toast.classList.add('translate-y-5', 'opacity-0');
                 setTimeout(() => toast.remove(), 300);
             }, 3000);
-        }
-
-        // ============================================================================
-        // MERCADO LIBRE INTEGRACIÓN FLOW
-        // ============================================================================
-        function initMeliSettings() {
-            // Escuchar estado de Mercado Libre Tienda 1
-            onSnapshot(doc(db, "config", "mercadolibre"), (snap) => {
-                const infoEl = document.getElementById('ml-store1-info');
-                if (snap.exists() && snap.data().accessToken) {
-                    const data = snap.data();
-                    const dateStr = data.updatedAt?.toDate ? data.updatedAt.toDate().toLocaleString() : 'N/A';
-                    infoEl.innerHTML = `<span class="text-green-600 font-bold">🟢 Conectado</span> <span class="text-gray-400 text-[10px]">(Actualizado: ${dateStr})</span>`;
-                    updateMLOverallStatus();
-                } else {
-                    infoEl.innerHTML = `<span class="text-red-500 font-bold">🔴 Desconectado</span>`;
-                    updateMLOverallStatus();
-                }
-            });
-
-            // Escuchar estado de Mercado Libre Tienda 2
-            onSnapshot(doc(db, "config", "mercadolibre_store2"), (snap) => {
-                const infoEl = document.getElementById('ml-store2-info');
-                if (snap.exists() && snap.data().accessToken) {
-                    const data = snap.data();
-                    const dateStr = data.updatedAt?.toDate ? data.updatedAt.toDate().toLocaleString() : 'N/A';
-                    infoEl.innerHTML = `<span class="text-green-600 font-bold">🟢 Conectado</span> <span class="text-gray-400 text-[10px]">(Actualizado: ${dateStr})</span>`;
-                    updateMLOverallStatus();
-                } else {
-                    infoEl.innerHTML = `<span class="text-red-500 font-bold">🔴 Desconectado</span>`;
-                    updateMLOverallStatus();
-                }
-            });
-
-            // Escuchar estado de Mercado Libre Tienda 3
-            onSnapshot(doc(db, "config", "mercadolibre_store3"), (snap) => {
-                const infoEl = document.getElementById('ml-store3-info');
-                if (snap.exists() && snap.data().accessToken) {
-                    const data = snap.data();
-                    const dateStr = data.updatedAt?.toDate ? data.updatedAt.toDate().toLocaleString() : 'N/A';
-                    infoEl.innerHTML = `<span class="text-green-600 font-bold">🟢 Conectado</span> <span class="text-gray-400 text-[10px]">(Actualizado: ${dateStr})</span>`;
-                    updateMLOverallStatus();
-                } else {
-                    infoEl.innerHTML = `<span class="text-red-500 font-bold">🔴 Desconectado</span>`;
-                    updateMLOverallStatus();
-                }
-            });
-
-            function updateMLOverallStatus() {
-                setTimeout(() => {
-                    const el1 = document.getElementById('ml-store1-info');
-                    const el2 = document.getElementById('ml-store2-info');
-                    const el3 = document.getElementById('ml-store3-info');
-                    if (!el1 || !el2 || !el3) return;
-
-                    const s1 = el1.innerText.includes('Conectado');
-                    const s2 = el2.innerText.includes('Conectado');
-                    const s3 = el3.innerText.includes('Conectado');
-                    const badge = document.getElementById('ml-status-badge');
-                    
-                    if (s1 || s2 || s3) {
-                        badge.className = "px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-green-100 text-green-600 border border-green-200";
-                        badge.textContent = "ACTIVO";
-                    } else {
-                        badge.className = "px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-red-100 text-red-600 border border-red-200";
-                        badge.textContent = "DESCONECTADO";
-                    }
-                }, 100);
-            }
-
-            // Detección automática del code en la URL tras redirección
-            const urlParams = new URLSearchParams(window.location.search);
-            const code = urlParams.get('code');
-            if (code) {
-                const pendingStore = localStorage.getItem('pending_meli_store');
-                const pendingRedirect = localStorage.getItem('pending_meli_redirect');
-                
-                if (pendingStore && pendingRedirect) {
-                    // Limpiar localStorage
-                    localStorage.removeItem('pending_meli_store');
-                    localStorage.removeItem('pending_meli_redirect');
-                    
-                    // Limpiar URL de forma limpia sin recargar
-                    const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-                    window.history.replaceState({ path: newUrl }, '', newUrl);
-                    
-                    autoActivateMeli(pendingStore, code, pendingRedirect);
-                }
-            }
-        }
-
-        // ML Modal UI Helpers
-        window.openMeliAuthModal = () => {
-            document.getElementById('meli-auth-redirect').value = window.location.protocol + "//" + window.location.host + window.location.pathname;
-            document.getElementById('meli-auth-modal').classList.remove('hidden');
-        };
-        window.closeMeliAuthModal = () => {
-            document.getElementById('meli-auth-modal').classList.add('hidden');
-            document.getElementById('meli-auth-form').reset();
-        };
-
-        window.startMeliRedirect = async () => {
-            const store = document.getElementById('meli-auth-store').value;
-            const redirectUri = document.getElementById('meli-auth-redirect').value.trim();
-            
-            if (!redirectUri) {
-                alert("Por favor, introduce una URI de redireccionamiento válida.");
-                return;
-            }
-            
-            try {
-                localStorage.setItem('pending_meli_store', store);
-                localStorage.setItem('pending_meli_redirect', redirectUri);
-                
-                const getAuthUrlFn = httpsCallable(functions, 'getMercadoLibreAuthUrl');
-                const res = await getAuthUrlFn({ store, redirectUri });
-                
-                if (res.data && res.data.authUrl) {
-                    window.location.href = res.data.authUrl;
-                } else {
-                    alert("No se pudo obtener la URL de autorización.");
-                }
-            } catch (err) {
-                console.error("Error al iniciar autorización:", err);
-                alert("Error: " + err.message);
-            }
-        };
-
-        window.submitMeliCode = async () => {
-            const store = document.getElementById('meli-auth-store').value;
-            const code = document.getElementById('meli-auth-code').value.trim();
-            const redirectUri = document.getElementById('meli-auth-redirect').value.trim();
-            
-            if (!code) {
-                alert("Por favor, introduce el código de autorización (TG-...).");
-                return;
-            }
-            if (!redirectUri) {
-                alert("Por favor, introduce la URI de redireccionamiento utilizada.");
-                return;
-            }
-            
-            const activateBtn = document.querySelector('#meli-auth-form button[type="button"][onclick="window.submitMeliCode()"]');
-            const originalText = activateBtn.innerText;
-            activateBtn.disabled = true; activateBtn.innerText = "...";
-            
-            try {
-                const authorizeFn = httpsCallable(functions, 'authorizeMercadoLibreCode');
-                const res = await authorizeFn({ store, code, redirectUri });
-                
-                if (res.data && res.data.success) {
-                    showNotification(`Tienda ${store} autorizada con éxito`, "success");
-                    window.closeMeliAuthModal();
-                } else {
-                    alert(res.data?.message || "Error al autorizar");
-                }
-            } catch (err) {
-                console.error("Error al activar código:", err);
-                alert("Error: " + err.message);
-            } finally {
-                activateBtn.disabled = false; activateBtn.innerText = originalText;
-            }
-        };
-
-        async function autoActivateMeli(store, code, redirectUri) {
-            try {
-                showNotification(`Auto-activando Mercado Libre Tienda ${store}...`, "warning");
-                const authorizeFn = httpsCallable(functions, 'authorizeMercadoLibreCode');
-                const res = await authorizeFn({ store, code, redirectUri });
-                
-                if (res.data && res.data.success) {
-                    showNotification(`Tienda ${store} autorizada con éxito`, "success");
-                } else {
-                    alert("Error en auto-activación: " + (res.data?.message || "Desconocido"));
-                }
-            } catch (err) {
-                console.error("Error en auto-activación:", err);
-                alert("Error en auto-activación: " + err.message);
-            }
         }
     </script>
     <script type="module" src="../js/admin/admin-guard.js"></script>

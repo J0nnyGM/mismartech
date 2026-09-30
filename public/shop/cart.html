@@ -119,12 +119,17 @@
                     <div id="free-shipping-container" class="mb-8 border-t border-white/5 pt-4 hidden">
                         <div class="flex justify-between items-end mb-2.5">
                             <p id="free-shipping-msg" class="text-[10px] font-black text-gray-400 uppercase tracking-wide">
-                                Faltan <span class="text-brand-orange">$50.000</span> para envío gratis
+                                Faltan <span class="text-brand-orange">$50.000</span> para envío gratis*
                             </p>
                             <i class="fa-solid fa-shipping-fast text-brand-orange text-xs animate-bounce"></i>
                         </div>
                         <div class="w-full bg-white/5 rounded-full h-2 overflow-hidden border border-white/5">
                             <div id="free-shipping-bar" class="h-full bg-brand-orange progress-striped transition-all duration-700 ease-out w-0"></div>
+                        </div>
+                        <div class="mt-2 text-right">
+                            <a href="/policies/shipping.html" target="_blank" class="text-[9px] text-gray-400 hover:text-brand-orange underline inline-flex items-center gap-1">
+                                *Aplican condiciones de cobertura y volumen
+                            </a>
                         </div>
                     </div>
 
@@ -359,11 +364,11 @@
         setTimeout(() => { shippingBar.style.width = `${percentage}%`; }, 100);
 
         if (remaining > 0) {
-            shippingMsg.innerHTML = `Faltan <span class="text-brand-orange font-black">$${remaining.toLocaleString('es-CO')}</span> para envío gratis`;
+            shippingMsg.innerHTML = `Faltan <span class="text-brand-orange font-black">$${remaining.toLocaleString('es-CO')}</span> para envío gratis*`;
             shippingBar.classList.remove('bg-emerald-500');
             shippingBar.classList.add('bg-brand-orange', 'progress-striped');
         } else {
-            shippingMsg.innerHTML = `<span class="text-emerald-400 font-black flex items-center gap-1.5"><i class="fa-solid fa-check-circle"></i> ¡Felicidades! Tienes Envío Gratis</span>`;
+            shippingMsg.innerHTML = `<span class="text-emerald-400 font-black flex items-center gap-1.5"><i class="fa-solid fa-check-circle"></i> ¡Felicidades! Tienes Envío Gratis*</span>`;
             shippingBar.classList.remove('bg-brand-orange', 'progress-striped');
             shippingBar.classList.add('bg-emerald-500'); 
         }
@@ -410,7 +415,7 @@
 
             calculatedShipping = cost;
             if (cost === 0) {
-                shippingDisplay.innerHTML = `<span class="text-emerald-400 font-black">¡GRATIS!</span>`;
+                shippingDisplay.innerHTML = `<span class="text-emerald-400 font-black">¡GRATIS!*</span>`;
             } else {
                 shippingDisplay.textContent = `$${cost.toLocaleString('es-CO')}`;
             }

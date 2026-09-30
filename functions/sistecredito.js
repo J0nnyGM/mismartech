@@ -8,13 +8,27 @@ const cors = require('cors')({ origin: true });
 // ==========================================
 const IS_SC_SANDBOX = false; 
 
-const SC_API_KEY = process.env.SC_API_KEY; 
-const SC_APP_KEY = process.env.SC_APP_KEY; 
-const SC_APP_TOKEN = process.env.SC_APP_TOKEN; 
-
 const SC_BASE_URL = "https://api.credinet.co/pay";
 const SC_ORIGEN = IS_SC_SANDBOX ? "Staging" : "Production";
 const SC_WEBHOOK_URL = "https://sistecreditowebhook-wghz2bdqpq-uc.a.run.app";
+
+async function getSCConfig(db) {
+    let apiKey = process.env.SC_API_KEY;
+    let appKey = process.env.SC_APP_KEY;
+    let appToken = process.env.SC_APP_TOKEN;
+    try {
+        const devDoc = await db.collection('config').doc('developer').get();
+        if (devDoc.exists) {
+            const data = devDoc.data();
+            if (data.SC_API_KEY) apiKey = data.SC_API_KEY.trim();
+            if (data.SC_APP_KEY) appKey = data.SC_APP_KEY.trim();
+            if (data.SC_APP_TOKEN) appToken = data.SC_APP_TOKEN.trim();
+        }
+    } catch (err) {
+        console.error("Error reading SC config from Firestore:", err);
+    }
+    return { apiKey, appKey, appToken };
+}
 
 // ==========================================
 // 1. CREAR CHECKOUT SISTECRÉDITO
@@ -80,6 +94,7 @@ exports.createSistecreditoCheckout = async (data, context) => {
         phone: clientPhone, 
         clientDoc: clientDoc,
         shippingData: shippingData, 
+        shippingType: shippingData.shippingType || 'ESTANDAR',
         billingData: extraData.billingData || null, 
         requiresInvoice: extraData.needsInvoice || false,
         items: result.dbItems, 
@@ -145,6 +160,11 @@ exports.createSistecreditoCheckout = async (data, context) => {
         }
     };
 
+    const scConfig = await getSCConfig(db);
+    if (!scConfig.apiKey || !scConfig.appKey || !scConfig.appToken) {
+        throw new functions.https.HttpsError('internal', 'Pasarela Sistecrédito no configurada.');
+    }
+
     try {
         console.log("📤 Enviando a Sistecrédito...", JSON.stringify(payload));
         const response = await axios.post(`${SC_BASE_URL}/create`, payload, { 
@@ -152,9 +172,9 @@ exports.createSistecreditoCheckout = async (data, context) => {
                 'SCLocation': '0,0', 
                 'SCOrigen': SC_ORIGEN, 
                 'country': 'CO', 
-                'Ocp-Apim-Subscription-Key': SC_API_KEY, 
-                'ApplicationKey': SC_APP_KEY, 
-                'ApplicationToken': SC_APP_TOKEN, 
+                'Ocp-Apim-Subscription-Key': scConfig.apiKey, 
+                'ApplicationKey': scConfig.appKey, 
+                'ApplicationToken': scConfig.appToken, 
                 'Content-Type': 'application/json'
             }
         });

@@ -26,7 +26,7 @@ onAuthStateChanged(auth, async (user) => {
         if (docSnap.exists()) {
             const userData = docSnap.data();
             const role = userData.role || 'customer';
-            const staffRoles = ['admin', 'contabilidad', 'ventas', 'logistica'];
+            const staffRoles = ['admin', 'developer', 'contabilidad', 'ventas', 'logistica'];
 
             // 1. Verificar si es empleado
             if (!staffRoles.includes(role)) {
@@ -36,12 +36,13 @@ onAuthStateChanged(auth, async (user) => {
             }
 
             // Guardar datos de sede y rol en sessionStorage
-            const assignedBranchId = userData.assignedBranchId || (role === 'admin' ? 'ALL' : 'bodega');
+            const isSuperUser = role === 'admin' || role === 'developer';
+            const assignedBranchId = userData.assignedBranchId || (isSuperUser ? 'ALL' : 'bodega');
             sessionStorage.setItem('adminUserRole', role);
             sessionStorage.setItem('adminUserBranchId', assignedBranchId);
             
             // Si activeBranchId no está inicializado, o es inválido para el usuario, lo definimos
-            if (role !== 'admin' && assignedBranchId !== 'ALL') {
+            if (!isSuperUser && assignedBranchId !== 'ALL') {
                 sessionStorage.setItem('activeBranchId', assignedBranchId);
             } else {
                 let activeBranch = sessionStorage.getItem('activeBranchId');
@@ -75,7 +76,7 @@ onAuthStateChanged(auth, async (user) => {
             };
 
             // 3. Proteger las rutas estrictamente
-            if (role !== 'admin') {
+            if (role !== 'admin' && role !== 'developer') {
                 const userAllowedRoutes = allowedRoutes[role] || [];
                 // Si la ruta actual no está en su lista permitida, lo mandamos al dashboard
                 if (!userAllowedRoutes.includes(path) && path !== '') {

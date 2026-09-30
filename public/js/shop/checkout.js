@@ -62,8 +62,9 @@ let userProfileData = null;
 let cart = getCart().filter(item => item.maxStock === undefined || item.maxStock > 0);
 let hasTrackedBeginCheckout = false;
 
-let shippingConfig = { freeThreshold: 0, defaultPrice: 0, groups: [] };
+let shippingConfig = { freeThreshold: 0, defaultPrice: 0, groups: [], bulkyShippingMode: 'flete_al_cobro' };
 let currentShippingCost = 0;
+let currentShippingType = 'ESTANDAR';
 let selectedPaymentMethod = 'MANUAL';
 let colombianHolidays = [];
 
@@ -463,22 +464,68 @@ function calculateShipping() {
         return;
     }
 
-    if (shippingConfig.freeThreshold > 0 && cartTotal >= shippingConfig.freeThreshold) {
-        currentShippingCost = 0;
-        els.freeShippingMsg.classList.remove('hidden');
-    } else {
-        els.freeShippingMsg.classList.add('hidden');
-        let foundPrice = null;
-        if (shippingConfig.groups) {
-            for (const group of shippingConfig.groups) {
-                const match = group.cities.some(c => c.toLowerCase().includes(city.toLowerCase()));
-                if (match) { foundPrice = group.price; break; }
+    const excludedIds = shippingConfig.excludedProductIds || (shippingConfig.excludedProducts ? shippingConfig.excludedProducts.map(p => p.id) : []);
+    const hasExcludedItems = cart.some(item => excludedIds.includes(item.id));
+    const bulkyMode = shippingConfig.bulkyShippingMode || 'flete_al_cobro';
+
+    if (hasExcludedItems) {
+        if (bulkyMode === 'flete_al_cobro') {
+            currentShippingCost = 0;
+            currentShippingType = 'FLETE_AL_COBRO';
+            els.shippingCost.className = "text-sky-400 bg-sky-500/10 border border-sky-500/20 px-2.5 py-1 rounded-xl text-[9px] font-black tracking-wider";
+            els.shippingCost.textContent = "AL COBRO";
+            
+            if (els.freeShippingMsg) {
+                els.freeShippingMsg.classList.remove('hidden');
+                els.freeShippingMsg.className = "text-center bg-sky-500/10 text-sky-200 text-[10px] font-bold py-2.5 px-3 rounded-xl border border-sky-500/20 flex flex-col items-center justify-center gap-1 shadow-sm";
+                els.freeShippingMsg.innerHTML = `<span class="font-black flex items-center gap-1.5 text-sky-400"><i class="fa-solid fa-truck-ramp-box"></i> ENVÍO CON FLETE AL COBRO</span><span class="text-[9px] text-gray-300 font-normal">Por las dimensiones del producto, cancelas el valor del flete a la transportadora al recibir tu paquete.</span>`;
+            }
+        } else {
+            currentShippingType = 'ESTANDAR';
+            let foundPrice = null;
+            if (shippingConfig.groups) {
+                for (const group of shippingConfig.groups) {
+                    const match = group.cities.some(c => c.toLowerCase().includes(city.toLowerCase()));
+                    if (match) { foundPrice = group.price; break; }
+                }
+            }
+            currentShippingCost = (foundPrice !== null) ? foundPrice : shippingConfig.defaultPrice;
+            els.shippingCost.className = "text-brand-orange bg-brand-orange/10 border border-brand-orange/20 px-2.5 py-1 rounded-xl text-[10px] font-black tracking-wider";
+            els.shippingCost.textContent = `$${currentShippingCost.toLocaleString('es-CO')}`;
+
+            if (els.freeShippingMsg) {
+                els.freeShippingMsg.classList.remove('hidden');
+                els.freeShippingMsg.className = "text-center bg-amber-500/10 text-amber-300 text-[10px] font-bold py-2 px-3 rounded-xl border border-amber-500/20 flex items-center justify-center gap-1.5 shadow-sm";
+                els.freeShippingMsg.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-500"></i> Tu pedido contiene productos de gran volumen excluidos de envío gratis.`;
             }
         }
-        currentShippingCost = (foundPrice !== null) ? foundPrice : shippingConfig.defaultPrice;
+    } else {
+        if (shippingConfig.freeThreshold > 0 && cartTotal >= shippingConfig.freeThreshold) {
+            currentShippingCost = 0;
+            currentShippingType = 'GRATIS';
+            els.shippingCost.className = "text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-xl text-[10px] font-black tracking-wider";
+            els.shippingCost.textContent = "GRATIS*";
+            if (els.freeShippingMsg) {
+                els.freeShippingMsg.classList.remove('hidden');
+                els.freeShippingMsg.className = "text-center bg-emerald-500/10 text-emerald-400 text-[10px] font-black uppercase py-2.5 px-3 rounded-xl border border-emerald-500/20 flex flex-col items-center justify-center gap-1 shadow-sm";
+                els.freeShippingMsg.innerHTML = `<div class="flex items-center gap-1.5"><i class="fa-solid fa-gift text-sm"></i> <span>¡Envío Gratis Aplicado!*</span></div><a href="/policies/shipping.html" target="_blank" class="text-[9px] text-emerald-400/80 hover:text-emerald-300 underline font-normal normal-case">*Sujeto a cobertura ordinaria nacional y políticas de envío</a>`;
+            }
+        } else {
+            currentShippingType = 'ESTANDAR';
+            let foundPrice = null;
+            if (shippingConfig.groups) {
+                for (const group of shippingConfig.groups) {
+                    const match = group.cities.some(c => c.toLowerCase().includes(city.toLowerCase()));
+                    if (match) { foundPrice = group.price; break; }
+                }
+            }
+            currentShippingCost = (foundPrice !== null) ? foundPrice : shippingConfig.defaultPrice;
+            els.shippingCost.className = "text-brand-orange bg-brand-orange/10 border border-brand-orange/20 px-2.5 py-1 rounded-xl text-[10px] font-black tracking-wider";
+            els.shippingCost.textContent = currentShippingCost === 0 ? "GRATIS*" : `$${currentShippingCost.toLocaleString('es-CO')}`;
+            if (els.freeShippingMsg) els.freeShippingMsg.classList.add('hidden');
+        }
     }
 
-    els.shippingCost.textContent = currentShippingCost === 0 ? "GRATIS" : `$${currentShippingCost.toLocaleString('es-CO')}`;
     updateTotalDisplay();
     toggleSubmitBtn(true);
 }
@@ -708,7 +755,8 @@ els.btnSubmit.addEventListener('click', async (e) => {
                 city: els.citySelect.value,
                 address: els.address.value,
                 postalCode: els.postal.value,
-                notes: els.notes.value || ""
+                notes: els.notes.value || "",
+                shippingType: currentShippingType
             };
 
             await saveUserProfileUpdates(shouldSaveAddress, isFirstAddress, deptName);
@@ -843,7 +891,8 @@ els.btnSubmit.addEventListener('click', async (e) => {
                 city: els.citySelect.value,
                 address: els.address.value,
                 postalCode: els.postal.value,
-                notes: els.notes.value || ""
+                notes: els.notes.value || "",
+                shippingType: currentShippingType
             };
 
             await saveUserProfileUpdates(shouldSaveAddress, isFirstAddress, deptName);
@@ -906,7 +955,8 @@ async function processCODOrder(billData, shouldSaveAddress, isFirstAddress) {
             city: els.citySelect.value,
             address: els.address.value,
             postalCode: els.postal.value,
-            notes: els.notes.value || ""
+            notes: els.notes.value || "",
+            shippingType: currentShippingType
         };
 
         const payload = {
@@ -1069,9 +1119,10 @@ async function validateAndRenderPromos() {
         els.subtotal.textContent = `$${cartTotal.toLocaleString('es-CO')}`;
         
         const finalShipping = result.finalShippingCost;
-        els.shippingCost.textContent = finalShipping === 0 ? "GRATIS" : `$${finalShipping.toLocaleString('es-CO')}`;
+        els.shippingCost.textContent = finalShipping === 0 ? "GRATIS*" : `$${finalShipping.toLocaleString('es-CO')}`;
         
         if (finalShipping === 0 && currentShippingCost > 0) {
+            els.freeShippingMsg.innerHTML = `<div class="flex items-center gap-1.5"><i class="fa-solid fa-gift text-sm"></i> <span>¡Envío Gratis Aplicado por Cupón!*</span></div><a href="/policies/shipping.html" target="_blank" class="text-[9px] text-emerald-400/80 hover:text-emerald-300 underline font-normal normal-case">*Sujeto a cobertura ordinaria nacional y políticas de envío</a>`;
             els.freeShippingMsg.classList.remove('hidden');
         } else if (finalShipping > 0) {
             els.freeShippingMsg.classList.add('hidden');
